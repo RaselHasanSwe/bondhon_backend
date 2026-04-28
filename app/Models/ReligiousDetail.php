@@ -1,0 +1,36 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+class ReligiousDetail extends Model
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'user_id',
+        'religion',
+        'caste',
+        'sub_caste',
+        'gotra',
+        'manglik_status',
+    ];
+
+    protected $hidden = [];
+
+    protected function casts(): array
+    {
+        return [];
+    }
+
+    /**
+     * Relationships
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+}

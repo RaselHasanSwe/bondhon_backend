@@ -1,0 +1,132 @@
+<?php
+
+use App\Http\Controllers\Api\V1\Admin\AdminDashboardController;
+use App\Http\Controllers\Api\V1\Admin\AdminPhotoModerationController;
+use App\Http\Controllers\Api\V1\Admin\AdminReportController;
+use App\Http\Controllers\Api\V1\Admin\AdminUserController;
+use App\Http\Controllers\Api\V1\Auth\AuthController;
+use App\Http\Controllers\Api\V1\Auth\EmailVerificationController;
+use App\Http\Controllers\Api\V1\Auth\ForgotPasswordController;
+use App\Http\Controllers\Api\V1\Auth\ResetPasswordController;
+use App\Http\Controllers\Api\V1\BlockController;
+use App\Http\Controllers\Api\V1\InterestController;
+use App\Http\Controllers\Api\V1\MatchController;
+use App\Http\Controllers\Api\V1\ProfileController;
+use App\Http\Controllers\Api\V1\ProfileViewController;
+use App\Http\Controllers\Api\V1\ReportController;
+use App\Http\Controllers\Api\V1\ShortlistController;
+use Illuminate\Support\Facades\Route;
+
+/*
+|--------------------------------------------------------------------------
+| API Routes — Bondhon Matrimony Platform
+| All routes prefixed: /api/v1
+|--------------------------------------------------------------------------
+*/
+
+Route::prefix('v1')->group(function () {
+
+    /*
+    |----------------------------------------------------------------------
+    | Auth Routes (Public)
+    |----------------------------------------------------------------------
+    */
+    Route::prefix('auth')->group(function () {
+        Route::post('/register', [AuthController::class, 'register'])
+            ->middleware('throttle:3,1');        // 3 requests per minute
+
+        Route::post('/login', [AuthController::class, 'login'])
+            ->middleware('throttle:5,1');        // 5 requests per minute
+
+        // Password Reset (Public)
+        Route::post('/password/forgot', [ForgotPasswordController::class, 'sendLink'])
+            ->middleware('throttle:5,1');
+        Route::post('/password/reset', [ResetPasswordController::class, 'reset'])
+            ->middleware('throttle:5,1');
+        Route::get('/email/verify/{id}/{hash}', [EmailVerificationController::class, 'verify'])
+            ->middleware('signed')
+            ->name('verification.verify');
+
+        // Email Verification (requires valid Sanctum token)
+        Route::middleware('auth:sanctum')->group(function () {
+            Route::post('/email/resend', [EmailVerificationController::class, 'resend'])
+                ->middleware('throttle:6,1');
+
+            Route::post('/logout', [AuthController::class, 'logout']);
+            Route::get('/me', [AuthController::class, 'me']);
+        });
+    });
+
+    /*
+    |----------------------------------------------------------------------
+    | Protected Routes (Authenticated + Email Verified)
+    |----------------------------------------------------------------------
+    */
+    Route::middleware(['auth:sanctum', 'verified.email'])->group(function () {
+
+        // Profile
+        Route::prefix('profile')->group(function () {
+            Route::get('/', [ProfileController::class, 'show']);
+            Route::put('/', [ProfileController::class, 'update']);
+            Route::get('/completion', [ProfileController::class, 'completionStatus']);
+            Route::post('/photos', [ProfileController::class, 'uploadPhoto']);
+            Route::delete('/photos/{photoId}', [ProfileController::class, 'deletePhoto']);
+            Route::put('/photos/{photoId}/primary', [ProfileController::class, 'setPrimaryPhoto']);
+            Route::get('/{profileId}', [ProfileController::class, 'showById']);
+        });
+
+        // Partner Preferences
+        Route::put('/preferences', [ProfileController::class, 'updatePreferences']);
+
+        // ---------------------------------------------------------------
+        // Phase 2 — Core Features
+        // ---------------------------------------------------------------
+
+        // Matches
+        Route::prefix('matches')->group(function () {
+            Route::get('/', [MatchController::class, 'index']);
+            Route::get('/search', [MatchController::class, 'search']);
+            Route::get('/{userId}/score', [MatchController::class, 'compatibilityScore']);
+        });
+
+        // Interests
+        Route::prefix('interests')->group(function () {
+            Route::post('/', [InterestController::class, 'send']);
+            Route::get('/received', [InterestController::class, 'received']);
+            Route::get('/sent', [InterestController::class, 'sent']);
+            Route::put('/{id}/accept', [InterestController::class, 'accept']);
+            Route::put('/{id}/decline', [InterestController::class, 'decline']);
+            Route::put('/{id}/ignore', [InterestController::class, 'ignore']);
+        });
+
+        // Shortlist
+        Route::post('/shortlist/{userId}', [ShortlistController::class, 'toggle']);
+        Route::get('/shortlist', [ShortlistController::class, 'index']);
+
+        // Block
+        Route::post('/block/{userId}', [BlockController::class, 'block']);
+        Route::delete('/block/{userId}', [BlockController::class, 'unblock']);
+
+        // Report
+        Route::post('/report', [ReportController::class, 'report']);
+
+        // Profile Views
+        Route::get('/profile-views', [ProfileViewController::class, 'myViewers']);
+
+        // ---------------------------------------------------------------
+        // Admin Routes (Authenticated + Admin Role)
+        // ---------------------------------------------------------------
+        Route::middleware('admin')->prefix('admin')->group(function () {
+            Route::get('/dashboard', [AdminDashboardController::class, 'stats']);
+            Route::get('/users', [AdminUserController::class, 'index']);
+            Route::put('/users/{id}/ban', [AdminUserController::class, 'ban']);
+            Route::put('/users/{id}/verify', [AdminUserController::class, 'verify']);
+            Route::get('/photos/pending', [AdminPhotoModerationController::class, 'pending']);
+            Route::put('/photos/{id}/approve', [AdminPhotoModerationController::class, 'approve']);
+            Route::put('/photos/{id}/reject', [AdminPhotoModerationController::class, 'reject']);
+            Route::get('/reports', [AdminReportController::class, 'index']);
+            Route::put('/reports/{id}/action', [AdminReportController::class, 'takeAction']);
+        });
+    });
+});
+

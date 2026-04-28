@@ -1,0 +1,991 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Bondhon Matrimony API",
+        "description": "Full-stack matrimony platform API. All protected endpoints require Bearer token from Sanctum.",
+        "contact": {
+            "email": "admin@bondhon.com"
+        },
+        "license": {
+            "name": "MIT"
+        },
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "http://localhost:8000",
+            "description": "Primary API Server"
+        }
+    ],
+    "paths": {
+        "/api/v1/admin/dashboard": {
+            "get": {
+                "tags": [
+                    "Admin - Dashboard"
+                ],
+                "summary": "Get admin dashboard statistics",
+                "operationId": "8251530c2fefe1e5d15f4d3c09bf46f0",
+                "responses": {
+                    "200": {
+                        "description": "Dashboard statistics"
+                    },
+                    "403": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/admin/photos/pending": {
+            "get": {
+                "tags": [
+                    "Admin - Photo Moderation"
+                ],
+                "summary": "Get photos pending moderation",
+                "operationId": "f7a420b82eb9105ee4e26e5ff603987f",
+                "responses": {
+                    "200": {
+                        "description": "Pending photos list"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/admin/photos/{id}/approve": {
+            "put": {
+                "tags": [
+                    "Admin - Photo Moderation"
+                ],
+                "summary": "Approve a photo",
+                "operationId": "dd98babdcc490e760a381f666c39fae7",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Photo approved"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/admin/photos/{id}/reject": {
+            "put": {
+                "tags": [
+                    "Admin - Photo Moderation"
+                ],
+                "summary": "Reject a photo",
+                "operationId": "6a7fb0b74941408144d4b6a16d2925a5",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "reason": {
+                                        "type": "string",
+                                        "example": "Inappropriate content"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Photo rejected"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/admin/reports": {
+            "get": {
+                "tags": [
+                    "Admin - Reports"
+                ],
+                "summary": "List all user reports",
+                "operationId": "2f1d963d4d66c7a3bd20e56c0506b1b5",
+                "parameters": [
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "pending",
+                                "reviewed",
+                                "action_taken",
+                                "dismissed"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Reports list"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/admin/reports/{id}/action": {
+            "put": {
+                "tags": [
+                    "Admin - Reports"
+                ],
+                "summary": "Take action on a report",
+                "operationId": "aa71fc9ab283275ac6f7c83d8660e157",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "status"
+                                ],
+                                "properties": {
+                                    "status": {
+                                        "type": "string",
+                                        "enum": [
+                                            "reviewed",
+                                            "action_taken",
+                                            "dismissed"
+                                        ]
+                                    },
+                                    "notes": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Report updated"
+                    },
+                    "404": {
+                        "description": "Report not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/admin/users": {
+            "get": {
+                "tags": [
+                    "Admin - Users"
+                ],
+                "summary": "List all users with pagination",
+                "operationId": "b0b00cf5db5258ff35b911db295a30da",
+                "parameters": [
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Users list"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/admin/users/{id}/ban": {
+            "put": {
+                "tags": [
+                    "Admin - Users"
+                ],
+                "summary": "Ban or unban a user",
+                "operationId": "83fed388a4d5d92865f0e0b255709240",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "is_banned": {
+                                        "type": "boolean",
+                                        "example": true
+                                    },
+                                    "reason": {
+                                        "type": "string",
+                                        "example": "Violation of terms"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "User ban status updated"
+                    },
+                    "404": {
+                        "description": "User not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/admin/users/{id}/verify": {
+            "put": {
+                "tags": [
+                    "Admin - Users"
+                ],
+                "summary": "Verify a user profile",
+                "operationId": "d84cf165f181bb7bf226c472cd23bcc4",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User verified"
+                    },
+                    "404": {
+                        "description": "User not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/auth/register": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Register a new user",
+                "operationId": "7ca6fc7989202054d29707fef91a2d4a",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "email",
+                                    "password",
+                                    "password_confirmation",
+                                    "gender",
+                                    "profile_created_by"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Rahim Uddin"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "rahim@example.com"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "password123"
+                                    },
+                                    "password_confirmation": {
+                                        "type": "string",
+                                        "example": "password123"
+                                    },
+                                    "gender": {
+                                        "type": "string",
+                                        "example": "male",
+                                        "enum": [
+                                            "male",
+                                            "female"
+                                        ]
+                                    },
+                                    "profile_created_by": {
+                                        "type": "string",
+                                        "example": "self",
+                                        "enum": [
+                                            "self",
+                                            "parents",
+                                            "siblings"
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "User registered successfully"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
+        "/api/v1/auth/login": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Login user",
+                "operationId": "9d0bb5c770cbec19b0b9566606ef4adb",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "rahim@example.com"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "password123"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Login successful"
+                    },
+                    "401": {
+                        "description": "Invalid credentials"
+                    },
+                    "403": {
+                        "description": "Account banned or inactive"
+                    }
+                }
+            }
+        },
+        "/api/v1/auth/logout": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Logout user (revoke token)",
+                "operationId": "3a27a9e02ceb521eb3f98c8d2394aef9",
+                "responses": {
+                    "200": {
+                        "description": "Logged out successfully"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/auth/me": {
+            "get": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Get authenticated user details",
+                "operationId": "7edb820901b8b3a880fc4d7a0a7290fb",
+                "responses": {
+                    "200": {
+                        "description": "User details"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/auth/email/verify/{id}/{hash}": {
+            "get": {
+                "tags": [
+                    "Email Verification"
+                ],
+                "summary": "Verify user email address",
+                "operationId": "d3488e1ddfc474c63037c03f7700c4e3",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "hash",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Email verified successfully"
+                    },
+                    "403": {
+                        "description": "Invalid or expired verification link"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/auth/email/resend": {
+            "post": {
+                "tags": [
+                    "Email Verification"
+                ],
+                "summary": "Resend email verification link",
+                "operationId": "8868dc08613cf7995f711a30c390a484",
+                "responses": {
+                    "200": {
+                        "description": "Verification link sent"
+                    },
+                    "400": {
+                        "description": "Email already verified"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/auth/password/forgot": {
+            "post": {
+                "tags": [
+                    "Password Reset"
+                ],
+                "summary": "Send password reset link to email",
+                "operationId": "db8d6cb1928edd18c9a768f0d23125b7",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "user@example.com"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Reset link sent (or silently ignored if email not found)"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    },
+                    "429": {
+                        "description": "Too many requests"
+                    }
+                }
+            }
+        },
+        "/api/v1/auth/password/reset": {
+            "post": {
+                "tags": [
+                    "Password Reset"
+                ],
+                "summary": "Reset password using token from email",
+                "operationId": "c17c4b2ea7127586491109199c917a96",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "token",
+                                    "email",
+                                    "password",
+                                    "password_confirmation"
+                                ],
+                                "properties": {
+                                    "token": {
+                                        "type": "string",
+                                        "example": "abc123..."
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "user@example.com"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "newpassword123"
+                                    },
+                                    "password_confirmation": {
+                                        "type": "string",
+                                        "example": "newpassword123"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Password reset successfully"
+                    },
+                    "422": {
+                        "description": "Validation error or invalid/expired token"
+                    }
+                }
+            }
+        },
+        "/api/v1/profile": {
+            "get": {
+                "tags": [
+                    "Profile"
+                ],
+                "summary": "Get authenticated user's own profile",
+                "operationId": "dffac35700b3186de8d19cc212fe0285",
+                "responses": {
+                    "200": {
+                        "description": "Profile retrieved successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Profile"
+                ],
+                "summary": "Update own profile (basic info + sub-details)",
+                "operationId": "d682da2fd566e34f597e169ac582ad3f",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Profile updated successfully"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/profile/{profileId}": {
+            "get": {
+                "tags": [
+                    "Profile"
+                ],
+                "summary": "View another user's profile by profile ID (e.g. BON-000001)",
+                "operationId": "dc690aac5aeaf3d6686cbb83ff5b9090",
+                "parameters": [
+                    {
+                        "name": "profileId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "BON-000001"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Profile retrieved"
+                    },
+                    "404": {
+                        "description": "Profile not found"
+                    },
+                    "403": {
+                        "description": "This profile is not visible to you"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/preferences": {
+            "put": {
+                "tags": [
+                    "Profile"
+                ],
+                "summary": "Update partner preferences",
+                "operationId": "42abd543298abc6bfc7a53f94d2631f6",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Preferences updated successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/profile/completion": {
+            "get": {
+                "tags": [
+                    "Profile"
+                ],
+                "summary": "Get profile completion status",
+                "operationId": "9269cc8461c945a7997b7cfbe83da5d1",
+                "responses": {
+                    "200": {
+                        "description": "Profile completion status"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/profile/photos": {
+            "post": {
+                "tags": [
+                    "Profile"
+                ],
+                "summary": "Upload a profile photo",
+                "operationId": "5b97d01c2bb1d700c0287e5cfbae26b4",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "properties": {
+                                    "photo": {
+                                        "type": "string",
+                                        "format": "binary"
+                                    },
+                                    "is_private": {
+                                        "type": "boolean",
+                                        "example": false
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Photo uploaded, pending moderation"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/profile/photos/{photoId}": {
+            "delete": {
+                "tags": [
+                    "Profile"
+                ],
+                "summary": "Delete a profile photo",
+                "operationId": "1a735bfb798f542528fc1855992e4301",
+                "parameters": [
+                    {
+                        "name": "photoId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Photo deleted"
+                    },
+                    "404": {
+                        "description": "Photo not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/profile/photos/{photoId}/primary": {
+            "put": {
+                "tags": [
+                    "Profile"
+                ],
+                "summary": "Set a photo as primary",
+                "operationId": "2ac9110765add26e0e082fcd5e46801a",
+                "parameters": [
+                    {
+                        "name": "photoId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Primary photo set"
+                    },
+                    "403": {
+                        "description": "Photo must be approved first"
+                    },
+                    "404": {
+                        "description": "Photo not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "SuccessResponse": {
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "data": {
+                        "type": "object"
+                    },
+                    "message": {
+                        "type": "string"
+                    },
+                    "errors": {
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "ErrorResponse": {
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "example": false
+                    },
+                    "data": {
+                        "nullable": true
+                    },
+                    "message": {
+                        "type": "string"
+                    },
+                    "errors": {
+                        "type": "object",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            }
+        },
+        "securitySchemes": {
+            "sanctum": {
+                "type": "http",
+                "description": "Laravel Sanctum token. Obtain via POST /api/v1/auth/login",
+                "bearerFormat": "Token",
+                "scheme": "bearer"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Admin - Dashboard",
+            "description": "Admin dashboard statistics"
+        },
+        {
+            "name": "Admin - Photo Moderation",
+            "description": "Admin photo approval queue"
+        },
+        {
+            "name": "Admin - Reports",
+            "description": "Admin report management"
+        },
+        {
+            "name": "Admin - Users",
+            "description": "Admin user management"
+        },
+        {
+            "name": "Authentication",
+            "description": "User registration, login, and session management"
+        },
+        {
+            "name": "Email Verification",
+            "description": "Email verification endpoints"
+        },
+        {
+            "name": "Password Reset",
+            "description": "Password reset endpoints"
+        },
+        {
+            "name": "Profile",
+            "description": "Profile management endpoints"
+        }
+    ]
+}
