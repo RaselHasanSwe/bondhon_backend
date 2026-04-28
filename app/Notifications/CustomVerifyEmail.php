@@ -35,9 +35,10 @@ class CustomVerifyEmail extends VerifyEmail
      */
     public function toMail($notifiable): MailMessage
     {
-        // ✅ this keeps Laravel signed URL logic
-        $backendUrl  = $this->verificationUrl($notifiable);
-        $url = 'http://localhost:3000/dashboard?v_url=' . urlencode($backendUrl);
+        // ✅ this keeps Laravel signed URL logic — points to the PUBLIC frontend verify page
+        $backendUrl = $this->verificationUrl($notifiable);
+        $frontendBase = rtrim(config('frontend.base_url', 'http://localhost:3000'), '/');
+        $url = $frontendBase . '/verify-email?v_url=' . urlencode($backendUrl);
         return (new \Illuminate\Notifications\Messages\MailMessage)
             ->subject('Verify Your Email')
             ->view('emails.verify-email', [ // 👈 your custom blade
