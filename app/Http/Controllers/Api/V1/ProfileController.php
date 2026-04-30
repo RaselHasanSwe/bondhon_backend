@@ -242,16 +242,22 @@ class ProfileController extends ApiController
             $user       = $request->user()->load(['profile', 'religiousDetail', 'familyDetail', 'educationCareer', 'lifestyle', 'horoscopeDetail', 'partnerPreference', 'photos']);
             $percentage = $this->completionService->calculate($user);
 
+            // has_basic_info is true only when ALL 8 scored basic fields are filled,
+            // so the completion bar accurately shows which section still needs work.
+            $basicRequiredFields = ['dob', 'height_cm', 'weight_kg', 'complexion', 'marital_status', 'mother_tongue', 'country', 'city'];
+            $allBasicFilled = $user->profile
+                && collect($basicRequiredFields)->every(fn ($f) => ! empty($user->profile->$f));
+
             return $this->successResponse([
                 'percentage'           => $percentage,
-                'has_basic_info'       => ! empty($user->profile?->dob),
+                'has_basic_info'       => $allBasicFilled,
                 'has_religious_detail' => ! empty($user->religiousDetail?->religion),
                 'has_family_detail'    => ! empty($user->familyDetail?->family_type),
                 'has_education'        => ! empty($user->educationCareer?->highest_education),
                 'has_lifestyle'        => ! empty($user->lifestyle?->diet),
                 'has_horoscope'        => ! empty($user->horoscopeDetail?->rashi),
                 'has_preferences'      => ! empty($user->partnerPreference?->age_min),
-                'has_photo'            => $user->photos()->where('is_approved', true)->exists(),
+                'has_photo'            => $user->photos()->exists(),
                 'has_about_me'         => ! empty($user->profile?->about_me) && mb_strlen($user->profile->about_me) >= 50,
             ], 'Profile completion status retrieved.');
 
@@ -289,7 +295,7 @@ class ProfileController extends ApiController
     public function uploadPhoto(Request $request): JsonResponse
     {
         $request->validate([
-            'photo'      => ['required', 'image', 'mimes:jpeg,jpg,png,webp', 'max:10240'],
+            'photo'      => ['required', 'image', 'mimes:jpeg,jpg,png,webp'],
             'is_private' => ['nullable', 'boolean'],
         ]);
 
@@ -303,7 +309,7 @@ class ProfileController extends ApiController
             $filename = 'photos/' . $user->id . '/' . uniqid('photo_', true) . '.jpg';
             $encoded  = $image->toJpeg(85);
 
-            Storage::disk(config('filesystems.default', 'public'))->put($filename, $encoded);
+            Storage::disk('public')->put($filename, $encoded);
 
             $photo = ProfilePhoto::create([
                 'user_id'           => $user->id,
@@ -347,7 +353,7 @@ class ProfileController extends ApiController
             $photo = ProfilePhoto::where('id', $photoId)->where('user_id', $user->id)->firstOrFail();
 
             DB::transaction(function () use ($photo, $user, $photoId) {
-                Storage::disk(config('filesystems.default', 'public'))->delete($photo->file_path);
+                Storage::disk('public')->delete($photo->file_path);
                 $photo->delete();
                 $this->completionService->recalculateAndSave($user->fresh());
             });

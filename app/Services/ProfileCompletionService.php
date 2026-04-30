@@ -83,9 +83,9 @@ class ProfileCompletionService
             $score      += (int) round(($filledPref / count($prefFields)) * 15);
         }
 
-        // At least 1 approved photo (15%)
-        $hasApprovedPhoto = $user->photos()->where('is_approved', true)->exists();
-        if ($hasApprovedPhoto) {
+        // At least 1 uploaded photo (15%) — counts any uploaded photo, not just admin-approved
+        $hasPhoto = $user->photos()->exists();
+        if ($hasPhoto) {
             $score += 15;
         }
 
