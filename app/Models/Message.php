@@ -16,6 +16,7 @@ class Message extends Model
         'sender_id',
         'type',
         'body',
+        'label',
         'file_path',
         'file_name',
         'file_size',
@@ -74,6 +75,11 @@ class Message extends Model
     public function replies(): HasMany
     {
         return $this->hasMany(Message::class, 'reply_to_message_id');
+    }
+
+    public function mediaItems(): HasMany
+    {
+        return $this->hasMany(MessageMedia::class)->orderBy('sort_order');
     }
 
     /**

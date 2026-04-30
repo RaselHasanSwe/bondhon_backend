@@ -78,6 +78,8 @@ class MessageController extends ApiController
                 body:               $data['body'] ?? null,
                 file:               $request->file('file'),
                 replyToMessageId:   $data['reply_to_message_id'] ?? null,
+                label:              $data['label'] ?? null,
+                files:              $request->file('files') ?? [],
             );
         } catch (\Exception $e) {
             Log::error('[MESSAGE - Send] Error: ' . $e->getMessage() . ' | User: ' . $user->id);

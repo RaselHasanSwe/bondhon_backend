@@ -8,6 +8,7 @@ use App\Models\Block;
 use App\Models\Conversation;
 use App\Models\Interest;
 use App\Models\Message;
+use App\Models\MessageMedia;
 use App\Models\Profile;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
@@ -111,7 +112,7 @@ class ChatService
     public function getMessages(Conversation $conversation, int $perPage = 40, ?int $beforeId = null)
     {
         $query = $conversation->messages()
-            ->with(['sender.profile', 'replyTo'])
+            ->with(['sender.profile', 'replyTo', 'mediaItems'])
             ->orderByDesc('id');
 
         if ($beforeId) {
@@ -128,6 +129,9 @@ class ChatService
 
     /**
      * Send a message in a conversation.
+     *
+     * @param  UploadedFile|null          $file   Single file (video/audio/voice)
+     * @param  UploadedFile[]             $files  Multiple files (images / documents)
      */
     public function sendMessage(
         Conversation $conversation,
@@ -135,25 +139,29 @@ class ChatService
         string $type,
         ?string $body,
         ?UploadedFile $file,
-        ?int $replyToMessageId
+        ?int $replyToMessageId,
+        ?string $label = null,
+        array $files = []
     ): Message {
         $receiverId = $conversation->user_one_id === $sender->id
             ? $conversation->user_two_id
             : $conversation->user_one_id;
 
+        // Single-file data (video/audio/voice legacy)
         $fileData = [];
         if ($file) {
             $fileData = $this->processFile($file, $type);
         }
 
         $message = DB::transaction(function () use (
-            $conversation, $sender, $type, $body, $fileData, $replyToMessageId, $receiverId
+            $conversation, $sender, $type, $body, $label, $fileData, $files, $replyToMessageId, $receiverId
         ) {
             $msg = Message::create([
                 'conversation_id'     => $conversation->id,
                 'sender_id'           => $sender->id,
                 'type'                => $type,
                 'body'                => $body,
+                'label'               => $label,
                 'file_path'           => $fileData['file_path'] ?? null,
                 'file_name'           => $fileData['file_name'] ?? null,
                 'file_size'           => $fileData['file_size'] ?? null,
@@ -163,6 +171,19 @@ class ChatService
                 'reply_to_message_id' => $replyToMessageId,
                 'delivered_at'        => now(),
             ]);
+
+            // Persist multiple files to message_media
+            foreach ($files as $index => $uploadedFile) {
+                $mediaData = $this->processFile($uploadedFile, $type);
+                MessageMedia::create([
+                    'message_id'    => $msg->id,
+                    'file_path'     => $mediaData['file_path'],
+                    'file_name'     => $mediaData['file_name'],
+                    'file_size'     => $mediaData['file_size'],
+                    'file_mime_type'=> $mediaData['file_mime_type'],
+                    'sort_order'    => $index,
+                ]);
+            }
 
             // Update conversation
             $conversation->update([
@@ -176,7 +197,7 @@ class ChatService
             return $msg;
         });
 
-        $message->load(['sender.profile', 'replyTo']);
+        $message->load(['sender.profile', 'replyTo', 'mediaItems']);
 
         // Broadcast real-time event
         broadcast(new MessageSent($message, $conversation))->toOthers();
