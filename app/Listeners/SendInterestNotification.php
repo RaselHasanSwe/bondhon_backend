@@ -4,12 +4,13 @@ namespace App\Listeners;
 
 use App\Events\InterestReceived;
 use App\Jobs\SendEmailNotification;
+use App\Services\NotificationService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\Log;
 
 class SendInterestNotification implements ShouldQueue
 {
-    public function __construct() {}
+    public function __construct(private readonly NotificationService $notificationService) {}
 
     public function handle(InterestReceived $event): void
     {
@@ -17,9 +18,17 @@ class SendInterestNotification implements ShouldQueue
         $receiver = $interest->receiver;
         $sender   = $interest->sender;
 
+        if (!$receiver || !$sender) {
+            Log::warning('[INTEREST NOTIFICATION] Missing receiver or sender for interest: ' . $interest->id);
+            return;
+        }
+
         Log::info('[INTEREST NOTIFICATION - Send] Sender: ' . $sender->id . ' → Receiver: ' . $receiver->id);
 
-        // Dispatch email notification job
+        // Send in-app notification via NotificationService
+        $this->notificationService->notifyInterestReceived($receiver, $sender);
+
+        // Dispatch email notification job (queued)
         SendEmailNotification::dispatch(
             $receiver,
             'interest_received',
@@ -30,4 +39,3 @@ class SendInterestNotification implements ShouldQueue
         );
     }
 }
-

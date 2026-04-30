@@ -31,5 +31,31 @@ class MessageSent implements ShouldBroadcast
     {
         return 'message.sent';
     }
-}
 
+    public function broadcastWith(): array
+    {
+        return [
+            'id'                  => $this->message->id,
+            'conversation_id'     => $this->message->conversation_id,
+            'sender_id'           => $this->message->sender_id,
+            'type'                => $this->message->type,
+            'body'                => $this->message->body,
+            'file_path'           => $this->message->file_path,
+            'file_name'           => $this->message->file_name,
+            'file_size'           => $this->message->file_size,
+            'file_mime_type'      => $this->message->file_mime_type,
+            'duration_seconds'    => $this->message->duration_seconds,
+            'thumbnail_path'      => $this->message->thumbnail_path,
+            'is_deleted'          => $this->message->is_deleted,
+            'reply_to_message_id' => $this->message->reply_to_message_id,
+            'delivered_at'        => $this->message->delivered_at?->toISOString(),
+            'read_at'             => $this->message->read_at?->toISOString(),
+            'created_at'          => $this->message->created_at->toISOString(),
+            'status'              => $this->message->status,
+            'sender'              => [
+                'id'   => $this->message->sender->id,
+                'name' => $this->message->sender->name,
+            ],
+        ];
+    }
+}

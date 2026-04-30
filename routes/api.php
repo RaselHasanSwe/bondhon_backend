@@ -9,8 +9,11 @@ use App\Http\Controllers\Api\V1\Auth\EmailVerificationController;
 use App\Http\Controllers\Api\V1\Auth\ForgotPasswordController;
 use App\Http\Controllers\Api\V1\Auth\ResetPasswordController;
 use App\Http\Controllers\Api\V1\BlockController;
+use App\Http\Controllers\Api\V1\ChatController;
 use App\Http\Controllers\Api\V1\InterestController;
 use App\Http\Controllers\Api\V1\MatchController;
+use App\Http\Controllers\Api\V1\MessageController;
+use App\Http\Controllers\Api\V1\NotificationController;
 use App\Http\Controllers\Api\V1\ProfileController;
 use App\Http\Controllers\Api\V1\ProfileViewController;
 use App\Http\Controllers\Api\V1\ReportController;
@@ -112,6 +115,35 @@ Route::prefix('v1')->group(function () {
 
         // Profile Views
         Route::get('/profile-views', [ProfileViewController::class, 'myViewers']);
+
+        // ---------------------------------------------------------------
+        // Phase 3 — Real-time: Chat, Messages, Notifications
+        // ---------------------------------------------------------------
+
+        // Conversations
+        Route::prefix('conversations')->group(function () {
+            Route::get('/', [ChatController::class, 'index']);
+            Route::post('/', [ChatController::class, 'getOrCreate']);              // get or create with user_id
+            Route::get('/{conversationId}', [ChatController::class, 'show']);
+
+            // Messages within a conversation
+            Route::get('/{conversationId}/messages', [MessageController::class, 'index']);
+            Route::post('/{conversationId}/messages', [MessageController::class, 'send']);
+            Route::put('/{conversationId}/read', [MessageController::class, 'markRead']);
+            Route::post('/{conversationId}/typing', [MessageController::class, 'typing']);
+        });
+
+        // Individual message actions
+        Route::delete('/messages/{id}', [MessageController::class, 'delete']);
+
+        // Notifications
+        Route::prefix('notifications')->group(function () {
+            Route::get('/', [NotificationController::class, 'index']);
+            Route::get('/unread-count', [NotificationController::class, 'unreadCount']);
+            Route::put('/read-all', [NotificationController::class, 'markAllRead']);
+            Route::put('/{id}/read', [NotificationController::class, 'markRead']);
+            Route::delete('/{id}', [NotificationController::class, 'destroy']);
+        });
 
         // ---------------------------------------------------------------
         // Admin Routes (Authenticated + Admin Role)

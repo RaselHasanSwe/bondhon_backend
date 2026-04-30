@@ -8,6 +8,7 @@ use App\Http\Resources\InterestResource;
 use App\Models\Block;
 use App\Models\Interest;
 use App\Models\User;
+use App\Services\NotificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -15,6 +16,7 @@ use Illuminate\Support\Facades\Log;
 
 class InterestController extends ApiController
 {
+    public function __construct(private readonly NotificationService $notificationService) {}
     /**
      * POST /api/v1/interests
      * Send an interest to another user.
@@ -179,6 +181,14 @@ class InterestController extends ApiController
         $interest->update(['status' => $newStatus]);
 
         Log::info('[INTEREST - UpdateStatus] Success. Interest ID: ' . $interestId . ' → ' . $newStatus);
+
+        // Notify the sender when interest is accepted
+        if ($newStatus === 'accepted') {
+            $sender = User::find($interest->sender_id);
+            if ($sender) {
+                $this->notificationService->notifyInterestAccepted($sender, $user);
+            }
+        }
 
         $interest->load([
             'sender.profile',

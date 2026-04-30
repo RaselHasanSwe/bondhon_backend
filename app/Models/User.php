@@ -82,6 +82,14 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasOne(Profile::class);
     }
 
+    /**
+     * Override the database notification model to use our custom casts.
+     */
+    public function databaseNotificationModel(): string
+    {
+        return \App\Models\Notification::class;
+    }
+
     public function religiousDetail(): HasOne
     {
         return $this->hasOne(ReligiousDetail::class);
