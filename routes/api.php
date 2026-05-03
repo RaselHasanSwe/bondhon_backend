@@ -17,6 +17,7 @@ use App\Http\Controllers\Api\V1\NotificationController;
 use App\Http\Controllers\Api\V1\ProfileController;
 use App\Http\Controllers\Api\V1\ProfileViewController;
 use App\Http\Controllers\Api\V1\ReportController;
+use App\Http\Controllers\Api\V1\CallController;
 use App\Http\Controllers\Api\V1\ShortlistController;
 use Illuminate\Support\Facades\Route;
 
@@ -135,6 +136,19 @@ Route::prefix('v1')->group(function () {
 
         // Individual message actions
         Route::delete('/messages/{id}', [MessageController::class, 'delete']);
+
+        // ---------------------------------------------------------------
+        // Phase 4 — Calls (Auth required + Gold/Platinum subscription)
+        // ---------------------------------------------------------------
+
+        Route::prefix('calls')->group(function () {
+            Route::post('/initiate', [CallController::class, 'initiate']);
+            Route::put('/{id}/answer', [CallController::class, 'answer']);
+            Route::put('/{id}/decline', [CallController::class, 'decline']);
+            Route::put('/{id}/end', [CallController::class, 'end']);
+            Route::post('/{id}/signal', [CallController::class, 'signal']);
+            Route::get('/history', [CallController::class, 'history']);
+        });
 
         // Notifications
         Route::prefix('notifications')->group(function () {
