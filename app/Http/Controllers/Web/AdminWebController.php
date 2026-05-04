@@ -232,6 +232,10 @@ class AdminWebController extends Controller
     {
         $plan = SubscriptionPlan::findOrFail($id);
 
+        if ($plan->price_bdt === 0) {
+            return back()->with('error', 'Free plans (price ৳0) cannot be deleted. They are required for new user registration.');
+        }
+
         if ($plan->subscriptions()->where('status', 'active')->exists()) {
             return back()->with('error', 'Cannot delete plan with active subscriptions.');
         }

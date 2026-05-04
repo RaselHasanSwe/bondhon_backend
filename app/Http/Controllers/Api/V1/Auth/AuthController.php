@@ -6,8 +6,10 @@ use App\Http\Controllers\Api\V1\ApiController;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Models\Profile;
+use App\Models\SubscriptionPlan;
 use App\Models\User;
 use App\Services\ProfileCompletionService;
+use App\Services\SubscriptionService;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -19,7 +21,10 @@ use OpenApi\Attributes as OA;
 #[OA\Tag(name: 'Authentication', description: 'User registration, login, and session management')]
 class AuthController extends ApiController
 {
-    public function __construct(private readonly ProfileCompletionService $completionService) {}
+    public function __construct(
+        private readonly ProfileCompletionService $completionService,
+        private readonly SubscriptionService $subscriptionService,
+    ) {}
 
     #[OA\Post(
         path: '/api/v1/auth/register',
@@ -57,6 +62,7 @@ class AuthController extends ApiController
                     'password'           => $request->password,
                     'gender'             => $request->gender,
                     'profile_created_by' => $request->profile_created_by,
+                    'email_verified_at' => now(),
                 ]);
 
                 // Auto-generate profile_id (BON-XXXXXX)
@@ -72,6 +78,15 @@ class AuthController extends ApiController
 
                 // Calculate initial completion percentage
                 $this->completionService->recalculateAndSave($user->fresh());
+
+                // Auto-assign free subscription on registration
+                $freePlan = SubscriptionPlan::where('price_bdt', 0)
+                    ->where('is_active', true)
+                    ->first();
+                if ($freePlan) {
+                    $this->subscriptionService->activateFree($user, $freePlan);
+                    $user->refresh();
+                }
 
                 $token = $user->createToken('auth_token')->plainTextToken;
 

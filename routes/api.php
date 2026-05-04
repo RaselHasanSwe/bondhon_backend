@@ -65,6 +65,17 @@ Route::prefix('v1')->group(function () {
 
     /*
     |----------------------------------------------------------------------
+    | Subscription — Read-only (auth required, email verification NOT needed)
+    | Users should see plans and their status even before verifying email.
+    |----------------------------------------------------------------------
+    */
+    Route::middleware('auth:sanctum')->prefix('subscription')->group(function () {
+        Route::get('/plans',  [SubscriptionController::class, 'plans']);
+        Route::get('/status', [SubscriptionController::class, 'status']);
+    });
+
+    /*
+    |----------------------------------------------------------------------
     | Protected Routes (Authenticated + Email Verified)
     |----------------------------------------------------------------------
     */
@@ -168,9 +179,9 @@ Route::prefix('v1')->group(function () {
         // ---------------------------------------------------------------
 
         Route::prefix('subscription')->group(function () {
-            Route::get('/plans',        [SubscriptionController::class, 'plans']);
+            // plans and status are accessible WITHOUT email verification (above)
             Route::post('/initiate',    [SubscriptionController::class, 'initiate']);
-            Route::get('/status',       [SubscriptionController::class, 'status']);
+            Route::post('/free',        [SubscriptionController::class, 'subscribeFree']);
             Route::get('/history',      [SubscriptionController::class, 'history']);
             Route::post('/{id}/switch', [SubscriptionController::class, 'switchPlan']);
         });

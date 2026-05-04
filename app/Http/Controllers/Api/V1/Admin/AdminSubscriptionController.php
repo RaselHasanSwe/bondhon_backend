@@ -113,6 +113,10 @@ class AdminSubscriptionController extends ApiController
     {
         $plan = SubscriptionPlan::findOrFail($id);
 
+        if ($plan->price_bdt === 0) {
+            return $this->errorResponse('Free plans (price ৳0) cannot be deleted. They are required for new user registration.', null, 422);
+        }
+
         if ($plan->subscriptions()->where('status', 'active')->exists()) {
             return $this->errorResponse('Cannot delete plan with active subscriptions.', null, 422);
         }

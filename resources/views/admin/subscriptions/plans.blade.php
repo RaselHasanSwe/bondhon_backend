@@ -110,6 +110,13 @@
                                    title="Edit plan">
                                     <i class="bi bi-pencil"></i>
                                 </a>
+                                @if($plan->price_bdt === 0)
+                                    <button class="btn btn-xs btn-outline-secondary btn-sm py-0 px-2"
+                                            title="Free plans cannot be deleted"
+                                            disabled>
+                                        <i class="bi bi-lock"></i>
+                                    </button>
+                                @else
                                 <form method="POST"
                                       action="{{ route('admin.web.plans.destroy', $plan->id) }}"
                                       class="d-inline"
@@ -119,6 +126,7 @@
                                         <i class="bi bi-trash"></i>
                                     </button>
                                 </form>
+                                @endif
                             </td>
                         </tr>
                         @empty

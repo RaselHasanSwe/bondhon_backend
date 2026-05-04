@@ -249,18 +249,18 @@ class SubscriptionPlanSeeder extends Seeder
         $plans = [
 
             // ─────────────────────────────────────────────────────────────
-            // FREE (baseline — not purchasable, shown for reference)
+            // FREE (auto-assigned to all new users on registration — forever)
             // ─────────────────────────────────────────────────────────────
             [
                 'name'          => 'Free',
                 'slug'          => 'free',
-                'description'   => 'Basic access for all registered users — no purchase required.',
+                'description'   => 'Basic access for all registered users — no purchase required. Valid forever.',
                 'plan_type'     => 'free',
                 'price_bdt'     => 0,
-                'duration_qty'  => 0,
-                'duration_unit' => 'day',
+                'duration_qty'  => 1,
+                'duration_unit' => 'year',
                 'features'      => self::freeFeatures(),
-                'is_active'     => false,   // hidden from purchase list; visible in admin panel
+                'is_active'     => true,   // must be active so it can be auto-assigned and shown in plans list
                 'sort_order'    => 0,
             ],
 

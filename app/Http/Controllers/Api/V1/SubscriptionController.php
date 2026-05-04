@@ -34,6 +34,45 @@ class SubscriptionController extends ApiController
     }
 
     /**
+     * POST /api/v1/subscription/free
+     * Subscribe/re-subscribe to a free plan (price = 0) at any time — no payment needed.
+     */
+    public function subscribeFree(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        $validated = $request->validate([
+            'plan_id' => ['required', 'integer', 'exists:subscription_plans,id'],
+        ]);
+
+        $plan = SubscriptionPlan::findOrFail($validated['plan_id']);
+
+        if ($plan->price_bdt > 0) {
+            return $this->errorResponse('This plan requires payment. Use /subscription/initiate instead.', null, 422);
+        }
+
+        if (! $plan->is_active) {
+            return $this->errorResponse('This subscription plan is not currently available.', null, 422);
+        }
+
+        Log::info('[SUBSCRIPTION - SubscribeFree] User ID: ' . $user->id . ' | Plan: ' . $plan->slug);
+
+        try {
+            $subscription = $this->subscriptionService->activateFree($user, $plan);
+
+            Cache::forget("user_plan:{$user->id}");
+
+            return $this->successResponse([
+                'subscription' => $subscription->load('subscriptionPlan'),
+                'plan'         => $subscription->plan,
+                'expires_at'   => null,
+            ], 'Free plan activated successfully.');
+        } catch (\RuntimeException $e) {
+            return $this->errorResponse($e->getMessage(), null, 400);
+        }
+    }
+
+    /**
      * POST /api/v1/subscription/initiate
      * Allow buying any plan. Multiple active subscriptions are OK — user can switch between them.
      */
@@ -68,7 +107,7 @@ class SubscriptionController extends ApiController
                 ->where('id', $user->active_subscription_id)
                 ->where('user_id', $user->id)
                 ->where('status', 'active')
-                ->where('expires_at', '>', now())
+                ->where(fn ($q) => $q->whereNull('expires_at')->orWhere('expires_at', '>', now()))
                 ->first();
         }
         // Fallback if active_subscription_id is stale / not set
@@ -76,16 +115,17 @@ class SubscriptionController extends ApiController
             $activeSub = Subscription::with('subscriptionPlan')
                 ->where('user_id', $user->id)
                 ->where('status', 'active')
-                ->where('expires_at', '>', now())
+                ->where(fn ($q) => $q->whereNull('expires_at')->orWhere('expires_at', '>', now()))
                 ->latest('expires_at')
                 ->first();
         }
 
-        // All non-expired paid subscriptions available for switching
+        // All non-expired paid subscriptions available for switching (exclude free plans)
         $switchable = Subscription::with('subscriptionPlan:id,name,plan_type,price_bdt,duration_qty,duration_unit,features')
             ->where('user_id', $user->id)
             ->where('status', 'active')
-            ->where('expires_at', '>', now())
+            ->where('amount_bdt', '>', 0)
+            ->where(fn ($q) => $q->whereNull('expires_at')->orWhere('expires_at', '>', now()))
             ->orderByDesc('expires_at')
             ->get()
             ->map(fn ($s) => [
@@ -98,7 +138,8 @@ class SubscriptionController extends ApiController
                 'subscription_plan'   => $s->subscriptionPlan,
             ]);
 
-        $isActive = $activeSub && $activeSub->expires_at->isFuture();
+        // A subscription is active when null expires_at (forever) OR expires_at is in the future
+        $isActive = $activeSub && ($activeSub->expires_at === null || $activeSub->expires_at->isFuture());
 
         return $this->successResponse([
             'plan'                   => $isActive ? ($activeSub->plan ?? $user->subscription_plan) : 'free',
@@ -179,8 +220,8 @@ class SubscriptionController extends ApiController
                 'created_at'        => $sub->created_at,
                 'is_current'        => $sub->id === $user->active_subscription_id,
                 'is_switchable'     => $sub->status === 'active'
-                                    && $sub->expires_at !== null
-                                    && $sub->expires_at > now()
+                                    && $sub->amount_bdt > 0
+                                    && ($sub->expires_at === null || $sub->expires_at > now())
                                     && $sub->id !== $user->active_subscription_id,
                 'subscription_plan' => $sub->subscriptionPlan,
             ]);
