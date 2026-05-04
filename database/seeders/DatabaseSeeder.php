@@ -22,6 +22,9 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        // ── Subscription Plans (must run before subscriptions are created) ──
+        $this->call(SubscriptionPlanSeeder::class);
+
         // Create an admin user (idempotent)
         $admin = User::firstOrCreate(
             ['email' => 'admin@bondhon.com'],

@@ -9,6 +9,7 @@ use App\Models\Block;
 use App\Models\Interest;
 use App\Models\User;
 use App\Services\NotificationService;
+use App\Services\SubscriptionFeatureService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -16,7 +17,10 @@ use Illuminate\Support\Facades\Log;
 
 class InterestController extends ApiController
 {
-    public function __construct(private readonly NotificationService $notificationService) {}
+    public function __construct(
+        private readonly NotificationService $notificationService,
+        private readonly SubscriptionFeatureService $featureService,
+    ) {}
     /**
      * POST /api/v1/interests
      * Send an interest to another user.
@@ -31,6 +35,20 @@ class InterestController extends ApiController
         // Cannot send interest to yourself
         if ($sender->id === $receiverId) {
             return $this->errorResponse('You cannot send an interest to yourself.', null, 422);
+        }
+
+        // Check daily interest limit
+        $sentToday = Interest::where('sender_id', $sender->id)
+            ->whereDate('created_at', today())
+            ->count();
+
+        if (! $this->featureService->withinDailyLimit($sender, 'send_interest_per_day', $sentToday)) {
+            $limit = (int) $this->featureService->value($sender, 'send_interest_per_day');
+            return $this->errorResponse(
+                "You have reached your daily interest limit ({$limit}/day). Upgrade your plan to send more.",
+                ['feature' => 'send_interest_per_day', 'limit' => $limit, 'used' => $sentToday],
+                429
+            );
         }
 
         // Check if blocked (either direction)

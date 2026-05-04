@@ -8,6 +8,7 @@ use App\Models\Conversation;
 use App\Models\Message;
 use App\Services\ChatService;
 use App\Services\NotificationService;
+use App\Services\SubscriptionFeatureService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -16,7 +17,8 @@ class MessageController extends ApiController
 {
     public function __construct(
         private readonly ChatService $chatService,
-        private readonly NotificationService $notificationService
+        private readonly NotificationService $notificationService,
+        private readonly SubscriptionFeatureService $featureService,
     ) {}
 
     /**
@@ -68,6 +70,15 @@ class MessageController extends ApiController
 
         if ($conversation->user_one_id !== $user->id && $conversation->user_two_id !== $user->id) {
             return $this->errorResponse('Forbidden.', null, 403);
+        }
+
+        // Guard: voice message requires voice_message_access
+        if (($data['type'] ?? '') === 'voice' && ! $this->featureService->can($user, 'voice_message_access')) {
+            return $this->errorResponse(
+                'Voice messages require an upgraded subscription plan.',
+                ['feature' => 'voice_message_access'],
+                403
+            );
         }
 
         try {

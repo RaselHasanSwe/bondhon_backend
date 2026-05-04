@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Middleware\AdminWebAuth;
+use App\Http\Middleware\CheckFeature;
 use App\Http\Middleware\CheckSubscription;
 use App\Http\Middleware\EnsureEmailIsVerified;
 use App\Http\Middleware\EnsureProfileIsComplete;
@@ -23,11 +25,19 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->append(\Illuminate\Http\Middleware\HandleCors::class);
+
+        // Exclude SSLCommerz payment callbacks from CSRF verification
+        $middleware->validateCsrfTokens(except: [
+            'payment/*',
+        ]);
+
         $middleware->alias([
             'verified.email'   => EnsureEmailIsVerified::class,
             'profile.complete' => EnsureProfileIsComplete::class,
             'subscription'     => CheckSubscription::class,
+            'feature'          => CheckFeature::class,
             'admin'            => EnsureUserIsAdmin::class,
+            'admin.web'        => AdminWebAuth::class,
         ]);
         // Auto-update last_seen_at on every auth API request
         $middleware->appendToGroup('api', UpdateLastSeen::class);

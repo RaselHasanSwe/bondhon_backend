@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\V1\Admin\AdminDashboardController;
 use App\Http\Controllers\Api\V1\Admin\AdminPhotoModerationController;
 use App\Http\Controllers\Api\V1\Admin\AdminReportController;
+use App\Http\Controllers\Api\V1\Admin\AdminSubscriptionController;
 use App\Http\Controllers\Api\V1\Admin\AdminUserController;
 use App\Http\Controllers\Api\V1\Auth\AuthController;
 use App\Http\Controllers\Api\V1\Auth\EmailVerificationController;
@@ -19,6 +20,7 @@ use App\Http\Controllers\Api\V1\ProfileViewController;
 use App\Http\Controllers\Api\V1\ReportController;
 use App\Http\Controllers\Api\V1\CallController;
 use App\Http\Controllers\Api\V1\ShortlistController;
+use App\Http\Controllers\Api\V1\SubscriptionController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -114,7 +116,7 @@ Route::prefix('v1')->group(function () {
         // Report
         Route::post('/report', [ReportController::class, 'report']);
 
-        // Profile Views
+        // Profile Views — requires see_who_viewed_profile
         Route::get('/profile-views', [ProfileViewController::class, 'myViewers']);
 
         // ---------------------------------------------------------------
@@ -124,12 +126,14 @@ Route::prefix('v1')->group(function () {
         // Conversations
         Route::prefix('conversations')->group(function () {
             Route::get('/', [ChatController::class, 'index']);
-            Route::post('/', [ChatController::class, 'getOrCreate']);              // get or create with user_id
+            Route::post('/', [ChatController::class, 'getOrCreate'])              // requires chat_access
+                ->middleware('feature:chat_access');
             Route::get('/{conversationId}', [ChatController::class, 'show']);
 
             // Messages within a conversation
             Route::get('/{conversationId}/messages', [MessageController::class, 'index']);
-            Route::post('/{conversationId}/messages', [MessageController::class, 'send']);
+            Route::post('/{conversationId}/messages', [MessageController::class, 'send'])
+                ->middleware('feature:chat_access');
             Route::put('/{conversationId}/read', [MessageController::class, 'markRead']);
             Route::post('/{conversationId}/typing', [MessageController::class, 'typing']);
         });
@@ -160,6 +164,18 @@ Route::prefix('v1')->group(function () {
         });
 
         // ---------------------------------------------------------------
+        // Phase 5 — Subscription & Payment (SSLCommerz)
+        // ---------------------------------------------------------------
+
+        Route::prefix('subscription')->group(function () {
+            Route::get('/plans',        [SubscriptionController::class, 'plans']);
+            Route::post('/initiate',    [SubscriptionController::class, 'initiate']);
+            Route::get('/status',       [SubscriptionController::class, 'status']);
+            Route::get('/history',      [SubscriptionController::class, 'history']);
+            Route::post('/{id}/switch', [SubscriptionController::class, 'switchPlan']);
+        });
+
+        // ---------------------------------------------------------------
         // Admin Routes (Authenticated + Admin Role)
         // ---------------------------------------------------------------
         Route::middleware('admin')->prefix('admin')->group(function () {
@@ -172,6 +188,20 @@ Route::prefix('v1')->group(function () {
             Route::put('/photos/{id}/reject', [AdminPhotoModerationController::class, 'reject']);
             Route::get('/reports', [AdminReportController::class, 'index']);
             Route::put('/reports/{id}/action', [AdminReportController::class, 'takeAction']);
+
+            // Subscription plan management
+            Route::prefix('subscription-plans')->group(function () {
+                Route::get('/',       [AdminSubscriptionController::class, 'plans']);
+                Route::post('/',      [AdminSubscriptionController::class, 'createPlan']);
+                Route::put('/{id}',   [AdminSubscriptionController::class, 'updatePlan']);
+                Route::delete('/{id}',[AdminSubscriptionController::class, 'deletePlan']);
+            });
+
+            // Subscription sales & revenue
+            Route::prefix('subscriptions')->group(function () {
+                Route::get('/',       [AdminSubscriptionController::class, 'index']);
+                Route::get('/stats',  [AdminSubscriptionController::class, 'stats']);
+            });
         });
     });
 });

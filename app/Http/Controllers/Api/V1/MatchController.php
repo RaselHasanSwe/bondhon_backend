@@ -8,15 +8,20 @@ use App\Http\Resources\ProfileCardResource;
 use App\Models\Block;
 use App\Models\MatchScore;
 use App\Models\Profile;
+use App\Models\ProfileView;
 use App\Models\User;
 use App\Services\MatchingService;
+use App\Services\SubscriptionFeatureService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
 class MatchController extends ApiController
 {
-    public function __construct(private readonly MatchingService $matchingService) {}
+    public function __construct(
+        private readonly MatchingService $matchingService,
+        private readonly SubscriptionFeatureService $featureService,
+    ) {}
 
     /**
      * GET /api/v1/matches
@@ -27,7 +32,11 @@ class MatchController extends ApiController
         $user = $request->user();
         Log::info('[MATCH - Index] User ID: ' . $user->id);
 
-        $paginator = $this->matchingService->getSuggestions($user, 20);
+        // Enforce daily_matches limit
+        $dailyLimit = (int) $this->featureService->value($user, 'daily_matches');
+        $perPage    = ($dailyLimit > 0) ? min(20, $dailyLimit) : 20;
+
+        $paginator = $this->matchingService->getSuggestions($user, $perPage);
 
         return $this->successResponse(
             MatchResource::collection($paginator)->response()->getData(true),
@@ -43,6 +52,36 @@ class MatchController extends ApiController
     {
         $user = $request->user();
         Log::info('[MATCH - Search] User ID: ' . $user->id . ' | Filters: ' . json_encode($request->validated()));
+
+        // Guard: basic search_access
+        if (! $this->featureService->can($user, 'search_access')) {
+            return $this->errorResponse(
+                'Search is not available on your current subscription plan.',
+                ['feature' => 'search_access'],
+                403
+            );
+        }
+
+        // Guard: advanced filters require search_filters_advanced
+        $advancedFields = ['income_min', 'income_max', 'caste', 'diet'];
+        $hasAdvanced    = collect($advancedFields)->contains(fn ($f) => $request->filled($f));
+
+        if ($hasAdvanced && ! $this->featureService->can($user, 'search_filters_advanced')) {
+            return $this->errorResponse(
+                'Advanced search filters (income, caste, etc.) require an upgraded plan.',
+                ['feature' => 'search_filters_advanced'],
+                403
+            );
+        }
+
+        // Guard: BON-XXXXXX profile ID search
+        if ($request->filled('profile_id') && ! $this->featureService->can($user, 'profile_id_search')) {
+            return $this->errorResponse(
+                'Search by Profile ID requires an upgraded subscription plan.',
+                ['feature' => 'profile_id_search'],
+                403
+            );
+        }
 
         // IDs the auth user has blocked or been blocked by
         $blockedIds   = Block::where('blocker_id', $user->id)->pluck('blocked_id');
@@ -203,6 +242,15 @@ class MatchController extends ApiController
             ->firstOrFail();
 
         Log::info('[MATCH - CompatibilityScore] User ID: ' . $user->id . ' | Candidate ID: ' . $userId);
+
+        // Guard: compatibility_score_visible feature
+        if (! $this->featureService->can($user, 'compatibility_score_visible')) {
+            return $this->errorResponse(
+                'Compatibility score visibility requires an upgraded subscription plan.',
+                ['feature' => 'compatibility_score_visible'],
+                403
+            );
+        }
 
         // Check blocked
         $isBlocked = Block::where('blocker_id', $user->id)->where('blocked_id', $userId)->exists()

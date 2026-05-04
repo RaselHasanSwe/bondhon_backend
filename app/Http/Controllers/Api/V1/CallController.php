@@ -11,6 +11,7 @@ use App\Http\Resources\CallLogResource;
 use App\Models\Block;
 use App\Models\CallLog;
 use App\Models\Interest;
+use App\Services\SubscriptionFeatureService;
 use App\Services\WebRTCSignalingService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -21,6 +22,7 @@ class CallController extends ApiController
 {
     public function __construct(
         private readonly WebRTCSignalingService $signalingService,
+        private readonly SubscriptionFeatureService $featureService,
     ) {}
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -36,6 +38,17 @@ class CallController extends ApiController
         // Guard: cannot call yourself
         if ($caller->id === $receiverId) {
             return $this->errorResponse('You cannot call yourself.', null, 422);
+        }
+
+        // Guard: check subscription feature access
+        $featureKey = $type === 'video' ? 'video_call_access' : 'audio_call_access';
+        if (! $this->featureService->can($caller, $featureKey)) {
+            $label = $type === 'video' ? 'Video Call' : 'Audio Call';
+            return $this->errorResponse(
+                "{$label} is not available on your current subscription plan.",
+                ['feature' => $featureKey],
+                403
+            );
         }
 
 

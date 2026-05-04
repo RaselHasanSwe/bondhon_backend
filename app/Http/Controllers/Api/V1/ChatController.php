@@ -6,13 +6,17 @@ use App\Http\Resources\ConversationResource;
 use App\Models\Conversation;
 use App\Models\User;
 use App\Services\ChatService;
+use App\Services\SubscriptionFeatureService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
 class ChatController extends ApiController
 {
-    public function __construct(private readonly ChatService $chatService) {}
+    public function __construct(
+        private readonly ChatService $chatService,
+        private readonly SubscriptionFeatureService $featureService,
+    ) {}
 
     /**
      * GET /api/v1/conversations
@@ -48,6 +52,18 @@ class ChatController extends ApiController
      */
     public function getOrCreate(Request $request): JsonResponse
     {
+        $user = $request->user();
+        Log::info('[CHAT - GetOrCreate] User: ' . $user->id);
+
+        // Guard: chat_access feature
+        if (! $this->featureService->can($user, 'chat_access')) {
+            return $this->errorResponse(
+                'Chat is not available on your current subscription plan.',
+                ['feature' => 'chat_access'],
+                403
+            );
+        }
+
         $request->validate([
             'user_id' => ['required', 'integer', 'exists:users,id'],
         ]);
