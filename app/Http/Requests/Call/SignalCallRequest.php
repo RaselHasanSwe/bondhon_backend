@@ -15,7 +15,7 @@ class SignalCallRequest extends FormRequest
     {
         return [
             'to_user_id' => ['required', 'integer', 'exists:users,id'],
-            'type'       => ['required', 'string', 'in:offer,answer,ice-candidate'],
+            'type'       => ['required', 'string', 'in:offer,answer,ice-candidate,media-status'],
             'payload'    => ['required', 'array'],
         ];
     }

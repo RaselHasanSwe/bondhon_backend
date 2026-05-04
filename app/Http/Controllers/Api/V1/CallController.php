@@ -62,16 +62,20 @@ class CallController extends ApiController
         }
 
         // Guard: no active call already in progress
-        $active = CallLog::where(function ($q) use ($caller, $receiverId) {
+        $activeCall = CallLog::where(function ($q) use ($caller, $receiverId) {
             $q->where(function ($inner) use ($caller, $receiverId) {
                 $inner->where('caller_id', $caller->id)->where('receiver_id', $receiverId);
             })->orWhere(function ($inner) use ($caller, $receiverId) {
                 $inner->where('caller_id', $receiverId)->where('receiver_id', $caller->id);
             });
-        })->whereIn('status', ['initiated', 'answered'])->exists();
+        })->whereIn('status', ['initiated', 'answered'])->first();
 
-        if ($active) {
-            return $this->errorResponse('There is already an active call between these users.', null, 409);
+        if ($activeCall) {
+            return $this->errorResponse(
+                'There is already an active call between these users.',
+                ['active_call_id' => $activeCall->id],
+                409
+            );
         }
 
         $callLog = DB::transaction(function () use ($caller, $receiverId, $type) {
@@ -284,15 +288,27 @@ class CallController extends ApiController
 
     public function history(Request $request): JsonResponse
     {
-        $user = $request->user();
+        $user          = $request->user();
+        $participantId = $request->integer('participant_id', 0);
 
-        $calls = CallLog::with(['caller', 'receiver'])
+        $query = CallLog::with(['caller', 'receiver'])
             ->where(function ($q) use ($user) {
                 $q->where('caller_id', $user->id)
                   ->orWhere('receiver_id', $user->id);
-            })
-            ->orderByDesc('created_at')
-            ->paginate(20);
+            });
+
+        // Optional: filter calls between current user and a specific participant
+        if ($participantId > 0) {
+            $query->where(function ($q) use ($user, $participantId) {
+                $q->where(function ($inner) use ($user, $participantId) {
+                    $inner->where('caller_id', $user->id)->where('receiver_id', $participantId);
+                })->orWhere(function ($inner) use ($user, $participantId) {
+                    $inner->where('caller_id', $participantId)->where('receiver_id', $user->id);
+                });
+            });
+        }
+
+        $calls = $query->orderByDesc('created_at')->paginate($participantId > 0 ? 100 : 20);
 
         return $this->successResponse([
             'data'       => CallLogResource::collection($calls->items()),
