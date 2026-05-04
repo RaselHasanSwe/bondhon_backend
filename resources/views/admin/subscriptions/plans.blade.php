@@ -155,7 +155,7 @@
             </div>
             <div class="row g-1">
                 @foreach($planFeatures as $fkey => $fval)
-                    @if(!is_int($fkey) && isset($defs[$fkey]))
+                    @if($fval && !is_int($fkey) && isset($defs[$fkey]))
                     <div class="col-6 col-md-4">
                         <span class="small" style="font-size:.7rem;">
                             @if($defs[$fkey]['type'] === 'bool')
@@ -166,11 +166,11 @@
                                 @endif
                                 {{ $defs[$fkey]['label'] }}
                             @elseif($defs[$fkey]['type'] === 'qty')
-                                <i class="bi bi-hash text-primary me-1"></i>
+                                <i class="bi bi-check-circle-fill text-success me-1"></i>
                                 {{ $defs[$fkey]['label'] }}:
                                 <strong>{{ $fval == -1 ? '∞' : $fval }}</strong>
                             @elseif($defs[$fkey]['type'] === 'enum')
-                                <i class="bi bi-tag me-1"></i>
+                                <i class="bi bi-check-circle-fill text-success me-1"></i>
                                 {{ $defs[$fkey]['label'] }}: <strong>{{ ucfirst($fval) }}</strong>
                             @endif
                         </span>
