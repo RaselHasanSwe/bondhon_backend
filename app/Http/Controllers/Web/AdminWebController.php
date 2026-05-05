@@ -445,6 +445,132 @@ class AdminWebController extends Controller
     }
 
     // -----------------------------------------------------------------------
+    // Notification History (Admin)
+    // -----------------------------------------------------------------------
+
+    /** Notification types sent by admin (not user-to-user). */
+    private const ADMIN_NOTIFICATION_TYPES = [
+        'broadcast_message',
+        'photo_approved',
+        'photo_rejected',
+        'subscription_expiry',
+    ];
+
+    public function notificationHistory(Request $request): View
+    {
+        $query = DB::table('notifications')
+            ->join('users', function ($join) {
+                $join->on('users.id', '=', 'notifications.notifiable_id')
+                     ->where('notifications.notifiable_type', 'App\Models\User');
+            })
+            ->select(
+                'notifications.id',
+                'notifications.type',
+                'notifications.data',
+                'notifications.is_read',
+                'notifications.read_at',
+                'notifications.created_at',
+                'users.id as user_id',
+                'users.name as user_name',
+                'users.email as user_email'
+            )
+            ->whereIn('notifications.type', self::ADMIN_NOTIFICATION_TYPES)
+            ->orderByDesc('notifications.created_at');
+
+        // Filters
+        if ($request->filled('search')) {
+            $s = $request->search;
+            $query->where(function ($q) use ($s) {
+                $q->where('users.name', 'like', "%{$s}%")
+                  ->orWhere('users.email', 'like', "%{$s}%");
+            });
+        }
+        if ($request->filled('type')) {
+            $query->where('notifications.type', $request->type);
+        }
+        if ($request->filled('status')) {
+            $query->where('notifications.is_read', $request->status === 'read' ? 1 : 0);
+        }
+
+        $notifications = $query->paginate(15)->withQueryString();
+
+        // Stats for admin-sent notifications only
+        $totalCount  = DB::table('notifications')->whereIn('type', self::ADMIN_NOTIFICATION_TYPES)->count();
+        $unreadCount = DB::table('notifications')->whereIn('type', self::ADMIN_NOTIFICATION_TYPES)->where('is_read', false)->count();
+
+        // Type filter dropdown — only admin types that actually exist
+        $types = DB::table('notifications')
+            ->whereIn('type', self::ADMIN_NOTIFICATION_TYPES)
+            ->distinct()->pluck('type')->sort()->values();
+
+        return view('admin.notifications.history', compact('notifications', 'totalCount', 'unreadCount', 'types'));
+    }
+
+    /**
+     * Per-user notification history (all types, paginated).
+     */
+    public function userNotifications(Request $request, int $userId): View|\Illuminate\Http\RedirectResponse
+    {
+        $user = \App\Models\User::withTrashed()->find($userId);
+        if (!$user) {
+            return redirect()->route('admin.web.users')->with('error', 'User not found.');
+        }
+
+        $query = DB::table('notifications')
+            ->where('notifiable_id', $userId)
+            ->where('notifiable_type', 'App\Models\User')
+            ->orderByDesc('created_at');
+
+        if ($request->filled('type')) {
+            $query->where('type', $request->type);
+        }
+        if ($request->filled('status')) {
+            $query->where('is_read', $request->status === 'read' ? 1 : 0);
+        }
+
+        $notifications = $query->paginate(15)->withQueryString();
+        $totalCount    = DB::table('notifications')->where('notifiable_id', $userId)->count();
+        $unreadCount   = DB::table('notifications')->where('notifiable_id', $userId)->where('is_read', false)->count();
+        $types         = DB::table('notifications')->where('notifiable_id', $userId)->distinct()->pluck('type')->sort()->values();
+
+        return view('admin.notifications.user', compact('user', 'notifications', 'totalCount', 'unreadCount', 'types'));
+    }
+
+    public function notificationView(string $id): View|\Illuminate\Http\RedirectResponse
+    {
+        $row = DB::table('notifications')
+            ->join('users', function ($join) {
+                $join->on('users.id', '=', 'notifications.notifiable_id')
+                     ->where('notifications.notifiable_type', 'App\Models\User');
+            })
+            ->select(
+                'notifications.*',
+                'users.id as user_id',
+                'users.name as user_name',
+                'users.email as user_email'
+            )
+            ->where('notifications.id', $id)
+            ->whereIn('notifications.type', self::ADMIN_NOTIFICATION_TYPES)
+            ->first();
+
+        if (!$row) {
+            return redirect()->route('admin.web.notifications.history')->with('error', 'Notification not found.');
+        }
+
+        // Decode the data column; always ensure it's an array
+        if (is_string($row->data)) {
+            $decoded = json_decode($row->data, true);
+            $row->data = is_array($decoded) ? $decoded : [];
+        } elseif (!is_array($row->data)) {
+            $row->data = [];
+        }
+
+        // NOTE: read/unread status reflects the USER's read state — admin viewing does NOT modify it.
+
+        return view('admin.notifications.view', compact('row'));
+    }
+
+    // -----------------------------------------------------------------------
     // Broadcast Notifications
     // -----------------------------------------------------------------------
 
@@ -458,17 +584,50 @@ class AdminWebController extends Controller
     public function sendBroadcast(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'title'   => ['required', 'string', 'max:150'],
-            'message' => ['required', 'string', 'max:500'],
-            'target'  => ['required', 'in:all,free,silver,gold,platinum'],
+            'title'    => ['required', 'string', 'max:150'],
+            'message'  => ['required', 'string', 'max:500'],
+            'target'   => ['required', 'in:all,free,silver,gold,platinum,specific'],
+            'channel'  => ['required', 'in:application,email,both'],
+            'user_ids' => ['sometimes', 'nullable', 'string'],
         ]);
 
         $service = new BroadcastNotificationService(new NotificationService());
-        $count   = $service->broadcast($validated['title'], $validated['message'], $validated['target']);
+        $channel = $validated['channel'];
+        $count   = 0;
 
-        Log::info('[ADMIN WEB - Broadcast] Admin: ' . Auth::id() . ' broad-casted to ' . $count . ' users. Target: ' . $validated['target']);
+        if ($validated['target'] === 'specific') {
+            $userIds = array_filter(array_map('intval', explode(',', $validated['user_ids'] ?? '')));
+            if (empty($userIds)) {
+                return back()->withErrors(['user_ids' => 'Please select at least one user.'])->withInput();
+            }
+            $count = $service->broadcastToSpecificUsers($userIds, $validated['title'], $validated['message'], $channel);
+        } else {
+            $count = $service->broadcast($validated['title'], $validated['message'], $validated['target'], $channel);
+        }
 
-        return redirect()->route('admin.web.broadcast')->with('success', "Notification sent to {$count} user(s).");
+        Log::info('[ADMIN WEB - Broadcast] Admin: ' . Auth::id() . ' broad-casted to ' . $count . ' users. Target: ' . $validated['target'] . ' | Channel: ' . $channel);
+
+        return redirect()->route('admin.web.broadcast')->with('success', "Notification sent to {$count} user(s) via {$channel}.");
+    }
+
+    /**
+     * AJAX – search users for broadcast multi-select.
+     */
+    public function usersSearch(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $q = $request->get('q', '');
+        $users = User::where('is_banned', false)
+            ->whereNotNull('email_verified_at')
+            ->where(function ($query) use ($q) {
+                $query->where('name', 'like', "%{$q}%")
+                      ->orWhere('email', 'like', "%{$q}%");
+            })
+            ->select('id', 'name', 'email')
+            ->limit(30)
+            ->get()
+            ->map(fn ($u) => ['id' => $u->id, 'text' => $u->name . ' (' . $u->email . ')']);
+
+        return response()->json($users);
     }
 
     // -----------------------------------------------------------------------

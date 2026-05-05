@@ -47,7 +47,7 @@
             <thead class="table-light">
                 <tr>
                     <th>ID</th><th>Name</th><th>Email</th><th>Gender</th>
-                    <th>Plan</th><th>Plan Expires</th><th>Joined</th><th>Status</th>
+                    <th>Plan</th><th>Plan Expires</th><th>Joined</th><th>Status</th><th class="text-center">Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -91,9 +91,16 @@
                             <span class="badge bg-success">Active</span>
                         @endif
                     </td>
+                    <td class="text-center">
+                        <a href="{{ route('admin.web.users.notifications', $user->id) }}"
+                           class="btn btn-xs btn-outline-secondary"
+                           style="font-size:11px;padding:2px 8px;" title="View Notifications">
+                            <i class="bi bi-bell"></i>
+                        </a>
+                    </td>
                 </tr>
                 @empty
-                <tr><td colspan="8" class="text-center text-muted py-4">No users found.</td></tr>
+                <tr><td colspan="9" class="text-center text-muted py-4">No users found.</td></tr>
                 @endforelse
             </tbody>
         </table>

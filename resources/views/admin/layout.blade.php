@@ -122,6 +122,15 @@
            class="nav-link {{ request()->routeIs('admin.web.broadcast') ? 'active' : '' }}">
             <i class="bi bi-megaphone"></i> Broadcast
         </a>
+        <a href="{{ route('admin.web.notifications.history') }}" style="font-size:15px;"
+           class="nav-link {{ request()->routeIs('admin.web.notifications.history') || request()->routeIs('admin.web.notifications.view') ? 'active' : '' }}">
+            <i class="bi bi-megaphone"></i>
+            Notification History
+            @php $totalNotes = \Illuminate\Support\Facades\DB::table('notifications')->where('is_read', false)->count(); @endphp
+            @if($totalNotes > 0)
+                <span class="badge bg-secondary ms-auto" style="font-size:10px">{{ $totalNotes > 99 ? '99+' : $totalNotes }}</span>
+            @endif
+        </a>
         <a href="{{ route('admin.web.contact-messages') }}"
            class="nav-link {{ request()->routeIs('admin.web.contact-messages') ? 'active' : '' }}">
             <i class="bi bi-envelope-open"></i> Contact Messages

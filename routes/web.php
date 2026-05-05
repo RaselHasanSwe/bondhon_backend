@@ -45,6 +45,7 @@ Route::prefix('super-admin')->name('admin.web.')->group(function () {
 
         // Users
         Route::get('/users', [AdminWebController::class, 'users'])->name('users');
+        Route::get('/users/{userId}/notifications', [AdminWebController::class, 'userNotifications'])->name('users.notifications');
 
         // Subscription Plans (CRUD)
         Route::get('/subscription-plans',          [AdminWebController::class, 'plans'])->name('plans');
@@ -77,6 +78,11 @@ Route::prefix('super-admin')->name('admin.web.')->group(function () {
         // Broadcast Notifications
         Route::get('/notifications/broadcast',  [AdminWebController::class, 'broadcastForm'])->name('broadcast');
         Route::post('/notifications/broadcast', [AdminWebController::class, 'sendBroadcast'])->name('broadcast.send');
+        Route::get('/notifications/users-search', [AdminWebController::class, 'usersSearch'])->name('broadcast.users-search');
+
+        // Notification History
+        Route::get('/notifications',        [AdminWebController::class, 'notificationHistory'])->name('notifications.history');
+        Route::get('/notifications/{id}',   [AdminWebController::class, 'notificationView'])->name('notifications.view');
 
         // Contact Messages
         Route::get('/contact-messages',             [AdminWebController::class, 'contactMessages'])->name('contact-messages');
