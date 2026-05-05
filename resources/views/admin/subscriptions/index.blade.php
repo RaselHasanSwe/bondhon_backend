@@ -42,9 +42,10 @@
         <div class="col-sm-2">
             <select name="plan" class="form-select form-select-sm">
                 <option value="">All Plans</option>
-                <option value="silver"   {{ request('plan')=='silver'   ?'selected':'' }}>Silver</option>
-                <option value="gold"     {{ request('plan')=='gold'     ?'selected':'' }}>Gold</option>
-                <option value="platinum" {{ request('plan')=='platinum' ?'selected':'' }}>Platinum</option>
+                <option value="free"     {{ request('plan')=='free'     ? 'selected':'' }}>Free</option>
+                <option value="silver"   {{ request('plan')=='silver'   ? 'selected':'' }}>Silver</option>
+                <option value="gold"     {{ request('plan')=='gold'     ? 'selected':'' }}>Gold</option>
+                <option value="platinum" {{ request('plan')=='platinum' ? 'selected':'' }}>Platinum</option>
             </select>
         </div>
         <div class="col-sm-2">

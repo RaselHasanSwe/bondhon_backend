@@ -1,5 +1,6 @@
 @php
     $adminSiteName = \App\Models\SiteSetting::getValue('site_name', 'Bondhon');
+    $adminSiteFavicon = \App\Models\SiteSetting::getValue('site_favicon', null);
     $adminSiteLogo = \App\Models\SiteSetting::getValue('site_logo', null);
 @endphp
 <!DOCTYPE html>
@@ -7,9 +8,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', 'Dashboard') — {{ $adminSiteName }} Admin</title>
-    @if($adminSiteLogo)
-        <link rel="icon" href="{{ $adminSiteLogo }}">
+    <title>@yield('title', 'Dashboard') — {{ $adminSiteName }}</title>
+    @if($adminSiteFavicon)
+        <link rel="icon" href="{{ $adminSiteFavicon }}">
     @endif
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">

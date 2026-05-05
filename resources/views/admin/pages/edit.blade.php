@@ -5,7 +5,7 @@
 @section('content')
 <div class="row g-4">
     <div class="col-12 col-xl-9">
-        <form method="POST" action="{{ route('admin.web.pages.update', $page->id) }}">
+        <form id="page-edit-form" method="POST" action="{{ route('admin.web.pages.update', $page->id) }}">
             @csrf
             @method('PUT')
 
@@ -88,15 +88,21 @@
 @endsection
 
 @push('styles')
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/suneditor@latest/dist/css/suneditor.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/suneditor@2.47.3/dist/css/suneditor.min.css">
 @endpush
 
 @section('scripts')
 {{-- SunEditor — free, open-source rich text editor --}}
-<script src="https://cdn.jsdelivr.net/npm/suneditor@latest/dist/suneditor.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/suneditor@2.47.3/dist/suneditor.min.js"></script>
 <script>
 (function () {
-    var editor = SUNEDITOR.create(document.getElementById('content'), {
+    var textarea = document.getElementById('content');
+    if (!textarea) {
+        console.error('[SunEditor] textarea#content not found');
+        return;
+    }
+
+    var editor = SUNEDITOR.create(textarea, {
         height       : 600,
         width        : '100%',
         defaultStyle : 'font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size: 15px; color: #1F2937;',
@@ -122,10 +128,19 @@
         imageUrlInput  : true,
     });
 
-    /* Sync the hidden textarea value before submit so the form sends the HTML */
-    document.querySelector('form').addEventListener('submit', function () {
-        editor.save();
-    });
+    /*
+     * CRITICAL FIX: Use the specific form ID (#page-edit-form) rather than
+     * document.querySelector('form') which would incorrectly select the sidebar
+     * logout form that appears first in the DOM.
+     * We also call editor.save() synchronously before the browser collects
+     * form field values so the textarea gets the latest HTML content.
+     */
+    var pageForm = document.getElementById('page-edit-form');
+    if (pageForm) {
+        pageForm.addEventListener('submit', function (e) {
+            editor.save();          // syncs editor HTML → textarea.value
+        });
+    }
 })();
 </script>
 @endsection
