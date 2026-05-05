@@ -159,7 +159,7 @@
                 of {{ $notifications->total() }} notifications
             </div>
             <div>
-                {{ $notifications->links('vendor.pagination.bootstrap-5') }}
+                {{ $notifications->links('pagination::bootstrap-5') }}
             </div>
         </div>
     @else

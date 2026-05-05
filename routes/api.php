@@ -3,7 +3,7 @@
 use App\Http\Controllers\Api\V1\Admin\AdminDashboardController;
 use App\Http\Controllers\Api\V1\PublicSettingController;
 use App\Http\Controllers\Api\V1\PublicPageController;
-use App\Http\Controllers\Api\V1\ContactMessageController;
+use App\Http\Controllers\Api\V1\Admin\AdminNotificationController;
 use App\Http\Controllers\Api\V1\Admin\AdminPhotoModerationController;
 use App\Http\Controllers\Api\V1\Admin\AdminReportController;
 use App\Http\Controllers\Api\V1\Admin\AdminSubscriptionController;
@@ -227,6 +227,12 @@ Route::prefix('v1')->group(function () {
             Route::prefix('subscriptions')->group(function () {
                 Route::get('/',       [AdminSubscriptionController::class, 'index']);
                 Route::get('/stats',  [AdminSubscriptionController::class, 'stats']);
+            });
+
+            // Notification broadcast & history
+            Route::prefix('notifications')->group(function () {
+                Route::get('/',           [AdminNotificationController::class, 'index']);
+                Route::post('/broadcast', [AdminNotificationController::class, 'broadcast']);
             });
         });
     });

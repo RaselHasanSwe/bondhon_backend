@@ -24,6 +24,8 @@ class NotificationService
     public const TYPE_PHOTO_APPROVED      = 'photo_approved';
     public const TYPE_PHOTO_REJECTED      = 'photo_rejected';
     public const TYPE_INTEREST_EXPIRED    = 'interest_expired';
+    public const TYPE_SYSTEM              = 'system';
+    public const TYPE_BROADCAST_MESSAGE   = 'broadcast_message';
 
     /**
      * Send a notification to a user (stores in DB + broadcasts via WebSocket).
@@ -36,7 +38,7 @@ class NotificationService
         $notification = $user->notifications()->create([
             'id'      => \Illuminate\Support\Str::uuid(),
             'type'    => $type,
-            'data'    => json_encode($data),
+            'data'    => $data,   // array cast on the Notification model handles serialisation
             'is_read' => false,
         ]);
 
@@ -179,6 +181,24 @@ class NotificationService
         ]);
     }
 
+    public function notifyInterestExpired(User $user, User $otherUser): void
+    {
+        $this->send($user, self::TYPE_INTEREST_EXPIRED, [
+            'title'   => 'Interest Expired',
+            'message' => 'Your interest with ' . $otherUser->name . ' has expired.',
+            'icon'    => 'clock',
+        ]);
+    }
+
+    public function notifySystem(User $user, string $title, string $message): void
+    {
+        $this->send($user, self::TYPE_SYSTEM, [
+            'title'   => $title,
+            'message' => $message,
+            'icon'    => 'megaphone',
+        ]);
+    }
+
     // -------------------------------------------------------------------------
     // Private
     // -------------------------------------------------------------------------
@@ -195,6 +215,7 @@ class NotificationService
                 'type'       => $notification->type,
                 'data'       => $data,
                 'is_read'    => false,
+                'read_at'    => null,
                 'created_at' => $notification->created_at?->toISOString() ?? now()->toISOString(),
             ]));
         } catch (\Throwable $e) {
