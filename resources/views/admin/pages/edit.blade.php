@@ -35,7 +35,7 @@
                     <div class="col-12">
                         <label class="form-label fw-semibold small">Content</label>
                         <textarea id="content" name="content" rows="20"
-                                  class="form-control @error('content') is-invalid @enderror">{{ old('content', $page->content) }}</textarea>
+                                  class="form-control @error('content') is-invalid @enderror">{!! old('content', $page->content) !!}</textarea>
                         @error('content')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
                 </div>
@@ -87,25 +87,46 @@
 </div>
 @endsection
 
+@push('styles')
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/suneditor@latest/dist/css/suneditor.min.css">
+@endpush
+
 @section('scripts')
-<script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+{{-- SunEditor — free, open-source rich text editor --}}
+<script src="https://cdn.jsdelivr.net/npm/suneditor@latest/dist/suneditor.min.js"></script>
 <script>
-tinymce.init({
-    selector: '#content',
-    height: 600,
-    menubar: 'file edit view insert format tools table',
-    plugins: [
-        'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
-        'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
-        'insertdatetime', 'media', 'table', 'code', 'help', 'wordcount'
-    ],
-    toolbar: 'undo redo | blocks | bold italic underline | forecolor backcolor | ' +
-             'alignleft aligncenter alignright alignjustify | ' +
-             'bullist numlist outdent indent | link image table | code fullscreen | help',
-    content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; font-size: 15px; }',
-    skin: 'oxide',
-    content_css: 'default',
-});
+(function () {
+    var editor = SUNEDITOR.create(document.getElementById('content'), {
+        height       : 600,
+        width        : '100%',
+        defaultStyle : 'font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size: 15px; color: #1F2937;',
+        buttonList   : [
+            ['undo', 'redo'],
+            ['font', 'fontSize', 'formatBlock'],
+            ['bold', 'underline', 'italic', 'strike', 'subscript', 'superscript'],
+            ['fontColor', 'hiliteColor', 'textStyle'],
+            ['removeFormat'],
+            ['outdent', 'indent'],
+            ['align', 'horizontalRule', 'list', 'lineHeight'],
+            ['table', 'link', 'image', 'video'],
+            ['fullScreen', 'showBlocks', 'codeView'],
+            ['preview', 'print'],
+        ],
+        /* Allow extra tags used by the frontend prose renderer */
+        addTagsWhitelist : 'figure|figcaption|details|summary|mark|kbd|s|del|ins|sup|sub',
+        /* Keep class/id/style attributes so FAQ faq-item divs and custom classes survive saves */
+        attributesWhitelist : {
+            'all' : 'class|id|style'
+        },
+        imageFileInput : false,
+        imageUrlInput  : true,
+    });
+
+    /* Sync the hidden textarea value before submit so the form sends the HTML */
+    document.querySelector('form').addEventListener('submit', function () {
+        editor.save();
+    });
+})();
 </script>
 @endsection
 

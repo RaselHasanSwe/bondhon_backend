@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
+use App\Models\ContactMessage;
 use App\Models\Page;
 use App\Models\ProfilePhoto;
 use App\Models\Report;
@@ -468,6 +469,46 @@ class AdminWebController extends Controller
         Log::info('[ADMIN WEB - Broadcast] Admin: ' . Auth::id() . ' broad-casted to ' . $count . ' users. Target: ' . $validated['target']);
 
         return redirect()->route('admin.web.broadcast')->with('success', "Notification sent to {$count} user(s).");
+    }
+
+    // -----------------------------------------------------------------------
+    // Contact Messages
+    // -----------------------------------------------------------------------
+
+    public function contactMessages(Request $request): View
+    {
+        $query = ContactMessage::latest();
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->filled('search')) {
+            $q = $request->search;
+            $query->where(fn ($q2) => $q2->where('name', 'like', "%{$q}%")
+                ->orWhere('email', 'like', "%{$q}%")
+                ->orWhere('subject', 'like', "%{$q}%"));
+        }
+
+        $messages = $query->paginate(20)->withQueryString();
+        $unreadCount = ContactMessage::where('status', 'new')->count();
+
+        return view('admin.contact.index', compact('messages', 'unreadCount'));
+    }
+
+    public function markMessageRead(int $id): RedirectResponse
+    {
+        $message = ContactMessage::findOrFail($id);
+        $message->update(['status' => 'read', 'read_at' => now()]);
+
+        return back()->with('success', 'Message marked as read.');
+    }
+
+    public function deleteMessage(int $id): RedirectResponse
+    {
+        ContactMessage::findOrFail($id)->delete();
+
+        return redirect()->route('admin.web.contact-messages')->with('success', 'Message deleted.');
     }
 
     // -----------------------------------------------------------------------

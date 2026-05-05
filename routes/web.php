@@ -77,5 +77,10 @@ Route::prefix('super-admin')->name('admin.web.')->group(function () {
         // Broadcast Notifications
         Route::get('/notifications/broadcast',  [AdminWebController::class, 'broadcastForm'])->name('broadcast');
         Route::post('/notifications/broadcast', [AdminWebController::class, 'sendBroadcast'])->name('broadcast.send');
+
+        // Contact Messages
+        Route::get('/contact-messages',             [AdminWebController::class, 'contactMessages'])->name('contact-messages');
+        Route::post('/contact-messages/{id}/read',  [AdminWebController::class, 'markMessageRead'])->name('contact-messages.read');
+        Route::delete('/contact-messages/{id}',     [AdminWebController::class, 'deleteMessage'])->name('contact-messages.delete');
     });
 });

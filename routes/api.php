@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\V1\Admin\AdminDashboardController;
 use App\Http\Controllers\Api\V1\PublicSettingController;
 use App\Http\Controllers\Api\V1\PublicPageController;
+use App\Http\Controllers\Api\V1\ContactMessageController;
 use App\Http\Controllers\Api\V1\Admin\AdminPhotoModerationController;
 use App\Http\Controllers\Api\V1\Admin\AdminReportController;
 use App\Http\Controllers\Api\V1\Admin\AdminSubscriptionController;
@@ -42,6 +43,7 @@ Route::prefix('v1')->group(function () {
     Route::get('/settings', [PublicSettingController::class, 'index'])->middleware('throttle:60,1');
     Route::get('/pages',          [PublicPageController::class, 'index'])->middleware('throttle:60,1');
     Route::get('/pages/{slug}',   [PublicPageController::class, 'show'])->middleware('throttle:60,1');
+    Route::post('/contact',       [ContactMessageController::class, 'store'])->middleware('throttle:5,1');
 
     /*
     |----------------------------------------------------------------------

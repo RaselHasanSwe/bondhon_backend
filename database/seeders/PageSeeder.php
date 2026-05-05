@@ -11,11 +11,11 @@ class PageSeeder extends Seeder
     {
         $pages = [
             [
-                'title'            => 'Home Hero',
+                'title'            => 'Find Your Perfect Life Partner',
                 'slug'             => 'home_hero',
-                'content'          => '<h1>Find Your Perfect Life Partner</h1><p>Bondhon is Bangladesh\'s most trusted premium matrimony platform. Connect with thousands of verified profiles and find your perfect match.</p>',
-                'meta_title'       => 'Bondhon — Premium Matrimony Platform',
-                'meta_description' => 'Find your perfect life partner on Bondhon — Bangladesh\'s most trusted matrimony platform.',
+                'content'          => '<p>Join <strong>thousands of verified profiles</strong> and let our smart matching algorithm find your ideal match. Registration is completely free.</p><div class="home-stats" style="display:flex;gap:2rem;margin-top:1.5rem;flex-wrap:wrap;"><div style="text-align:center"><strong style="font-size:1.5rem;color:#C9A227;">50,000+</strong><div style="font-size:.85rem;color:#6B7280;">Profiles</div></div><div style="text-align:center"><strong style="font-size:1.5rem;color:#C9A227;">10,000+</strong><div style="font-size:.85rem;color:#6B7280;">Matches Made</div></div><div style="text-align:center"><strong style="font-size:1.5rem;color:#C9A227;">4.9 ★</strong><div style="font-size:.85rem;color:#6B7280;">Rating</div></div></div>',
+                'meta_title'       => "Bangladesh's Most Trusted Matrimony Platform",
+                'meta_description' => 'Find your perfect life partner on Bondhon — Bangladesh\'s most trusted premium matrimony platform.',
                 'is_published'     => true,
                 'sort_order'       => 1,
             ],
@@ -67,7 +67,7 @@ class PageSeeder extends Seeder
         ];
 
         foreach ($pages as $page) {
-            Page::firstOrCreate(['slug' => $page['slug']], $page);
+            Page::updateOrCreate(['slug' => $page['slug']], $page);
         }
     }
 }

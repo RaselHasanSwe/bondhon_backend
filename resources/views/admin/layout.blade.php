@@ -6,6 +6,7 @@
     <title>@yield('title', 'Admin') — Bondhon Super Admin</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    @stack('styles')
     <style>
         :root {
             --gold: #C9A227;
@@ -109,6 +110,14 @@
         <a href="{{ route('admin.web.broadcast') }}"
            class="nav-link {{ request()->routeIs('admin.web.broadcast') ? 'active' : '' }}">
             <i class="bi bi-megaphone"></i> Broadcast
+        </a>
+        <a href="{{ route('admin.web.contact-messages') }}"
+           class="nav-link {{ request()->routeIs('admin.web.contact-messages') ? 'active' : '' }}">
+            <i class="bi bi-envelope-open"></i> Contact Messages
+            @php $newMessages = \App\Models\ContactMessage::where('status','new')->count(); @endphp
+            @if($newMessages > 0)
+                <span class="badge bg-danger ms-auto">{{ $newMessages }}</span>
+            @endif
         </a>
         <hr style="border-color:rgba(255,255,255,.1);margin:.5rem 1.25rem;">
         <a href="{{ route('admin.web.pages') }}"
