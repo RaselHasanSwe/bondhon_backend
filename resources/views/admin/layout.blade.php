@@ -138,6 +138,10 @@
            class="nav-link {{ request()->routeIs('admin.web.settings') ? 'active' : '' }}">
             <i class="bi bi-gear"></i> Site Settings
         </a>
+        <a href="{{ route('admin.web.change-password') }}"
+           class="nav-link {{ request()->routeIs('admin.web.change-password') ? 'active' : '' }}">
+            <i class="bi bi-key"></i> Change Password
+        </a>
     </nav>
     <div class="sidebar-footer">
         <div class="text-white-50 small mb-2">{{ Auth::user()->name }}</div>

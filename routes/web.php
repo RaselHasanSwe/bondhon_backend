@@ -82,5 +82,9 @@ Route::prefix('super-admin')->name('admin.web.')->group(function () {
         Route::get('/contact-messages',             [AdminWebController::class, 'contactMessages'])->name('contact-messages');
         Route::post('/contact-messages/{id}/read',  [AdminWebController::class, 'markMessageRead'])->name('contact-messages.read');
         Route::delete('/contact-messages/{id}',     [AdminWebController::class, 'deleteMessage'])->name('contact-messages.delete');
+
+        // Account — Change Password
+        Route::get('/change-password',  [AdminWebController::class, 'changePasswordForm'])->name('change-password');
+        Route::post('/change-password', [AdminWebController::class, 'changePassword'])->name('change-password.submit');
     });
 });

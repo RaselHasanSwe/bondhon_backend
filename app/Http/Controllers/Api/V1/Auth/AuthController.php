@@ -15,6 +15,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use OpenApi\Attributes as OA;
 
@@ -233,6 +234,30 @@ class AuthController extends ApiController
             ]);
             return $this->serverErrorResponse('Failed to retrieve user details.');
         }
+    }
+
+    /**
+     * Change the authenticated user's password.
+     */
+    public function changePassword(Request $request): JsonResponse
+    {
+        $request->validate([
+            'current_password'      => ['required', 'string'],
+            'new_password'          => ['required', 'string', 'min:8', 'confirmed'],
+        ]);
+
+        /** @var User $user */
+        $user = $request->user();
+
+        if (! Hash::check($request->current_password, $user->password)) {
+            return $this->errorResponse('Current password is incorrect.', null, 422);
+        }
+
+        $user->update(['password' => Hash::make($request->new_password)]);
+
+        Log::info('[AUTH - ChangePassword] User ID: ' . $user->id . ' changed their password.');
+
+        return $this->successResponse(null, 'Password changed successfully.');
     }
 
     /**

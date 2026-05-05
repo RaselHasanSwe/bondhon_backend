@@ -512,6 +512,35 @@ class AdminWebController extends Controller
     }
 
     // -----------------------------------------------------------------------
+    // Account — Change Password (Self)
+    // -----------------------------------------------------------------------
+
+    public function changePasswordForm(): View
+    {
+        return view('admin.account.change_password');
+    }
+
+    public function changePassword(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'current_password'      => ['required', 'string'],
+            'new_password'          => ['required', 'string', 'min:8', 'confirmed'],
+        ]);
+
+        $admin = Auth::guard('web')->user();
+
+        if (! \Illuminate\Support\Facades\Hash::check($request->current_password, $admin->password)) {
+            return back()->withErrors(['current_password' => 'Current password is incorrect.']);
+        }
+
+        $admin->update(['password' => \Illuminate\Support\Facades\Hash::make($request->new_password)]);
+
+        Log::info('[ADMIN WEB - ChangePassword] Admin ID: ' . $admin->id . ' changed their password.');
+
+        return back()->with('success', 'Password changed successfully.');
+    }
+
+    // -----------------------------------------------------------------------
     // Private Helpers
     // -----------------------------------------------------------------------
 
