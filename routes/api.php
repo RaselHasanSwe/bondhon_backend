@@ -28,7 +28,7 @@ use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
-| API Routes — Bondhon Matrimony Platform
+| API Routes — MyBouma Matrimony Platform
 | All routes prefixed: /api/v1
 |--------------------------------------------------------------------------
 */

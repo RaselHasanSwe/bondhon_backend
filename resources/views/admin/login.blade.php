@@ -31,11 +31,6 @@
 <body>
 <div class="login-card">
     <div class="text-center mb-4">
-        @if($loginSiteLogo)
-            <img src="{{ $loginSiteLogo }}" alt="{{ $loginSiteName }}"
-                 style="height:48px;width:auto;object-fit:contain;margin-bottom:.5rem;display:inline-block;">
-            <br>
-        @endif
         <div class="brand-title">{{ $loginSiteName }}</div>
         <p class="text-muted mb-0" style="font-size:.8rem;letter-spacing:.1em;">SUPER ADMIN PANEL</p>
     </div>
@@ -53,7 +48,7 @@
         <div class="mb-3">
             <label class="form-label fw-semibold small">Email Address</label>
             <input type="email" name="email" class="form-control"
-                   value="{{ old('email') }}" placeholder="admin@bondhon.com" required autofocus>
+                   value="{{ old('email') }}" placeholder="admin@mybouma.com" required autofocus>
         </div>
         <div class="mb-4">
             <label class="form-label fw-semibold small">Password</label>

@@ -6,9 +6,9 @@ use OpenApi\Attributes as OA;
 
 #[OA\Info(
     version: '1.0.0',
-    title: 'Bondhon Matrimony API',
+    title: 'MyBouma Matrimony API',
     description: 'Full-stack matrimony platform API. All protected endpoints require Bearer token from Sanctum.',
-    contact: new OA\Contact(email: 'admin@bondhon.com'),
+    contact: new OA\Contact(email: 'admin@mybouma.com'),
     license: new OA\License(name: 'MIT')
 )]
 #[OA\Server(

@@ -81,7 +81,6 @@
             <img src="{{ $adminSiteLogo }}" alt="{{ $adminSiteName }}"
                  style="height:40px;width:auto;object-fit:contain;display:block;margin-bottom:.5rem;border-radius:6px;">
         @endif
-        <h4>{{ $adminSiteName }}</h4>
         <small>Super Admin Panel</small>
     </div>
     <nav class="sidebar-nav">

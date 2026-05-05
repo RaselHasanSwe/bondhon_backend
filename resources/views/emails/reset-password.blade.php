@@ -1,6 +1,6 @@
 @extends('emails.layouts.base')
 
-@php $emailTitle = 'Reset Your Password – Bondhon'; @endphp
+@php $emailTitle = 'Reset Your Password – MyBouma'; @endphp
 
 @section('content')
     <style>
