@@ -1,9 +1,16 @@
+@php
+    $adminSiteName = \App\Models\SiteSetting::getValue('site_name', 'Bondhon');
+    $adminSiteLogo = \App\Models\SiteSetting::getValue('site_logo', null);
+@endphp
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', 'Admin') — Bondhon Super Admin</title>
+    <title>@yield('title', 'Dashboard') — {{ $adminSiteName }} Admin</title>
+    @if($adminSiteLogo)
+        <link rel="icon" href="{{ $adminSiteLogo }}">
+    @endif
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     @stack('styles')
@@ -70,7 +77,11 @@
 <!-- Sidebar -->
 <aside class="sidebar">
     <div class="sidebar-brand">
-        <h4>বন্ধন</h4>
+        @if($adminSiteLogo)
+            <img src="{{ $adminSiteLogo }}" alt="{{ $adminSiteName }}"
+                 style="height:40px;width:auto;object-fit:contain;display:block;margin-bottom:.5rem;border-radius:6px;">
+        @endif
+        <h4>{{ $adminSiteName }}</h4>
         <small>Super Admin Panel</small>
     </div>
     <nav class="sidebar-nav">
