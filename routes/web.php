@@ -55,5 +55,27 @@ Route::prefix('super-admin')->name('admin.web.')->group(function () {
 
         // Subscriptions Sales
         Route::get('/subscriptions', [AdminWebController::class, 'subscriptions'])->name('subscriptions');
+
+        // Site Settings
+        Route::get('/settings',  [AdminWebController::class, 'settings'])->name('settings');
+        Route::post('/settings', [AdminWebController::class, 'updateSettings'])->name('settings.update');
+
+        // Pages (CMS)
+        Route::get('/pages', [AdminWebController::class, 'pages'])->name('pages');
+        Route::get('/pages/{id}/edit', [AdminWebController::class, 'editPage'])->name('pages.edit');
+        Route::put('/pages/{id}', [AdminWebController::class, 'updatePage'])->name('pages.update');
+
+        // Photo Moderation
+        Route::get('/photos', [AdminWebController::class, 'photos'])->name('photos');
+        Route::post('/photos/{id}/action', [AdminWebController::class, 'photoAction'])->name('photos.action');
+
+        // Reports
+        Route::get('/reports', [AdminWebController::class, 'reports'])->name('reports');
+        Route::post('/reports/{id}/dismiss', [AdminWebController::class, 'dismissReport'])->name('reports.dismiss');
+        Route::post('/reports/{id}/ban', [AdminWebController::class, 'banUserFromReport'])->name('reports.ban');
+
+        // Broadcast Notifications
+        Route::get('/notifications/broadcast',  [AdminWebController::class, 'broadcastForm'])->name('broadcast');
+        Route::post('/notifications/broadcast', [AdminWebController::class, 'sendBroadcast'])->name('broadcast.send');
     });
 });

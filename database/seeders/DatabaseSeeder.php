@@ -25,6 +25,10 @@ class DatabaseSeeder extends Seeder
         // ── Subscription Plans (must run before subscriptions are created) ──
         $this->call(SubscriptionPlanSeeder::class);
 
+        // ── Site Settings & Pages ──
+        $this->call(SiteSettingSeeder::class);
+        $this->call(PageSeeder::class);
+
         // Create an admin user (idempotent)
         $admin = User::firstOrCreate(
             ['email' => 'admin@bondhon.com'],

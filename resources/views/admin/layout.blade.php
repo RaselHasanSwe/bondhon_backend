@@ -89,6 +89,36 @@
            class="nav-link {{ request()->routeIs('admin.web.subscriptions') ? 'active' : '' }}">
             <i class="bi bi-credit-card"></i> Subscriptions & Sales
         </a>
+        <hr style="border-color:rgba(255,255,255,.1);margin:.5rem 1.25rem;">
+        <a href="{{ route('admin.web.photos') }}"
+           class="nav-link {{ request()->routeIs('admin.web.photos') ? 'active' : '' }}">
+            <i class="bi bi-images"></i> Photo Moderation
+            @php $pendingPhotos = \App\Models\ProfilePhoto::where('moderation_status','pending')->count(); @endphp
+            @if($pendingPhotos > 0)
+                <span class="badge bg-danger ms-auto">{{ $pendingPhotos }}</span>
+            @endif
+        </a>
+        <a href="{{ route('admin.web.reports') }}"
+           class="nav-link {{ request()->routeIs('admin.web.reports') ? 'active' : '' }}">
+            <i class="bi bi-flag"></i> Reports
+            @php $pendingReports = \App\Models\Report::where('status','pending')->count(); @endphp
+            @if($pendingReports > 0)
+                <span class="badge bg-danger ms-auto">{{ $pendingReports }}</span>
+            @endif
+        </a>
+        <a href="{{ route('admin.web.broadcast') }}"
+           class="nav-link {{ request()->routeIs('admin.web.broadcast') ? 'active' : '' }}">
+            <i class="bi bi-megaphone"></i> Broadcast
+        </a>
+        <hr style="border-color:rgba(255,255,255,.1);margin:.5rem 1.25rem;">
+        <a href="{{ route('admin.web.pages') }}"
+           class="nav-link {{ request()->routeIs('admin.web.pages') || request()->routeIs('admin.web.pages.edit') ? 'active' : '' }}">
+            <i class="bi bi-file-text"></i> Pages
+        </a>
+        <a href="{{ route('admin.web.settings') }}"
+           class="nav-link {{ request()->routeIs('admin.web.settings') ? 'active' : '' }}">
+            <i class="bi bi-gear"></i> Site Settings
+        </a>
     </nav>
     <div class="sidebar-footer">
         <div class="text-white-50 small mb-2">{{ Auth::user()->name }}</div>

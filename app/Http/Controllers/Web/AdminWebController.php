@@ -3,9 +3,17 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
+use App\Models\Page;
+use App\Models\ProfilePhoto;
+use App\Models\Report;
 use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
 use App\Models\User;
+use App\Services\BroadcastNotificationService;
+use App\Services\NotificationService;
+use App\Services\PageService;
+use App\Services\ProfileCompletionService;
+use App\Services\SiteSettingService;
 use App\Services\SubscriptionFeatureService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -244,6 +252,222 @@ class AdminWebController extends Controller
         Log::info('[ADMIN WEB - DeletePlan] Admin: ' . Auth::id() . ' deleted plan ID: ' . $id);
 
         return redirect()->route('admin.web.plans')->with('success', 'Plan deleted.');
+    }
+
+    // -----------------------------------------------------------------------
+    // Site Settings
+    // -----------------------------------------------------------------------
+
+    public function settings(Request $request): View
+    {
+        $service  = new SiteSettingService();
+        $settings = $service->all();
+        $defs     = SiteSettingService::definitions();
+
+        return view('admin.settings.index', compact('settings', 'defs'));
+    }
+
+    public function updateSettings(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'site_name'        => ['nullable', 'string', 'max:100'],
+            'currency'         => ['nullable', 'string', 'max:20'],
+            'currency_symbol'  => ['nullable', 'string', 'max:10'],
+            'contact_email'    => ['nullable', 'email', 'max:150'],
+            'contact_phone'    => ['nullable', 'string', 'max:50'],
+            'contact_address'  => ['nullable', 'string', 'max:255'],
+            'facebook_url'     => ['nullable', 'url', 'max:255'],
+            'twitter_url'      => ['nullable', 'url', 'max:255'],
+            'instagram_url'    => ['nullable', 'url', 'max:255'],
+            'meta_title'       => ['nullable', 'string', 'max:160'],
+            'meta_description' => ['nullable', 'string', 'max:320'],
+            'meta_keywords'    => ['nullable', 'string', 'max:255'],
+            'site_logo'        => ['nullable', 'image', 'max:2048'],
+            'site_favicon'     => ['nullable', 'image', 'max:512'],
+        ]);
+
+        $service = new SiteSettingService();
+
+        // Handle image uploads
+        foreach (['site_logo', 'site_favicon'] as $imageKey) {
+            if ($request->hasFile($imageKey)) {
+                $service->uploadImage($request->file($imageKey), $imageKey);
+            }
+            unset($validated[$imageKey]);
+        }
+
+        $service->update(array_filter($validated, fn ($v) => $v !== null));
+
+        Log::info('[ADMIN WEB - UpdateSettings] Admin: ' . Auth::id() . ' updated site settings.');
+
+        return redirect()->route('admin.web.settings')->with('success', 'Site settings updated successfully.');
+    }
+
+    // -----------------------------------------------------------------------
+    // Pages Management
+    // -----------------------------------------------------------------------
+
+    public function pages(): View
+    {
+        $pageService = new PageService();
+        $pages       = $pageService->all();
+
+        return view('admin.pages.index', compact('pages'));
+    }
+
+    public function editPage(int $id): View
+    {
+        $pageService = new PageService();
+        $page        = $pageService->findById($id);
+
+        return view('admin.pages.edit', compact('page'));
+    }
+
+    public function updatePage(Request $request, int $id): RedirectResponse
+    {
+        $pageService = new PageService();
+        $page        = $pageService->findById($id);
+
+        $validated = $request->validate([
+            'title'            => ['required', 'string', 'max:255'],
+            'content'          => ['nullable', 'string'],
+            'meta_title'       => ['nullable', 'string', 'max:160'],
+            'meta_description' => ['nullable', 'string', 'max:320'],
+            'is_published'     => ['nullable'],
+            'sort_order'       => ['nullable', 'integer', 'min:0'],
+        ]);
+
+        $validated['is_published'] = $request->has('is_published');
+        $validated['sort_order']   = $validated['sort_order'] ?? 0;
+
+        $pageService->update($page, $validated);
+
+        Log::info('[ADMIN WEB - UpdatePage] Admin: ' . Auth::id() . ' updated page ID: ' . $id);
+
+        return redirect()->route('admin.web.pages')->with('success', 'Page updated successfully.');
+    }
+
+    // -----------------------------------------------------------------------
+    // Photo Moderation
+    // -----------------------------------------------------------------------
+
+    public function photos(Request $request): View
+    {
+        $query = ProfilePhoto::with('user:id,name,email')
+            ->where('moderation_status', 'pending')
+            ->latest();
+
+        $photos = $query->paginate(20)->withQueryString();
+
+        return view('admin.photos.index', compact('photos'));
+    }
+
+    public function photoAction(Request $request, int $id): RedirectResponse
+    {
+        $photo  = ProfilePhoto::with('user')->findOrFail($id);
+        $action = $request->input('action');
+        $reason = $request->input('reason', '');
+
+        $notifService = new NotificationService();
+
+        if ($action === 'approve') {
+            $photo->update([
+                'moderation_status' => 'approved',
+                'is_approved'       => true,
+            ]);
+
+            // Recalculate profile completion
+            $completionService = new ProfileCompletionService();
+            $completionService->recalculateAndSave($photo->user);
+
+            $notifService->notifyPhotoApproved($photo->user);
+
+            Log::info('[ADMIN WEB - PhotoApprove] Admin: ' . Auth::id() . ' approved photo ID: ' . $id);
+            $flash = 'Photo approved successfully.';
+        } else {
+            $photo->update(['moderation_status' => 'rejected', 'is_approved' => false]);
+
+            // Recalculate profile completion
+            $completionService = new ProfileCompletionService();
+            $completionService->recalculateAndSave($photo->user);
+
+            $notifService->notifyPhotoRejected($photo->user, $reason);
+
+            Log::info('[ADMIN WEB - PhotoReject] Admin: ' . Auth::id() . ' rejected photo ID: ' . $id);
+            $flash = 'Photo rejected.';
+        }
+
+        return redirect()->route('admin.web.photos')->with('success', $flash);
+    }
+
+    // -----------------------------------------------------------------------
+    // Reports
+    // -----------------------------------------------------------------------
+
+    public function reports(Request $request): View
+    {
+        $query = Report::with(['reporter:id,name,email', 'reported:id,name,email'])->latest();
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        } else {
+            $query->where('status', 'pending');
+        }
+
+        $reports = $query->paginate(20)->withQueryString();
+
+        return view('admin.reports.index', compact('reports'));
+    }
+
+    public function dismissReport(int $id): RedirectResponse
+    {
+        $report = Report::findOrFail($id);
+        $report->update(['status' => 'dismissed']);
+
+        Log::info('[ADMIN WEB - DismissReport] Admin: ' . Auth::id() . ' dismissed report ID: ' . $id);
+
+        return redirect()->route('admin.web.reports')->with('success', 'Report dismissed.');
+    }
+
+    public function banUserFromReport(Request $request, int $id): RedirectResponse
+    {
+        $report = Report::with('reported')->findOrFail($id);
+
+        DB::transaction(function () use ($report) {
+            $report->reported->update(['is_banned' => true]);
+            $report->update(['status' => 'action_taken']);
+        });
+
+        Log::info('[ADMIN WEB - BanFromReport] Admin: ' . Auth::id() . ' banned user: ' . $report->reported_id . ' via report ID: ' . $id);
+
+        return redirect()->route('admin.web.reports')->with('success', 'User banned and report marked as action taken.');
+    }
+
+    // -----------------------------------------------------------------------
+    // Broadcast Notifications
+    // -----------------------------------------------------------------------
+
+    public function broadcastForm(): View
+    {
+        $plans = SubscriptionPlan::where('is_active', true)->orderBy('sort_order')->get(['id', 'name', 'plan_type']);
+
+        return view('admin.notifications.broadcast', compact('plans'));
+    }
+
+    public function sendBroadcast(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'title'   => ['required', 'string', 'max:150'],
+            'message' => ['required', 'string', 'max:500'],
+            'target'  => ['required', 'in:all,free,silver,gold,platinum'],
+        ]);
+
+        $service = new BroadcastNotificationService(new NotificationService());
+        $count   = $service->broadcast($validated['title'], $validated['message'], $validated['target']);
+
+        Log::info('[ADMIN WEB - Broadcast] Admin: ' . Auth::id() . ' broad-casted to ' . $count . ' users. Target: ' . $validated['target']);
+
+        return redirect()->route('admin.web.broadcast')->with('success', "Notification sent to {$count} user(s).");
     }
 
     // -----------------------------------------------------------------------

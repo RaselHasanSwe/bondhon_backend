@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\Api\V1\Admin\AdminDashboardController;
+use App\Http\Controllers\Api\V1\PublicSettingController;
+use App\Http\Controllers\Api\V1\PublicPageController;
 use App\Http\Controllers\Api\V1\Admin\AdminPhotoModerationController;
 use App\Http\Controllers\Api\V1\Admin\AdminReportController;
 use App\Http\Controllers\Api\V1\Admin\AdminSubscriptionController;
@@ -31,6 +33,15 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::prefix('v1')->group(function () {
+
+    /*
+    |----------------------------------------------------------------------
+    | Public Routes — No Auth Required
+    |----------------------------------------------------------------------
+    */
+    Route::get('/settings', [PublicSettingController::class, 'index'])->middleware('throttle:60,1');
+    Route::get('/pages',          [PublicPageController::class, 'index'])->middleware('throttle:60,1');
+    Route::get('/pages/{slug}',   [PublicPageController::class, 'show'])->middleware('throttle:60,1');
 
     /*
     |----------------------------------------------------------------------
