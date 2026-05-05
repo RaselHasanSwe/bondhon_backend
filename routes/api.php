@@ -185,6 +185,7 @@ Route::prefix('v1')->group(function () {
             Route::get('/', [NotificationController::class, 'index']);
             Route::get('/unread-count', [NotificationController::class, 'unreadCount']);
             Route::put('/read-all', [NotificationController::class, 'markAllRead']);
+            Route::get('/{id}', [NotificationController::class, 'show']);
             Route::put('/{id}/read', [NotificationController::class, 'markRead']);
             Route::delete('/{id}', [NotificationController::class, 'destroy']);
         });

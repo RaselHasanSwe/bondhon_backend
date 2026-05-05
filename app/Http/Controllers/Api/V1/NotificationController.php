@@ -13,6 +13,30 @@ class NotificationController extends ApiController
     public function __construct(private readonly NotificationService $notificationService) {}
 
     /**
+     * GET /api/v1/notifications/{id}
+     * Get a single notification by ID.
+     */
+    public function show(Request $request, string $id): JsonResponse
+    {
+        $user         = $request->user();
+        $notification = $user->notifications()->find($id);
+
+        if (!$notification) {
+            return $this->errorResponse('Notification not found.', null, 404);
+        }
+
+        // Auto-mark as read when viewed
+        if (!$notification->is_read) {
+            $notification->update(['is_read' => true, 'read_at' => now()]);
+        }
+
+        return $this->successResponse(
+            new NotificationResource($notification),
+            'Notification retrieved.'
+        );
+    }
+
+    /**
      * GET /api/v1/notifications
      * Paginated notification list for the authenticated user.
      */
