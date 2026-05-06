@@ -15,6 +15,7 @@ class Lifestyle extends Model
         'diet',
         'smoking',
         'drinking',
+        'eye_wear',
         'hobbies',
         'languages_known',
     ];

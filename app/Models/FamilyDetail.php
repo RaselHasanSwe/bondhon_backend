@@ -19,6 +19,10 @@ class FamilyDetail extends Model
         'mother_occupation',
         'brothers_count',
         'sisters_count',
+        'has_children',
+        'child_living_status',
+        'family_values',
+        'sibling_position',
     ];
 
     protected $hidden = [];
@@ -29,6 +33,7 @@ class FamilyDetail extends Model
             'family_income_bdt_per_month' => 'integer',
             'brothers_count' => 'integer',
             'sisters_count' => 'integer',
+            'sibling_position' => 'integer',
         ];
     }
 

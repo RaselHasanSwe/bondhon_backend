@@ -14,6 +14,11 @@ class EducationCareer extends Model
         'user_id',
         'highest_education',
         'college_university',
+        'institution_name_year',
+        'employer_name',
+        'job_location',
+        'designation',
+        'experience_years',
         'profession',
         'employed_in',
         'annual_income_bdt',
@@ -25,6 +30,7 @@ class EducationCareer extends Model
     {
         return [
             'annual_income_bdt' => 'integer',
+            'experience_years' => 'integer',
         ];
     }
 

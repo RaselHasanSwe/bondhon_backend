@@ -17,6 +17,8 @@ class ReligiousDetail extends Model
         'sub_caste',
         'gotra',
         'manglik_status',
+        'religiousness',
+        'pray',
     ];
 
     protected $hidden = [];
