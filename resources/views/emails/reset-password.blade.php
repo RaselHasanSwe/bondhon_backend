@@ -164,7 +164,7 @@
     </div>
 
     <p class="reset-body-text">
-        We received a request to reset the password for your <strong>Bondhon</strong> account.
+        We received a request to reset the password for your <strong>My Bouma</strong> account.
         Click the button below to choose a new password.
     </p>
 
@@ -189,7 +189,7 @@
     <div class="closing-text">
         <p>Your privacy and security are our highest priority.</p>
         <p class="closing-signature">Warm regards,</p>
-        <p class="closing-team">The Bondhon Team</p>
+        <p class="closing-team">The My Bouma Team</p>
     </div>
 
 @endsection

@@ -2,7 +2,7 @@
 
 /*
 |--------------------------------------------------------------------------
-| WebRTC / ICE Server Configuration — Bondhon Matrimony Platform
+| WebRTC / ICE Server Configuration — My Bouma Matrimony Platform
 |--------------------------------------------------------------------------
 |
 | Configuration for STUN/TURN servers used in WebRTC peer-to-peer calls.

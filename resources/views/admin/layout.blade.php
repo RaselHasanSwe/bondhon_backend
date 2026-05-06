@@ -1,5 +1,5 @@
 @php
-    $adminSiteName = \App\Models\SiteSetting::getValue('site_name', 'Bondhon');
+    $adminSiteName = \App\Models\SiteSetting::getValue('site_name', 'My Bouma');
     $adminSiteFavicon = \App\Models\SiteSetting::getValue('site_favicon', null);
     $adminSiteLogo = \App\Models\SiteSetting::getValue('site_logo', null);
 @endphp

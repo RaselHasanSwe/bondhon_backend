@@ -15,7 +15,7 @@
                     <div class="col-md-6">
                         <label class="form-label fw-semibold small">Site Name</label>
                         <input type="text" name="site_name" class="form-control @error('site_name') is-invalid @enderror"
-                               value="{{ old('site_name', $settings['site_name'] ?? '') }}" placeholder="Bondhon">
+                               value="{{ old('site_name', $settings['site_name'] ?? '') }}" placeholder="My Bouma">
                         @error('site_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
                     <div class="col-md-3">
@@ -63,7 +63,7 @@
                     <div class="col-md-6">
                         <label class="form-label fw-semibold small">Contact Email</label>
                         <input type="email" name="contact_email" class="form-control @error('contact_email') is-invalid @enderror"
-                               value="{{ old('contact_email', $settings['contact_email'] ?? '') }}" placeholder="support@bondhon.com">
+                               value="{{ old('contact_email', $settings['contact_email'] ?? '') }}" placeholder="support@My Bouma.com">
                         @error('contact_email')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
                     <div class="col-md-6">

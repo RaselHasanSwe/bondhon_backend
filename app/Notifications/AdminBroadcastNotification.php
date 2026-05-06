@@ -27,8 +27,8 @@ class AdminBroadcastNotification extends Notification implements ShouldQueue
             ->subject($this->title)
             ->greeting('Hello ' . ($notifiable->name ?? 'there') . '!')
             ->line($this->message)
-            ->line('This message was sent by the Bondhon admin team.')
-            ->salutation('Best regards, Bondhon Team');
+            ->line('This message was sent by the My Bouma admin team.')
+            ->salutation('Best regards, My Bouma Team');
     }
 
     public function toArray(object $notifiable): array
