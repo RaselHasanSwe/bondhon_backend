@@ -34,7 +34,7 @@ class AdminWebController extends Controller
     // Auth
     // -----------------------------------------------------------------------
 
-    public function loginForm(): View
+    public function loginForm(): View|RedirectResponse
     {
         if (Auth::guard('web')->check() && Auth::guard('web')->user()->role === 'admin') {
             return redirect()->route('admin.web.dashboard');
