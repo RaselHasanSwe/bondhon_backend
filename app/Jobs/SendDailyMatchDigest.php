@@ -2,7 +2,9 @@
 
 namespace App\Jobs;
 
+use App\Models\MatchScore;
 use App\Models\User;
+use App\Notifications\MatchDigestNotification;
 use App\Services\MatchingService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -13,7 +15,8 @@ use Illuminate\Support\Facades\Log;
 
 /**
  * SendDailyMatchDigest — Runs daily at 8am (cron).
- * Recalculates match scores for all active users nightly.
+ * 1. Recalculates match scores for all active users.
+ * 2. Sends in-app + email notification with top 5 matches to each user.
  */
 class SendDailyMatchDigest implements ShouldQueue
 {
@@ -36,7 +39,23 @@ class SendDailyMatchDigest implements ShouldQueue
             ->chunk(50, function ($users) use ($matchingService) {
                 foreach ($users as $user) {
                     try {
+                        // 1. Recalculate scores
                         $matchingService->calculateAndStoreAllScores($user);
+
+                        // 2. Fetch today's top 5 recalculated matches (score ≥ 40)
+                        $topMatches = MatchScore::with(['candidate', 'candidate.profile', 'candidate.religiousDetail', 'candidate.educationCareer'])
+                            ->where('user_id', $user->id)
+                            ->whereDate('calculated_at', today())
+                            ->where('score', '>=', 40)
+                            ->orderByDesc('score')
+                            ->limit(5)
+                            ->get()
+                            ->all();
+
+                        // 3. Send notification only if there are matches
+                        if (! empty($topMatches)) {
+                            $user->notify(new MatchDigestNotification($topMatches));
+                        }
                     } catch (\Throwable $e) {
                         Log::error('[DAILY MATCH DIGEST - Error] User ID: ' . $user->id . ' | Error: ' . $e->getMessage());
                     }
@@ -47,3 +66,5 @@ class SendDailyMatchDigest implements ShouldQueue
         Log::info('[DAILY MATCH DIGEST - Complete] Processed ' . $totalUsers . ' users in ' . $duration . ' seconds.');
     }
 }
+
+

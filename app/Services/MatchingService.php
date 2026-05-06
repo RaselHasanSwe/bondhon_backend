@@ -11,82 +11,78 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 /**
- * MatchingService — Phase 2
+ * MatchingService — Phase 3
  *
- * Calculates compatibility scores between users based on weighted analytics.
- * Score breakdown (total 100 points):
- *   Religion match              → 20
- *   Age within preference range → 15
- *   Location match              → 15
- *   Education level match       → 10
- *   Income range match          → 10
- *   Marital status match        → 10
- *   Diet compatibility          → 8
- *   Height within preference    → 7
- *   Lifestyle match             → 5
+ * Compatibility score (total 100 points):
+ *   Religion match              → 18 pts
+ *   Age within preference range → 12 pts
+ *   Location match              → 12 pts
+ *   Education level match       →  8 pts
+ *   Income range match          →  7 pts
+ *   Marital status match        →  8 pts
+ *   Diet compatibility          →  6 pts
+ *   Height within preference    →  5 pts
+ *   Lifestyle (smoke/drink)     →  4 pts
+ *   Family type & values        →  5 pts
+ *   Religiousness & pray        →  4 pts
+ *   Body type                   →  3 pts
+ *   Working status / employed   →  3 pts
+ *   Mother tongue               →  3 pts
+ *   Residing status             →  2 pts
+ *   ─────────────────────────────────────
+ *   TOTAL                       → 100 pts
  */
 class MatchingService
 {
-    /**
-     * Education level rank mapping (higher = more educated).
-     */
+    /** Education level rank (higher = more educated). */
     private array $educationRank = [
-        'below_ssc'        => 1,
-        'ssc'              => 2,
-        'hsc'              => 3,
-        'diploma'          => 4,
-        'bachelors'        => 5,
-        'masters'          => 6,
-        'phd'              => 7,
-        'postdoctoral'     => 8,
+        'below_ssc'    => 1,
+        'ssc'          => 2,
+        'hsc'          => 3,
+        'diploma'      => 4,
+        'bachelors'    => 5,
+        'masters'      => 6,
+        'phd'          => 7,
+        'postdoctoral' => 8,
     ];
 
-    /**
-     * Compatible diet pairs (bidirectional).
-     */
+    /** Compatible diet pairs (bidirectional). */
     private array $compatibleDiets = [
         ['vegetarian', 'vegan'],
         ['vegetarian', 'jain'],
         ['vegan', 'jain'],
     ];
 
+    // -----------------------------------------------------------------
+    // Public API
+    // -----------------------------------------------------------------
+
     /**
      * Calculate a compatibility score (0–100) for $user vs $candidate.
      */
     public function calculateScore(User $user, User $candidate): float
     {
-        $user->loadMissing(['profile', 'religiousDetail', 'educationCareer', 'lifestyle', 'partnerPreference']);
-        $candidate->loadMissing(['profile', 'religiousDetail', 'educationCareer', 'lifestyle', 'partnerPreference']);
+        $this->loadRelations($user);
+        $this->loadRelations($candidate);
 
         $pref  = $user->partnerPreference;
         $score = 0.0;
 
-        // 1. Religion match (20 pts)
         $score += $this->scoreReligion($pref, $candidate);
-
-        // 2. Age within preference range (15 pts)
         $score += $this->scoreAge($pref, $candidate);
-
-        // 3. Location match (15 pts)
         $score += $this->scoreLocation($user, $candidate);
-
-        // 4. Education level match (10 pts)
         $score += $this->scoreEducation($pref, $candidate);
-
-        // 5. Income range match (10 pts)
         $score += $this->scoreIncome($pref, $candidate);
-
-        // 6. Marital status match (10 pts)
         $score += $this->scoreMaritalStatus($pref, $candidate);
-
-        // 7. Diet compatibility (8 pts)
         $score += $this->scoreDiet($pref, $candidate);
-
-        // 8. Height within preference (7 pts)
         $score += $this->scoreHeight($pref, $candidate);
-
-        // 9. Lifestyle match (5 pts)
         $score += $this->scoreLifestyle($pref, $candidate);
+        $score += $this->scoreFamilyPrefs($pref, $candidate);
+        $score += $this->scoreReligiousness($pref, $candidate);
+        $score += $this->scoreBodyType($pref, $candidate);
+        $score += $this->scoreWorkingStatus($pref, $candidate);
+        $score += $this->scoreMotherTongue($pref, $candidate);
+        $score += $this->scoreResidingStatus($pref, $candidate);
 
         return min(100.0, max(0.0, $score));
     }
@@ -96,45 +92,37 @@ class MatchingService
      */
     public function calculateAndStoreScore(User $user, User $candidate): void
     {
-        $user->loadMissing(['profile', 'religiousDetail', 'educationCareer', 'lifestyle', 'partnerPreference']);
-        $candidate->loadMissing(['profile', 'religiousDetail', 'educationCareer', 'lifestyle', 'partnerPreference']);
+        $this->loadRelations($user);
+        $this->loadRelations($candidate);
 
-        $pref      = $user->partnerPreference;
-        $breakdown = [];
-
-        $religion      = $this->scoreReligion($pref, $candidate);
-        $age           = $this->scoreAge($pref, $candidate);
-        $location      = $this->scoreLocation($user, $candidate);
-        $education     = $this->scoreEducation($pref, $candidate);
-        $income        = $this->scoreIncome($pref, $candidate);
-        $maritalStatus = $this->scoreMaritalStatus($pref, $candidate);
-        $diet          = $this->scoreDiet($pref, $candidate);
-        $height        = $this->scoreHeight($pref, $candidate);
-        $lifestyle     = $this->scoreLifestyle($pref, $candidate);
+        $pref = $user->partnerPreference;
 
         $breakdown = [
-            'religion'       => $religion,
-            'age'            => $age,
-            'location'       => $location,
-            'education'      => $education,
-            'income'         => $income,
-            'marital_status' => $maritalStatus,
-            'diet'           => $diet,
-            'height'         => $height,
-            'lifestyle'      => $lifestyle,
+            'religion'        => $this->scoreReligion($pref, $candidate),
+            'age'             => $this->scoreAge($pref, $candidate),
+            'location'        => $this->scoreLocation($user, $candidate),
+            'education'       => $this->scoreEducation($pref, $candidate),
+            'income'          => $this->scoreIncome($pref, $candidate),
+            'marital_status'  => $this->scoreMaritalStatus($pref, $candidate),
+            'diet'            => $this->scoreDiet($pref, $candidate),
+            'height'          => $this->scoreHeight($pref, $candidate),
+            'lifestyle'       => $this->scoreLifestyle($pref, $candidate),
+            'family'          => $this->scoreFamilyPrefs($pref, $candidate),
+            'religiousness'   => $this->scoreReligiousness($pref, $candidate),
+            'body_type'       => $this->scoreBodyType($pref, $candidate),
+            'working_status'  => $this->scoreWorkingStatus($pref, $candidate),
+            'mother_tongue'   => $this->scoreMotherTongue($pref, $candidate),
+            'residing_status' => $this->scoreResidingStatus($pref, $candidate),
         ];
 
-        $total = min(100.0, max(0.0,
-            $religion + $age + $location + $education + $income +
-            $maritalStatus + $diet + $height + $lifestyle
-        ));
+        $total = min(100.0, max(0.0, array_sum($breakdown)));
 
         MatchScore::updateOrCreate(
             ['user_id' => $user->id, 'candidate_id' => $candidate->id],
             [
-                'score'          => $total,
+                'score'           => $total,
                 'score_breakdown' => $breakdown,
-                'calculated_at'  => now(),
+                'calculated_at'   => now(),
             ]
         );
     }
@@ -146,9 +134,9 @@ class MatchingService
     {
         Log::info('[MATCHING - CalculateAll] Start for User ID: ' . $user->id);
 
-        $blockedIds    = Block::where('blocker_id', $user->id)->pluck('blocked_id');
-        $blockedByIds  = Block::where('blocked_id', $user->id)->pluck('blocker_id');
-        $excludeIds    = $blockedIds->merge($blockedByIds)->push($user->id)->unique()->values();
+        $blockedIds   = Block::where('blocker_id', $user->id)->pluck('blocked_id');
+        $blockedByIds = Block::where('blocked_id', $user->id)->pluck('blocker_id');
+        $excludeIds   = $blockedIds->merge($blockedByIds)->push($user->id)->unique()->values();
 
         $oppositeGender = $user->gender === 'male' ? 'female' : 'male';
 
@@ -162,7 +150,9 @@ class MatchingService
                     try {
                         $this->calculateAndStoreScore($user, $candidate);
                     } catch (\Throwable $e) {
-                        Log::error('[MATCHING - CalculateScore] Failed. User: ' . $user->id . ' | Candidate: ' . $candidate->id . ' | Error: ' . $e->getMessage());
+                        Log::error('[MATCHING - CalculateScore] Failed. User: ' . $user->id
+                            . ' | Candidate: ' . $candidate->id
+                            . ' | Error: ' . $e->getMessage());
                     }
                 }
             });
@@ -179,7 +169,6 @@ class MatchingService
         $blockedByIds = Block::where('blocked_id', $user->id)->pluck('blocker_id');
         $excludeIds   = $blockedIds->merge($blockedByIds)->push($user->id)->unique()->values();
 
-        // Exclude already-accepted interest pairs
         $acceptedCandidateIds = Interest::where(function ($q) use ($user) {
                 $q->where('sender_id', $user->id)->orWhere('receiver_id', $user->id);
             })
@@ -213,26 +202,36 @@ class MatchingService
     }
 
     // -----------------------------------------------------------------------
-    // Private scoring helpers
+    // Private helpers
     // -----------------------------------------------------------------------
 
+    private function loadRelations(User $user): void
+    {
+        $user->loadMissing([
+            'profile', 'religiousDetail', 'educationCareer',
+            'lifestyle', 'familyDetail', 'horoscopeDetail', 'partnerPreference',
+        ]);
+    }
+
+    /** 18 pts — religion */
     private function scoreReligion(?\App\Models\PartnerPreference $pref, User $candidate): float
     {
         if (! $pref || empty($pref->religion)) {
-            return 10.0; // no preference set → give partial points
+            return 9.0;
         }
         $candidateReligion = $candidate->religiousDetail?->religion;
         if (! $candidateReligion) {
             return 0.0;
         }
         $religions = is_array($pref->religion) ? $pref->religion : [$pref->religion];
-        return in_array($candidateReligion, $religions) ? 20.0 : 0.0;
+        return in_array($candidateReligion, $religions) ? 18.0 : 0.0;
     }
 
+    /** 12 pts — age */
     private function scoreAge(?\App\Models\PartnerPreference $pref, User $candidate): float
     {
         if (! $pref || ! $pref->age_min || ! $pref->age_max) {
-            return 7.0; // no preference set
+            return 6.0;
         }
         $dob = $candidate->profile?->dob;
         if (! $dob) {
@@ -240,65 +239,63 @@ class MatchingService
         }
         $age = $dob->age;
         if ($age >= $pref->age_min && $age <= $pref->age_max) {
-            return 15.0;
+            return 12.0;
         }
-        // Within 3 years outside range
         if ($age >= ($pref->age_min - 3) && $age <= ($pref->age_max + 3)) {
-            return 7.0;
+            return 5.0;
         }
         return 0.0;
     }
 
+    /** 12 pts — location */
     private function scoreLocation(User $user, User $candidate): float
     {
-        $userProfile      = $user->profile;
-        $candidateProfile = $candidate->profile;
-
-        if (! $userProfile || ! $candidateProfile) {
+        $up = $user->profile;
+        $cp = $candidate->profile;
+        if (! $up || ! $cp) {
             return 0.0;
         }
-
-        if ($userProfile->city && $candidateProfile->city && strtolower($userProfile->city) === strtolower($candidateProfile->city)) {
-            return 15.0;
+        if ($up->city && $cp->city && strtolower($up->city) === strtolower($cp->city)) {
+            return 12.0;
         }
-        if ($userProfile->state && $candidateProfile->state && strtolower($userProfile->state) === strtolower($candidateProfile->state)) {
-            return 8.0;
+        if ($up->state && $cp->state && strtolower($up->state) === strtolower($cp->state)) {
+            return 6.0;
         }
-        if ($userProfile->country && $candidateProfile->country && strtolower($userProfile->country) === strtolower($candidateProfile->country)) {
-            return 4.0;
+        if ($up->country && $cp->country && strtolower($up->country) === strtolower($cp->country)) {
+            return 3.0;
         }
         return 0.0;
     }
 
+    /** 8 pts — education */
     private function scoreEducation(?\App\Models\PartnerPreference $pref, User $candidate): float
     {
         if (! $pref || empty($pref->education)) {
-            return 5.0; // no preference
+            return 4.0;
         }
-        $candidateEdu = strtolower($candidate->educationCareer?->highest_education ?? '');
+        $candidateEdu  = strtolower($candidate->educationCareer?->highest_education ?? '');
         if (! $candidateEdu) {
             return 0.0;
         }
-        $preferredEdus = is_array($pref->education) ? array_map('strtolower', $pref->education) : [strtolower($pref->education)];
-
+        $preferredEdus = array_map('strtolower', is_array($pref->education) ? $pref->education : [$pref->education]);
         if (in_array($candidateEdu, $preferredEdus)) {
-            return 10.0;
+            return 8.0;
         }
-        // Check if within 1 rank
         $candidateRank = $this->educationRank[$candidateEdu] ?? 0;
         foreach ($preferredEdus as $prefEdu) {
             $prefRank = $this->educationRank[$prefEdu] ?? 0;
             if ($prefRank > 0 && $candidateRank > 0 && abs($prefRank - $candidateRank) === 1) {
-                return 5.0;
+                return 4.0;
             }
         }
         return 0.0;
     }
 
+    /** 7 pts — income */
     private function scoreIncome(?\App\Models\PartnerPreference $pref, User $candidate): float
     {
         if (! $pref || (! $pref->income_min_bdt && ! $pref->income_max_bdt)) {
-            return 5.0; // no preference
+            return 3.0;
         }
         $income = $candidate->educationCareer?->annual_income_bdt;
         if (! $income) {
@@ -306,51 +303,52 @@ class MatchingService
         }
         $min = $pref->income_min_bdt ?? 0;
         $max = $pref->income_max_bdt ?? PHP_INT_MAX;
-        return ($income >= $min && $income <= $max) ? 10.0 : 0.0;
+        return ($income >= $min && $income <= $max) ? 7.0 : 0.0;
     }
 
+    /** 8 pts — marital status */
     private function scoreMaritalStatus(?\App\Models\PartnerPreference $pref, User $candidate): float
     {
         if (! $pref || empty($pref->marital_status)) {
-            return 5.0; // no preference
+            return 4.0;
         }
         $candidateStatus = $candidate->profile?->marital_status;
         if (! $candidateStatus) {
             return 0.0;
         }
         $statuses = is_array($pref->marital_status) ? $pref->marital_status : [$pref->marital_status];
-        return in_array($candidateStatus, $statuses) ? 10.0 : 0.0;
+        return in_array($candidateStatus, $statuses) ? 8.0 : 0.0;
     }
 
+    /** 6 pts — diet */
     private function scoreDiet(?\App\Models\PartnerPreference $pref, User $candidate): float
     {
         if (! $pref || empty($pref->diet)) {
-            return 4.0; // no preference
+            return 3.0;
         }
-        $candidateDiet = $candidate->lifestyle?->diet;
+        $candidateDiet  = $candidate->lifestyle?->diet;
         if (! $candidateDiet) {
             return 0.0;
         }
         $preferredDiets = is_array($pref->diet) ? $pref->diet : [$pref->diet];
-
         if (in_array($candidateDiet, $preferredDiets)) {
-            return 8.0;
+            return 6.0;
         }
-        // Check compatible diet pairs
         foreach ($this->compatibleDiets as $pair) {
             foreach ($preferredDiets as $prefDiet) {
                 if (in_array($prefDiet, $pair) && in_array($candidateDiet, $pair)) {
-                    return 4.0;
+                    return 3.0;
                 }
             }
         }
         return 0.0;
     }
 
+    /** 5 pts — height */
     private function scoreHeight(?\App\Models\PartnerPreference $pref, User $candidate): float
     {
         if (! $pref || (! $pref->height_min_cm && ! $pref->height_max_cm)) {
-            return 3.0; // no preference
+            return 2.0;
         }
         $height = $candidate->profile?->height_cm;
         if (! $height) {
@@ -358,17 +356,16 @@ class MatchingService
         }
         $min = $pref->height_min_cm ?? 0;
         $max = $pref->height_max_cm ?? 999;
-
         if ($height >= $min && $height <= $max) {
-            return 7.0;
+            return 5.0;
         }
-        // Within 5 cm of range
         if ($height >= ($min - 5) && $height <= ($max + 5)) {
-            return 3.0;
+            return 2.0;
         }
         return 0.0;
     }
 
+    /** 4 pts — lifestyle (smoking / drinking) */
     private function scoreLifestyle(?\App\Models\PartnerPreference $pref, User $candidate): float
     {
         if (! $pref) {
@@ -378,22 +375,158 @@ class MatchingService
         if (! $lifestyle) {
             return 0.0;
         }
-
-        $smokingOk  = $pref->smoking_acceptable  ?? true;
-        $drinkingOk = $pref->drinking_acceptable ?? true;
-
-        $candidateSmoker  = in_array($lifestyle->smoking, ['smoker', 'occasionally']);
+        $smokingOk        = $pref->smoking_acceptable  ?? true;
+        $drinkingOk       = $pref->drinking_acceptable ?? true;
+        $candidateSmoker  = in_array($lifestyle->smoking,  ['smoker', 'occasionally']);
         $candidateDrinker = in_array($lifestyle->drinking, ['drinker', 'occasionally']);
-
-        $smokingMatch  = $smokingOk  || ! $candidateSmoker;
-        $drinkingMatch = $drinkingOk || ! $candidateDrinker;
+        $smokingMatch     = $smokingOk  || ! $candidateSmoker;
+        $drinkingMatch    = $drinkingOk || ! $candidateDrinker;
 
         if ($smokingMatch && $drinkingMatch) {
-            return 5.0;
+            return 4.0;
         }
         if ($smokingMatch || $drinkingMatch) {
             return 2.0;
         }
         return 0.0;
+    }
+
+    /** 5 pts — family type (2.5) + family values (2.5) */
+    private function scoreFamilyPrefs(?\App\Models\PartnerPreference $pref, User $candidate): float
+    {
+        $score = 0.0;
+
+        if (! $pref || empty($pref->family_type)) {
+            $score += 1.25;
+        } else {
+            $val = $candidate->familyDetail?->family_type;
+            if ($val) {
+                $types  = is_array($pref->family_type) ? $pref->family_type : [$pref->family_type];
+                $score += in_array($val, $types) ? 2.5 : 0.0;
+            }
+        }
+
+        if (! $pref || empty($pref->family_values)) {
+            $score += 1.25;
+        } else {
+            $val = $candidate->familyDetail?->family_values;
+            if ($val) {
+                $values = is_array($pref->family_values) ? $pref->family_values : [$pref->family_values];
+                $score += in_array($val, $values) ? 2.5 : 0.0;
+            }
+        }
+
+        return $score;
+    }
+
+    /** 4 pts — religiousness (2) + pray (2) */
+    private function scoreReligiousness(?\App\Models\PartnerPreference $pref, User $candidate): float
+    {
+        $score = 0.0;
+
+        if (! $pref || empty($pref->religiousness)) {
+            $score += 1.0;
+        } else {
+            $val = $candidate->religiousDetail?->religiousness;
+            if ($val) {
+                $levels = is_array($pref->religiousness) ? $pref->religiousness : [$pref->religiousness];
+                $score += in_array($val, $levels) ? 2.0 : 0.0;
+            }
+        }
+
+        if (! $pref || empty($pref->pray)) {
+            $score += 1.0;
+        } else {
+            $val = $candidate->religiousDetail?->pray;
+            if ($val) {
+                $prays = is_array($pref->pray) ? $pref->pray : [$pref->pray];
+                $score += in_array($val, $prays) ? 2.0 : 0.0;
+            }
+        }
+
+        return $score;
+    }
+
+    /** 3 pts — body type */
+    private function scoreBodyType(?\App\Models\PartnerPreference $pref, User $candidate): float
+    {
+        if (! $pref || empty($pref->body_type)) {
+            return 1.5;
+        }
+        $val = $candidate->profile?->body_type;
+        if (! $val) {
+            return 0.0;
+        }
+        $types = is_array($pref->body_type) ? $pref->body_type : [$pref->body_type];
+        return in_array($val, $types) ? 3.0 : 0.0;
+    }
+
+    /** 3 pts — working status (1.5) + employed_in (1.5) */
+    private function scoreWorkingStatus(?\App\Models\PartnerPreference $pref, User $candidate): float
+    {
+        $score = 0.0;
+
+        if (! $pref || empty($pref->working_status)) {
+            $score += 0.75;
+        } else {
+            $profession      = $candidate->educationCareer?->profession ?? '';
+            $workingStatuses = is_array($pref->working_status) ? $pref->working_status : [$pref->working_status];
+            $derived         = $this->deriveWorkingStatus($profession);
+            $score += in_array($derived, $workingStatuses) ? 1.5 : 0.0;
+        }
+
+        if (! $pref || empty($pref->employed_in)) {
+            $score += 0.75;
+        } else {
+            $val = $candidate->educationCareer?->employed_in;
+            if ($val) {
+                $employedIns = is_array($pref->employed_in) ? $pref->employed_in : [$pref->employed_in];
+                $score += in_array($val, $employedIns) ? 1.5 : 0.0;
+            }
+        }
+
+        return $score;
+    }
+
+    /** 3 pts — mother tongue */
+    private function scoreMotherTongue(?\App\Models\PartnerPreference $pref, User $candidate): float
+    {
+        if (! $pref || empty($pref->mother_tongue)) {
+            return 1.5;
+        }
+        $val = $candidate->profile?->mother_tongue;
+        if (! $val) {
+            return 0.0;
+        }
+        $tongues = is_array($pref->mother_tongue) ? $pref->mother_tongue : [$pref->mother_tongue];
+        return in_array($val, $tongues) ? 3.0 : 0.0;
+    }
+
+    /** 2 pts — residing status */
+    private function scoreResidingStatus(?\App\Models\PartnerPreference $pref, User $candidate): float
+    {
+        if (! $pref || empty($pref->pref_residing_status)) {
+            return 1.0;
+        }
+        $val = $candidate->profile?->residing_status;
+        if (! $val) {
+            return 0.0;
+        }
+        $statuses = is_array($pref->pref_residing_status) ? $pref->pref_residing_status : [$pref->pref_residing_status];
+        return in_array($val, $statuses) ? 2.0 : 0.0;
+    }
+
+    private function deriveWorkingStatus(string $profession): string
+    {
+        if ($profession === 'homemaker') {
+            return 'homemaker';
+        }
+        if ($profession === 'student') {
+            return 'student';
+        }
+        if ($profession === 'not_working') {
+            return 'not_working';
+        }
+        return 'working';
     }
 }
