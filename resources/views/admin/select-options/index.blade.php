@@ -52,11 +52,18 @@
             </div>
             <div class="ms-auto d-flex align-items-center justify-content-between gap-3">
                 @if($group !== 'all')
-                    <button class="btn btn-sm btn-warning fw-semibold"
-                            style="background:var(--gold);border-color:var(--gold);color:#fff;"
-                            data-bs-toggle="modal" data-bs-target="#addModal">
-                        <i class="bi bi-plus-lg me-1"></i>Add Option
-                    </button>
+                    @if(isset($canAdd) && !$canAdd)
+                        <button class="btn btn-sm btn-warning fw-semibold" style="background:var(--gold);border-color:var(--gold);color:#fff;" disabled
+                                title="Cannot add: parent options are required first">
+                            <i class="bi bi-plus-lg me-1"></i>Add Option
+                        </button>
+                    @else
+                        <button class="btn btn-sm btn-warning fw-semibold"
+                                style="background:var(--gold);border-color:var(--gold);color:#fff;"
+                                data-bs-toggle="modal" data-bs-target="#addModal">
+                            <i class="bi bi-plus-lg me-1"></i>Add Option
+                        </button>
+                    @endif
                 @endif
 
                 <form method="GET" action="{{ route('admin.web.select-options.index') }}" class="d-flex align-items-center gap-2">
@@ -225,21 +232,29 @@
 
                     {{-- Cross-nested: parent from a different group --}}
                     @if($isCrossNested)
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold small">
-                            Parent — {{ $groups[$parentGroupKey] ?? $parentGroupKey }}
-                            <span class="text-danger">*</span>
-                        </label>
-                        <select name="parent_id" class="form-select form-select-sm" required>
-                            <option value="">— Select parent —</option>
-                            @foreach($parentOptions as $p)
-                                <option value="{{ $p->id }}" {{ old('parent_id') == $p->id ? 'selected' : '' }}>
-                                    {{ $p->label }}
-                                </option>
-                            @endforeach
-                        </select>
-                        <small class="text-muted">Which {{ $groups[$parentGroupKey] ?? $parentGroupKey }} does this belong to?</small>
-                    </div>
+                        @if($parentOptions->isEmpty())
+                            <div class="alert alert-warning small">
+                                <strong>Parent required</strong> — This group requires a parent option from <strong>{{ $groups[$parentGroupKey] ?? $parentGroupKey }}</strong>, but none exist yet.
+                                <br>
+                                Please add at least one <a href="{{ route('admin.web.select-options.index', ['group' => $parentGroupKey]) }}">{{ $groups[$parentGroupKey] ?? $parentGroupKey }}</a> option first.
+                            </div>
+                        @else
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold small">
+                                    Parent — {{ $groups[$parentGroupKey] ?? $parentGroupKey }}
+                                    <span class="text-danger">*</span>
+                                </label>
+                                <select name="parent_id" class="form-select form-select-sm" required>
+                                    <option value="">— Select parent —</option>
+                                    @foreach($parentOptions as $p)
+                                        <option value="{{ $p->id }}" {{ old('parent_id') == $p->id ? 'selected' : '' }}>
+                                            {{ $p->label }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                <small class="text-muted">Which {{ $groups[$parentGroupKey] ?? $parentGroupKey }} does this belong to?</small>
+                            </div>
+                        @endif
                     @endif
 
                     {{-- Self-nested: parent from same group --}}
@@ -306,10 +321,17 @@
                 </div>
                 <div class="modal-footer" style="border-top:1px solid #e5e7eb;">
                     <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-sm btn-warning fw-semibold"
-                            style="background:var(--gold);border-color:var(--gold);color:#fff;">
-                        <i class="bi bi-plus-lg me-1"></i>Save Option
-                    </button>
+                    @if(isset($canAdd) && !$canAdd)
+                        <button type="button" class="btn btn-sm btn-warning fw-semibold" disabled
+                                style="background:var(--gold);border-color:var(--gold);color:#fff;" title="Cannot save: parent options are required first">
+                            <i class="bi bi-plus-lg me-1"></i>Save Option
+                        </button>
+                    @else
+                        <button type="submit" class="btn btn-sm btn-warning fw-semibold"
+                                style="background:var(--gold);border-color:var(--gold);color:#fff;">
+                            <i class="bi bi-plus-lg me-1"></i>Save Option
+                        </button>
+                    @endif
                 </div>
             </form>
         </div>

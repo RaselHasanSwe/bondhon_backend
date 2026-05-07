@@ -753,14 +753,15 @@ class AdminWebController extends Controller
                 'config'         => null,
                 'groups'         => $groups,
                 'options'        => $allOptions->all(),
-                'parentOptions'  => collect(),
+                    'parentOptions'  => collect(),
                 'parentGroupKey' => null,
                 'isSelfNested'   => false,
                 'isCrossNested'  => false,
                 'groupCounts'    => $groupCounts,
                 'allConfigs'     => $allConfigs,
                 'maxDepth'       => 1,
-                'showGroupCol'   => true,
+                    'showGroupCol'   => true,
+                    'canAdd'         => false,
             ]);
         }
 
@@ -777,6 +778,13 @@ class AdminWebController extends Controller
         $parentOptions = ($isCrossNested)
             ? SelectOption::where('group_key', $parentGroupKey)->orderBy('sort_order')->get(['id', 'label', 'group_key'])
             : collect();
+
+        // Can we create an option in this group? For cross-nested groups we require at least one
+        // parent option to be present in the parent group before creating a child option.
+        $canAdd = true;
+        if ($isCrossNested && $parentOptions->isEmpty()) {
+            $canAdd = false;
+        }
 
         // Apply optional search within the selected group
         $groupQuery = SelectOption::where('group_key', $group)->orderBy('sort_order');
@@ -808,7 +816,7 @@ class AdminWebController extends Controller
         return view('admin.select-options.index', compact(
             'group', 'config', 'groups', 'options', 'parentOptions',
             'parentGroupKey', 'isSelfNested', 'isCrossNested',
-            'groupCounts', 'allConfigs', 'maxDepth'
+            'groupCounts', 'allConfigs', 'maxDepth', 'canAdd'
         ) + ['showGroupCol' => false]);
     }
 
@@ -847,9 +855,25 @@ class AdminWebController extends Controller
             'is_active'  => ['nullable'],
         ]);
 
+        // Ensure cross-nested groups have a parent selected and enforce depth limit from group config
+        $config = OptionGroupConfig::where('group_key', $validated['group_key'])->first();
+        $parentGroupKey = $config?->parent_group_key;
+        $isCrossNestedReq = $parentGroupKey && $parentGroupKey !== $validated['group_key'];
+
+        if ($isCrossNestedReq && empty($validated['parent_id'])) {
+            return back()->withInput()->with('error', "This group requires a parent option from '{$parentGroupKey}'. Please create/select a parent first.");
+        }
+
+        // If a parent was provided for a cross-nested group, make sure it belongs to the expected parent group
+        if ($isCrossNestedReq && !empty($validated['parent_id'])) {
+            $parent = SelectOption::find($validated['parent_id']);
+            if (! $parent || $parent->group_key !== $parentGroupKey) {
+                return back()->withInput()->with('error', 'Selected parent option is invalid for this group.');
+            }
+        }
+
         // Enforce depth limit from group config
         if (!empty($validated['parent_id'])) {
-            $config   = OptionGroupConfig::where('group_key', $validated['group_key'])->first();
             $maxDepth = $config ? min((int)$config->max_nesting_depth, 5) : 5;
             $depth    = $this->getOptionDepth((int)$validated['parent_id']);
             if ($depth + 1 >= $maxDepth) {
@@ -949,6 +973,20 @@ class AdminWebController extends Controller
         $oldParentId = $option->parent_id;
 
         $newGroup = $validated['group_key'] ?? $oldGroup;
+
+        // If the target group requires a parent (cross-nested), ensure a valid parent was provided
+        $targetConfig = OptionGroupConfig::where('group_key', $newGroup)->first();
+        $targetParentGroupKey = $targetConfig?->parent_group_key;
+        $targetIsCrossNested = $targetParentGroupKey && $targetParentGroupKey !== $newGroup;
+        if ($targetIsCrossNested && empty($validated['parent_id'])) {
+            return back()->withInput()->with('error', "Group '{$newGroup}' requires selecting a parent option from '{$targetParentGroupKey}'.");
+        }
+        if ($targetIsCrossNested && !empty($validated['parent_id'])) {
+            $parent = SelectOption::find($validated['parent_id']);
+            if (! $parent || $parent->group_key !== $targetParentGroupKey) {
+                return back()->withInput()->with('error', 'Selected parent option is invalid for the chosen group.');
+            }
+        }
 
         $option->update([
             'group_key'  => $newGroup,
