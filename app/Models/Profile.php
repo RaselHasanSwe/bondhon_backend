@@ -41,6 +41,7 @@ class Profile extends Model
         'is_photo_approved',
         'last_seen_at',
         'privacy_settings',
+        'custom_fields',
     ];
 
     protected $hidden = [];
@@ -53,6 +54,7 @@ class Profile extends Model
             'is_verified' => 'boolean',
             'is_photo_approved' => 'boolean',
             'privacy_settings' => 'json',
+            'custom_fields'    => 'array',
             'profile_completion_percentage' => 'integer',
             'height_cm' => 'integer',
             'weight_kg' => 'integer',

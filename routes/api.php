@@ -1,6 +1,9 @@
 <?php
 
 use App\Http\Controllers\Api\V1\Admin\AdminDashboardController;
+use App\Http\Controllers\Api\V1\Admin\AdminSelectOptionController;
+use App\Http\Controllers\Api\V1\OptionGroupController;
+use App\Http\Controllers\Api\V1\SelectOptionController;
 use App\Http\Controllers\Api\V1\PublicSettingController;
 use App\Http\Controllers\Api\V1\PublicPageController;
 use App\Http\Controllers\Api\V1\Admin\AdminNotificationController;
@@ -41,6 +44,10 @@ Route::prefix('v1')->group(function () {
     | Public Routes — No Auth Required
     |----------------------------------------------------------------------
     */
+    // Dynamic select options (public, cached)
+    Route::get('/options/{group}', [SelectOptionController::class, 'index'])->middleware('throttle:120,1');
+    Route::get('/option-groups',    [OptionGroupController::class,  'index'])->middleware('throttle:60,1');
+
     Route::get('/settings', [PublicSettingController::class, 'index'])->middleware('throttle:60,1');
     Route::get('/pages',          [PublicPageController::class, 'index'])->middleware('throttle:60,1');
     Route::get('/pages/{slug}',   [PublicPageController::class, 'show'])->middleware('throttle:60,1');
@@ -235,6 +242,17 @@ Route::prefix('v1')->group(function () {
             Route::prefix('notifications')->group(function () {
                 Route::get('/',           [AdminNotificationController::class, 'index']);
                 Route::post('/broadcast', [AdminNotificationController::class, 'broadcast']);
+            });
+
+            // Dynamic select options management
+            Route::prefix('select-options')->group(function () {
+                Route::get('/',           [AdminSelectOptionController::class, 'index']);
+                Route::get('/groups',     [AdminSelectOptionController::class, 'groups']);
+                Route::post('/',          [AdminSelectOptionController::class, 'store']);
+                Route::get('/{selectOption}',         [AdminSelectOptionController::class, 'show']);
+                Route::put('/{selectOption}',         [AdminSelectOptionController::class, 'update']);
+                Route::delete('/{selectOption}',      [AdminSelectOptionController::class, 'destroy']);
+                Route::put('/{selectOption}/toggle',  [AdminSelectOptionController::class, 'toggle']);
             });
         });
     });

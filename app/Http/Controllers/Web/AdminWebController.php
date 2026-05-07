@@ -4,9 +4,11 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Models\ContactMessage;
+use App\Models\OptionGroupConfig;
 use App\Models\Page;
 use App\Models\ProfilePhoto;
 use App\Models\Report;
+use App\Models\SelectOption;
 use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
 use App\Models\User;
@@ -697,6 +699,454 @@ class AdminWebController extends Controller
         Log::info('[ADMIN WEB - ChangePassword] Admin ID: ' . $admin->id . ' changed their password.');
 
         return back()->with('success', 'Password changed successfully.');
+    }
+
+    // -----------------------------------------------------------------------
+    // Select Options (Dynamic Dropdowns)
+    // -----------------------------------------------------------------------
+
+    /** @deprecated Kept for backward compat — use OptionGroupConfig instead. */
+    private const OPTION_GROUPS = [];
+
+    public function selectOptions(Request $request): View
+    {
+        // Load ALL group configs ordered by sort_order
+        $allConfigs = OptionGroupConfig::orderBy('sort_order')->get()->keyBy('group_key');
+
+        // Build groups array: group_key => label
+        $groups = $allConfigs->mapWithKeys(fn($c) => [$c->group_key => $c->label])->toArray();
+
+        $group = $request->get('group', 'all');
+        // Search query (search across id, label, value, group_key and parent label)
+        $search = trim((string) $request->get('q', ''));
+
+        // Groups with counts
+        $groupCounts = SelectOption::selectRaw('group_key, COUNT(*) as cnt')
+            ->groupBy('group_key')
+            ->pluck('cnt', 'group_key');
+
+        // "All Groups" mode — show every option with group label column
+        if ($group === 'all') {
+            $allQuery = SelectOption::with('parent')
+                ->orderBy('group_key')->orderBy('sort_order');
+
+            if ($search !== '') {
+                $term = "%{$search}%";
+                $allQuery->where(function ($q) use ($term, $search) {
+                    $q->where('label', 'like', $term)
+                        ->orWhere('value', 'like', $term)
+                        ->orWhere('group_key', 'like', $term);
+                    if (is_numeric($search)) {
+                        $q->orWhere('id', (int) $search);
+                    }
+                    $q->orWhereHas('parent', function ($p) use ($term) {
+                        $p->where('label', 'like', $term);
+                    });
+                });
+            }
+
+            $allOptions = $allQuery->get();
+            // Attach depth=0 for display consistency
+            foreach ($allOptions as $opt) { $opt->_depth = 0; }
+            return view('admin.select-options.index', [
+                'group'          => 'all',
+                'config'         => null,
+                'groups'         => $groups,
+                'options'        => $allOptions->all(),
+                'parentOptions'  => collect(),
+                'parentGroupKey' => null,
+                'isSelfNested'   => false,
+                'isCrossNested'  => false,
+                'groupCounts'    => $groupCounts,
+                'allConfigs'     => $allConfigs,
+                'maxDepth'       => 1,
+                'showGroupCol'   => true,
+            ]);
+        }
+
+        // Current group config
+        $config   = $allConfigs->get($group);
+        $maxDepth = $config ? min((int)$config->max_nesting_depth, 5) : 1;
+
+        // Parent group for this group (from config)
+        $parentGroupKey = $config?->parent_group_key;
+        $isSelfNested   = $parentGroupKey && $parentGroupKey === $group;
+        $isCrossNested  = $parentGroupKey && $parentGroupKey !== $group;
+
+        // Parent options (for cross-nested groups)
+        $parentOptions = ($isCrossNested)
+            ? SelectOption::where('group_key', $parentGroupKey)->orderBy('sort_order')->get(['id', 'label', 'group_key'])
+            : collect();
+
+        // Apply optional search within the selected group
+        $groupQuery = SelectOption::where('group_key', $group)->orderBy('sort_order');
+        if ($search !== '') {
+            $term = "%{$search}%";
+            $groupQuery->where(function ($q) use ($term, $search) {
+                $q->where('label', 'like', $term)
+                    ->orWhere('value', 'like', $term);
+                if (is_numeric($search)) {
+                    $q->orWhere('id', (int) $search);
+                }
+                $q->orWhereHas('parent', function ($p) use ($term) {
+                    $p->where('label', 'like', $term);
+                });
+            });
+        }
+
+        $allInGroup = $groupQuery->get()->keyBy('id');
+
+        // For cross-nested groups the parent_id points to a *different* group (e.g. bd_division → country).
+        // Tree recursion (which starts from parent_id = null) would produce zero results in that case.
+        // Just show the options as a flat list with depth = 0.
+        if ($isCrossNested) {
+            $options = $allInGroup->each(function ($opt) { $opt->_depth = 0; $opt->_ancestors = []; })->values()->all();
+        } else {
+            $options = $this->buildFlatTree($allInGroup, $maxDepth);
+        }
+
+        return view('admin.select-options.index', compact(
+            'group', 'config', 'groups', 'options', 'parentOptions',
+            'parentGroupKey', 'isSelfNested', 'isCrossNested',
+            'groupCounts', 'allConfigs', 'maxDepth'
+        ) + ['showGroupCol' => false]);
+    }
+
+    /**
+     * Build a flat list with depth info from a keyed collection of SelectOption.
+     * Handles both self-nesting and cross-group nesting.
+     */
+    private function buildFlatTree($allInGroup, int $maxDepth = 5): array
+    {
+        $rows = [];
+        $this->recurseTree($allInGroup, null, 0, $maxDepth, $rows, []);
+        return $rows;
+    }
+
+    private function recurseTree($all, ?int $parentId, int $depth, int $maxDepth, array &$rows, array $ancestors): void
+    {
+        if ($depth >= $maxDepth) return;
+        foreach ($all->where('parent_id', $parentId) as $opt) {
+            $opt->_depth     = $depth;
+            $opt->_ancestors = $ancestors;
+            $rows[] = $opt;
+            $this->recurseTree($all, $opt->id, $depth + 1, $maxDepth, $rows,
+                array_merge($ancestors, [['id' => $opt->id, 'label' => $opt->label]])
+            );
+        }
+    }
+
+    public function storeSelectOption(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'group_key'  => ['required', 'string', 'max:60'],
+            'parent_id'  => ['nullable', 'exists:select_options,id'],
+            'value'      => ['required', 'string', 'max:100'],
+            'label'      => ['required', 'string', 'max:255'],
+            'sort_order' => ['nullable', 'integer', 'min:0'],
+            'is_active'  => ['nullable'],
+        ]);
+
+        // Enforce depth limit from group config
+        if (!empty($validated['parent_id'])) {
+            $config   = OptionGroupConfig::where('group_key', $validated['group_key'])->first();
+            $maxDepth = $config ? min((int)$config->max_nesting_depth, 5) : 5;
+            $depth    = $this->getOptionDepth((int)$validated['parent_id']);
+            if ($depth + 1 >= $maxDepth) {
+                return back()->with('error', "Max nesting depth ({$maxDepth}) reached for this group.");
+            }
+        }
+
+        $exists = SelectOption::where('group_key', $validated['group_key'])
+            ->where('value', $validated['value'])
+            ->where('parent_id', $validated['parent_id'] ?? null)
+            ->exists();
+
+        if ($exists) {
+            return back()->with('error', "A duplicate option already exists: value '{$validated['value']}' in group '{$validated['group_key']}'.");
+        }
+
+        $validated['is_active']  = $request->has('is_active');
+        $validated['sort_order'] = $validated['sort_order'] ?? 0;
+        $validated['parent_id']  = $validated['parent_id'] ?? null;
+
+        SelectOption::create($validated);
+        \Illuminate\Support\Facades\Cache::forget("options:{$validated['group_key']}:parent:{$validated['parent_id']}");
+
+        Log::info('[ADMIN WEB - SelectOption Store] Admin: ' . Auth::id() . ' created option group=' . $validated['group_key'] . ' value=' . $validated['value']);
+
+        return back()->with('success', "Option '{$validated['label']}' added successfully.");
+    }
+
+    /** Calculate how deep a given option is (0 = root). */
+    private function getOptionDepth(int $optionId): int
+    {
+        $depth = 0;
+        $current = SelectOption::find($optionId);
+        while ($current && $current->parent_id && $depth < 5) {
+            $depth++;
+            $current = SelectOption::find($current->parent_id);
+        }
+        return $depth;
+    }
+
+    public function editSelectOption(int $id): View
+    {
+        $option     = SelectOption::findOrFail($id);
+        $allConfigs = OptionGroupConfig::orderBy('sort_order')->get()->keyBy('group_key');
+        $groups     = $allConfigs->mapWithKeys(fn($c) => [$c->group_key => $c->label])->toArray();
+
+        $config      = $allConfigs->get($option->group_key);
+        $parentGroupKey = $config?->parent_group_key;
+        $isSelfNested   = $parentGroupKey && $parentGroupKey === $option->group_key;
+
+        // Parent candidates: for cross-nested → parent group's options
+        // For self-nested → all options in the same group EXCEPT the option itself and its descendants
+        if ($parentGroupKey && !$isSelfNested) {
+            $parentOptions = SelectOption::where('group_key', $parentGroupKey)
+                ->orderBy('sort_order')->get(['id', 'label', 'parent_id']);
+        } elseif ($isSelfNested) {
+            // Exclude self and any descendants
+            $excluded = $this->collectDescendants($option->id);
+            $excluded[] = $option->id;
+            $parentOptions = SelectOption::where('group_key', $option->group_key)
+                ->whereNotIn('id', $excluded)
+                ->orderBy('sort_order')->get(['id', 'label', 'parent_id']);
+        } else {
+            $parentOptions = collect();
+        }
+
+        return view('admin.select-options.edit', compact(
+            'option', 'groups', 'parentOptions', 'parentGroupKey', 'isSelfNested', 'config'
+        ));
+    }
+
+    /** Recursively collect all descendant IDs of an option. */
+    private function collectDescendants(int $id): array
+    {
+        $ids = [];
+        $children = SelectOption::where('parent_id', $id)->pluck('id');
+        foreach ($children as $childId) {
+            $ids[] = $childId;
+            $ids = array_merge($ids, $this->collectDescendants($childId));
+        }
+        return $ids;
+    }
+
+    public function updateSelectOption(Request $request, int $id): RedirectResponse
+    {
+        $option = SelectOption::findOrFail($id);
+
+        $validated = $request->validate([
+            'group_key'  => ['nullable', 'string', 'max:60', 'exists:option_group_configs,group_key'],
+            'label'      => ['required', 'string', 'max:255'],
+            'sort_order' => ['nullable', 'integer', 'min:0'],
+            'is_active'  => ['nullable'],
+            'parent_id'  => ['nullable', 'exists:select_options,id'],
+        ]);
+
+        $oldGroup    = $option->group_key;
+        $oldParentId = $option->parent_id;
+
+        $newGroup = $validated['group_key'] ?? $oldGroup;
+
+        $option->update([
+            'group_key'  => $newGroup,
+            'label'      => $validated['label'],
+            'sort_order' => $validated['sort_order'] ?? $option->sort_order,
+            'is_active'  => $request->has('is_active'),
+            'parent_id'  => $validated['parent_id'] ?? null,
+        ]);
+
+        \Illuminate\Support\Facades\Cache::forget("options:{$oldGroup}:parent:{$oldParentId}");
+        \Illuminate\Support\Facades\Cache::forget("options:{$option->group_key}:parent:{$option->parent_id}");
+
+        Log::info('[ADMIN WEB - SelectOption Update] Admin: ' . Auth::id() . ' updated option ID=' . $id . ' group=' . $option->group_key);
+
+        return redirect()->route('admin.web.select-options.index', ['group' => $option->group_key])
+            ->with('success', "Option '{$option->label}' updated.");
+    }
+
+    public function destroySelectOption(int $id): RedirectResponse
+    {
+        $option = SelectOption::findOrFail($id);
+        $group  = $option->group_key;
+        $label  = $option->label;
+        $parentId = $option->parent_id;
+
+        $child_count = SelectOption::where('parent_id', $id)->count();
+
+        $option->delete(); // ON DELETE CASCADE removes children too
+
+        \Illuminate\Support\Facades\Cache::forget("options:{$group}:parent:{$parentId}");
+
+        Log::info('[ADMIN WEB - SelectOption Destroy] Admin: ' . Auth::id() . " deleted option ID={$id} label={$label}" . ($child_count ? " (and {$child_count} children)" : ''));
+
+        return back()->with('success', "Option '{$label}' deleted." . ($child_count ? " {$child_count} child option(s) also removed." : ''));
+    }
+
+    public function toggleSelectOption(int $id): RedirectResponse
+    {
+        $option = SelectOption::findOrFail($id);
+        $option->update(['is_active' => !$option->is_active]);
+
+        \Illuminate\Support\Facades\Cache::forget("options:{$option->group_key}:parent:{$option->parent_id}");
+
+        $state = $option->is_active ? 'activated' : 'deactivated';
+        Log::info('[ADMIN WEB - SelectOption Toggle] Admin: ' . Auth::id() . " {$state} option ID={$id}");
+
+        return back()->with('success', "Option '{$option->label}' {$state}.");
+    }
+
+    // -----------------------------------------------------------------------
+    // Option Group Configs (manage group definitions)
+    // -----------------------------------------------------------------------
+
+    private const PROFILE_TABS = [
+        'basic'       => 'Basic Info',
+        'location'    => 'Location',
+        'religion'    => 'Religion',
+        'career'      => 'Career',
+        'lifestyle'   => 'Lifestyle',
+        'family'      => 'Family',
+        'horoscope'   => 'Horoscope',
+        'preferences' => 'Partner Preferences',
+        'none'        => 'None (not shown in profile form)',
+    ];
+
+    public function optionGroups(): View
+    {
+        $configs = OptionGroupConfig::orderBy('sort_order')->get();
+        $tabs    = self::PROFILE_TABS;
+        $allGroupKeys = OptionGroupConfig::pluck('group_key');
+
+        return view('admin.option-groups.index', compact('configs', 'tabs', 'allGroupKeys'));
+    }
+
+    public function createOptionGroup(): View
+    {
+        $tabs        = self::PROFILE_TABS;
+        $allGroupKeys = OptionGroupConfig::orderBy('label')->pluck('group_key', 'group_key');
+        return view('admin.option-groups.create', compact('tabs', 'allGroupKeys'));
+    }
+
+    public function storeOptionGroup(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'group_key'          => ['required', 'string', 'max:60', 'unique:option_group_configs,group_key', 'regex:/^[a-z0-9_]+$/'],
+            'label'              => ['required', 'string', 'max:255'],
+            'profile_tab'        => ['required', 'in:' . implode(',', array_keys(self::PROFILE_TABS))],
+            'field_name'         => ['nullable', 'string', 'max:100'],
+            'input_type'         => ['required', 'in:select,multi_select'],
+            'parent_group_key'   => ['nullable', 'exists:option_group_configs,group_key'],
+            'max_nesting_depth'  => ['required', 'integer', 'min:1', 'max:5'],
+            'sort_order'         => ['nullable', 'integer', 'min:0'],
+            'is_active'          => ['nullable'],
+        ]);
+
+        $validated['is_active']  = $request->has('is_active');
+        $validated['is_system']  = false;
+        $validated['sort_order'] = $validated['sort_order'] ?? 0;
+
+        OptionGroupConfig::create($validated);
+
+        // Clear group config cache
+        \Illuminate\Support\Facades\Cache::forget('option_groups:tab:all');
+        foreach (array_keys(self::PROFILE_TABS) as $tab) {
+            \Illuminate\Support\Facades\Cache::forget("option_groups:tab:{$tab}");
+        }
+
+        Log::info('[ADMIN WEB - OptionGroup Store] Admin: ' . Auth::id() . ' created group: ' . $validated['group_key']);
+
+        return redirect()->route('admin.web.option-groups.index')
+            ->with('success', "Option group '{$validated['label']}' ({$validated['group_key']}) created. You can now add options to it.");
+    }
+
+    public function editOptionGroup(int $id): View
+    {
+        $config      = OptionGroupConfig::findOrFail($id);
+        $tabs        = self::PROFILE_TABS;
+        $allGroupKeys = OptionGroupConfig::where('group_key', '!=', $config->group_key)
+            ->orderBy('label')->pluck('group_key', 'group_key');
+
+        return view('admin.option-groups.edit', compact('config', 'tabs', 'allGroupKeys'));
+    }
+
+    public function updateOptionGroup(Request $request, int $id): RedirectResponse
+    {
+        $config = OptionGroupConfig::findOrFail($id);
+
+        $validated = $request->validate([
+            'label'              => ['required', 'string', 'max:255'],
+            'profile_tab'        => ['required', 'in:' . implode(',', array_keys(self::PROFILE_TABS))],
+            'field_name'         => ['nullable', 'string', 'max:100'],
+            'input_type'         => ['required', 'in:select,multi_select'],
+            'parent_group_key'   => ['nullable', 'exists:option_group_configs,group_key'],
+            'max_nesting_depth'  => ['required', 'integer', 'min:1', 'max:5'],
+            'sort_order'         => ['nullable', 'integer', 'min:0'],
+            'is_active'          => ['nullable'],
+        ]);
+
+        $validated['is_active']  = $request->has('is_active');
+        $validated['sort_order'] = $validated['sort_order'] ?? $config->sort_order;
+
+        // Can't set parent to itself unless self-nesting is intended
+        if (isset($validated['parent_group_key']) && $validated['parent_group_key'] === $config->group_key) {
+            // self-nesting — allowed
+        }
+
+        $config->update($validated);
+
+        // Clear all group config caches
+        \Illuminate\Support\Facades\Cache::forget('option_groups:tab:all');
+        foreach (array_keys(self::PROFILE_TABS) as $tab) {
+            \Illuminate\Support\Facades\Cache::forget("option_groups:tab:{$tab}");
+        }
+
+        Log::info('[ADMIN WEB - OptionGroup Update] Admin: ' . Auth::id() . ' updated group ID: ' . $id);
+
+        return redirect()->route('admin.web.option-groups.index')
+            ->with('success', "Option group '{$config->label}' updated.");
+    }
+
+    public function destroyOptionGroup(int $id): RedirectResponse
+    {
+        $config = OptionGroupConfig::findOrFail($id);
+
+        if ($config->is_system) {
+            return back()->with('error', "System groups cannot be deleted. You can deactivate them instead.");
+        }
+
+        $optionCount = SelectOption::where('group_key', $config->group_key)->count();
+        if ($optionCount > 0) {
+            return back()->with('error', "Cannot delete group '{$config->label}' — it has {$optionCount} option(s). Delete all options first.");
+        }
+
+        $config->delete();
+
+        \Illuminate\Support\Facades\Cache::forget('option_groups:tab:all');
+        foreach (array_keys(self::PROFILE_TABS) as $tab) {
+            \Illuminate\Support\Facades\Cache::forget("option_groups:tab:{$tab}");
+        }
+
+        Log::info('[ADMIN WEB - OptionGroup Destroy] Admin: ' . Auth::id() . ' deleted group: ' . $config->group_key);
+
+        return redirect()->route('admin.web.option-groups.index')
+            ->with('success', "Option group '{$config->label}' deleted.");
+    }
+
+    public function toggleOptionGroup(int $id): RedirectResponse
+    {
+        $config = OptionGroupConfig::findOrFail($id);
+        $config->update(['is_active' => !$config->is_active]);
+
+        \Illuminate\Support\Facades\Cache::forget('option_groups:tab:all');
+        foreach (array_keys(self::PROFILE_TABS) as $tab) {
+            \Illuminate\Support\Facades\Cache::forget("option_groups:tab:{$tab}");
+        }
+
+        $state = $config->is_active ? 'activated' : 'deactivated';
+        return back()->with('success', "Group '{$config->label}' {$state}.");
     }
 
     // -----------------------------------------------------------------------

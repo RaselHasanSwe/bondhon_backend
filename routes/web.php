@@ -92,5 +92,26 @@ Route::prefix('super-admin')->name('admin.web.')->group(function () {
         // Account — Change Password
         Route::get('/change-password',  [AdminWebController::class, 'changePasswordForm'])->name('change-password');
         Route::post('/change-password', [AdminWebController::class, 'changePassword'])->name('change-password.submit');
+
+        // Select Options (Dynamic Dropdowns)
+        Route::prefix('select-options')->name('select-options.')->group(function () {
+            Route::get('/',                         [AdminWebController::class, 'selectOptions'])->name('index');
+            Route::post('/',                        [AdminWebController::class, 'storeSelectOption'])->name('store');
+            Route::get('/{id}/edit',                [AdminWebController::class, 'editSelectOption'])->name('edit');
+            Route::put('/{id}',                     [AdminWebController::class, 'updateSelectOption'])->name('update');
+            Route::delete('/{id}',                  [AdminWebController::class, 'destroySelectOption'])->name('destroy');
+            Route::post('/{id}/toggle',             [AdminWebController::class, 'toggleSelectOption'])->name('toggle');
+        });
+
+        // Option Group Configs
+        Route::prefix('option-groups')->name('option-groups.')->group(function () {
+            Route::get('/',          [AdminWebController::class, 'optionGroups'])->name('index');
+            Route::get('/create',    [AdminWebController::class, 'createOptionGroup'])->name('create');
+            Route::post('/',         [AdminWebController::class, 'storeOptionGroup'])->name('store');
+            Route::get('/{id}/edit', [AdminWebController::class, 'editOptionGroup'])->name('edit');
+            Route::put('/{id}',      [AdminWebController::class, 'updateOptionGroup'])->name('update');
+            Route::delete('/{id}',   [AdminWebController::class, 'destroyOptionGroup'])->name('destroy');
+            Route::post('/{id}/toggle', [AdminWebController::class, 'toggleOptionGroup'])->name('toggle');
+        });
     });
 });
