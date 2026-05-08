@@ -178,6 +178,38 @@ class InterestController extends ApiController
         return $this->updateStatus($request->user(), $id, 'ignored', 'Interest ignored.');
     }
 
+    /**
+     * GET /api/v1/interests/status/{userId}
+     * Get interest status between current user and another user.
+     */
+    public function checkStatus(Request $request, int $userId): JsonResponse
+    {
+        $currentUser = $request->user();
+        Log::info('[INTEREST - CheckStatus] Current User: ' . $currentUser->id . ' | Target User: ' . $userId);
+
+        // Check for existing interest in either direction
+        $interest = Interest::where(function ($q) use ($currentUser, $userId) {
+                $q->where('sender_id', $currentUser->id)->where('receiver_id', $userId);
+            })
+            ->orWhere(function ($q) use ($currentUser, $userId) {
+                $q->where('sender_id', $userId)->where('receiver_id', $currentUser->id);
+            })
+            ->whereIn('status', ['pending', 'accepted'])
+            ->latest()
+            ->first();
+
+        if (!$interest) {
+            return $this->successResponse(['status' => 'none'], 'No interest found.');
+        }
+
+        return $this->successResponse([
+            'status'      => $interest->status,
+            'is_sender'   => $interest->sender_id === $currentUser->id,
+            'created_at'  => $interest->created_at,
+            'expires_at'  => $interest->expires_at,
+        ], 'Interest status retrieved.');
+    }
+
     // -----------------------------------------------------------------------
     // Private helpers
     // -----------------------------------------------------------------------
