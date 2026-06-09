@@ -262,7 +262,7 @@ class ProfileController extends ApiController
 
             // has_basic_info is true only when ALL 8 scored basic fields are filled,
             // so the completion bar accurately shows which section still needs work.
-            $basicRequiredFields = ['dob', 'height_cm', 'weight_kg', 'complexion', 'marital_status', 'mother_tongue', 'country', 'city'];
+            $basicRequiredFields = ['dob', 'height_cm', 'weight_kg', 'complexion', 'marital_status', 'mother_tongue', 'country'];
             $allBasicFilled = $user->profile
                 && collect($basicRequiredFields)->every(fn ($f) => ! empty($user->profile->$f));
 
