@@ -33,8 +33,17 @@ class UpdatePreferenceRequest extends FormRequest
             'income_max_bdt'            => ['nullable', 'integer', 'min:0'],
             'country'                   => ['nullable', 'array'],
             'country.*'                 => ['string'],
-            'city'                      => ['nullable', 'array'],
-            'city.*'                    => ['string'],
+
+            // ── Location Hierarchy Preferences ────────────────────────────────
+            'pref_divisions'            => ['nullable', 'array'],
+            'pref_divisions.*'          => ['string'],
+            'pref_districts'            => ['nullable', 'array'],
+            'pref_districts.*'          => ['string'],
+            'pref_provinces'            => ['nullable', 'array'],
+            'pref_provinces.*'          => ['string'],
+            'pref_states'               => ['nullable', 'array'],
+            'pref_states.*'             => ['string'],
+
             'diet'                      => ['nullable', 'array'],
             'diet.*'                    => ['string', 'in:vegetarian,non_vegetarian,vegan,jain'],
             'smoking_acceptable'        => ['nullable', 'boolean'],
