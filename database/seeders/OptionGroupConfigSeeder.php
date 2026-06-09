@@ -31,9 +31,7 @@ class OptionGroupConfigSeeder extends Seeder
 
         // ── Location Tab ───────────────────────────────────────────────
         $g(['group_key'=>'nationality',     'label'=>'Nationality',         'profile_tab'=>'location', 'field_name'=>'nationality',     'input_type'=>'select']);
-        $g(['group_key'=>'country',         'label'=>'Country',             'profile_tab'=>'location', 'field_name'=>'country',         'input_type'=>'select',       'max_nesting_depth'=>3]);
-        $g(['group_key'=>'bd_division',     'label'=>'BD Division',         'profile_tab'=>'location', 'field_name'=>'city',            'input_type'=>'select',       'parent_group_key'=>'country',     'max_nesting_depth'=>2]);
-        $g(['group_key'=>'bd_district',     'label'=>'BD District',         'profile_tab'=>'location', 'field_name'=>'state',           'input_type'=>'select',       'parent_group_key'=>'bd_division', 'max_nesting_depth'=>1]);
+        $g(['group_key'=>'country',         'label'=>'Country',             'profile_tab'=>'location', 'field_name'=>'country',         'input_type'=>'select',       'parent_group_key'=>'country',     'max_nesting_depth'=>5]);
         $g(['group_key'=>'residing_status', 'label'=>'Residing Status',     'profile_tab'=>'location', 'field_name'=>'residing_status', 'input_type'=>'select']);
 
         // ── Religion Tab ───────────────────────────────────────────────

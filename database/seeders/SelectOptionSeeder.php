@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\SelectOption;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Cache;
 
 class SelectOptionSeeder extends Seeder
 {
@@ -295,91 +296,108 @@ class SelectOptionSeeder extends Seeder
             $i(['group_key' => 'nationality', 'value' => $v, 'label' => $l, 'sort_order' => $n + 1]);
         }
 
-        // ── Country (top-level) → BD Division (children) → BD District ──
+        // ── Country (top-level) → State/Division (children) → District/City ──
 
-        $bd = $i(['group_key' => 'country', 'value' => 'bangladesh', 'label' => 'Bangladesh',
-            'metadata' => ['iso' => 'BD', 'dial' => '+880'], 'sort_order' => 1]);
+        $seedCountryChildren = function (SelectOption $parent, array $items) use ($i): array {
+            $created = [];
 
+            foreach ($items as $n => $item) {
+                [$value, $label, $metadata] = array_pad($item, 3, null);
+
+                $created[$value] = $i([
+                    'group_key' => 'country',
+                    'parent_id' => $parent->id,
+                    'value' => $value,
+                    'label' => $label,
+                    'metadata' => $metadata,
+                    'sort_order' => $n + 1,
+                ]);
+            }
+
+            return $created;
+        };
+
+        $countries = [];
         foreach ([
-                     ['united_states', 'United States of America', 'USA', '+1', 5],
-                     ['canada', 'Canada', 'CA', '+1', 6],
-                 ] as [$v, $l, $iso, $dial, $sort]) {
-            $i(['group_key' => 'country', 'value' => $v, 'label' => $l,
-                'metadata' => $iso ? ['iso' => $iso, 'dial' => $dial] : null,
-                'sort_order' => $sort]);
+                     ['bangladesh', 'Bangladesh', ['iso' => 'BD', 'dial' => '+880', 'level_2_label' => 'Division', 'level_3_label' => 'District / City']],
+                     ['united_states', 'United States of America', ['iso' => 'US', 'dial' => '+1', 'level_2_label' => 'State']],
+                     ['canada', 'Canada', ['iso' => 'CA', 'dial' => '+1', 'level_2_label' => 'Province / Territory']],
+                 ] as $n => [$value, $label, $metadata]) {
+            $countries[$value] = $i([
+                'group_key' => 'country',
+                'value' => $value,
+                'label' => $label,
+                'metadata' => $metadata,
+                'sort_order' => $n + 1,
+            ]);
         }
 
-        // Bangladesh Divisions (parent = bangladesh country row)
-        $dhaka = $i(['group_key' => 'bd_division', 'parent_id' => $bd->id, 'value' => 'dhaka', 'label' => 'Dhaka', 'sort_order' => 1]);
-        $ctg = $i(['group_key' => 'bd_division', 'parent_id' => $bd->id, 'value' => 'chittagong', 'label' => 'Chittagong', 'sort_order' => 2]);
-        $rajshhi = $i(['group_key' => 'bd_division', 'parent_id' => $bd->id, 'value' => 'rajshahi', 'label' => 'Rajshahi', 'sort_order' => 3]);
-        $khulna = $i(['group_key' => 'bd_division', 'parent_id' => $bd->id, 'value' => 'khulna', 'label' => 'Khulna', 'sort_order' => 4]);
-        $barisal = $i(['group_key' => 'bd_division', 'parent_id' => $bd->id, 'value' => 'barisal', 'label' => 'Barisal', 'sort_order' => 5]);
-        $sylhet = $i(['group_key' => 'bd_division', 'parent_id' => $bd->id, 'value' => 'sylhet', 'label' => 'Sylhet', 'sort_order' => 6]);
-        $rangpur = $i(['group_key' => 'bd_division', 'parent_id' => $bd->id, 'value' => 'rangpur', 'label' => 'Rangpur', 'sort_order' => 7]);
-        $mymen = $i(['group_key' => 'bd_division', 'parent_id' => $bd->id, 'value' => 'mymensingh', 'label' => 'Mymensingh', 'sort_order' => 8]);
+        $bd = $countries['bangladesh'];
+        $us = $countries['united_states'];
+        $ca = $countries['canada'];
 
-        // Dhaka Division Districts
-        foreach ([
-                     ['dhaka', 'Dhaka'], ['faridpur', 'Faridpur'], ['gazipur', 'Gazipur'],
-                     ['gopalganj', 'Gopalganj'], ['kishoreganj', 'Kishoreganj'], ['madaripur', 'Madaripur'],
-                     ['manikganj', 'Manikganj'], ['munshiganj', 'Munshiganj'], ['narayanganj', 'Narayanganj'],
-                     ['narsingdi', 'Narsingdi'], ['rajbari', 'Rajbari'], ['shariatpur', 'Shariatpur'], ['tangail', 'Tangail'],
-                 ] as $n => [$v, $l]) {
-            $i(['group_key' => 'bd_district', 'parent_id' => $dhaka->id, 'value' => $v, 'label' => $l, 'sort_order' => $n + 1]);
-        }
-        // Chittagong Division Districts
-        foreach ([
-                     ['bandarban', 'Bandarban'], ['brahmanbaria', 'Brahmanbaria'], ['chandpur', 'Chandpur'],
-                     ['chittagong', 'Chittagong'], ['comilla', 'Comilla'], ["cox's_bazar", "Cox's Bazar"],
-                     ['feni', 'Feni'], ['khagrachhari', 'Khagrachhari'], ['lakshmipur', 'Lakshmipur'],
-                     ['noakhali', 'Noakhali'], ['rangamati', 'Rangamati'],
-                 ] as $n => [$v, $l]) {
-            $i(['group_key' => 'bd_district', 'parent_id' => $ctg->id, 'value' => $v, 'label' => $l, 'sort_order' => $n + 1]);
-        }
-        // Rajshahi Division Districts
-        foreach ([
-                     ['bogra', 'Bogra'], ['chapai_nawabganj', 'Chapai Nawabganj'], ['joypurhat', 'Joypurhat'],
-                     ['naogaon', 'Naogaon'], ['natore', 'Natore'], ['pabna', 'Pabna'], ['rajshahi', 'Rajshahi'], ['sirajganj', 'Sirajganj'],
-                 ] as $n => [$v, $l]) {
-            $i(['group_key' => 'bd_district', 'parent_id' => $rajshhi->id, 'value' => $v, 'label' => $l, 'sort_order' => $n + 1]);
-        }
-        // Khulna Division Districts
-        foreach ([
-                     ['bagerhat', 'Bagerhat'], ['chuadanga', 'Chuadanga'], ['jessore', 'Jessore'],
-                     ['jhenaidah', 'Jhenaidah'], ['khulna', 'Khulna'], ['kushtia', 'Kushtia'],
-                     ['magura', 'Magura'], ['meherpur', 'Meherpur'], ['narail', 'Narail'], ['satkhira', 'Satkhira'],
-                 ] as $n => [$v, $l]) {
-            $i(['group_key' => 'bd_district', 'parent_id' => $khulna->id, 'value' => $v, 'label' => $l, 'sort_order' => $n + 1]);
-        }
-        // Barisal Division Districts
-        foreach ([
-                     ['barguna', 'Barguna'], ['barisal', 'Barisal'], ['bhola', 'Bhola'],
-                     ['jhalokati', 'Jhalokati'], ['patuakhali', 'Patuakhali'], ['pirojpur', 'Pirojpur'],
-                 ] as $n => [$v, $l]) {
-            $i(['group_key' => 'bd_district', 'parent_id' => $barisal->id, 'value' => $v, 'label' => $l, 'sort_order' => $n + 1]);
-        }
-        // Sylhet Division Districts
-        foreach ([
-                     ['habiganj', 'Habiganj'], ['moulvibazar', 'Moulvibazar'], ['sunamganj', 'Sunamganj'], ['sylhet', 'Sylhet'],
-                 ] as $n => [$v, $l]) {
-            $i(['group_key' => 'bd_district', 'parent_id' => $sylhet->id, 'value' => $v, 'label' => $l, 'sort_order' => $n + 1]);
-        }
-        // Rangpur Division Districts
-        foreach ([
-                     ['dinajpur', 'Dinajpur'], ['gaibandha', 'Gaibandha'], ['kurigram', 'Kurigram'],
-                     ['lalmonirhat', 'Lalmonirhat'], ['nilphamari', 'Nilphamari'], ['panchagarh', 'Panchagarh'],
-                     ['rangpur', 'Rangpur'], ['thakurgaon', 'Thakurgaon'],
-                 ] as $n => [$v, $l]) {
-            $i(['group_key' => 'bd_district', 'parent_id' => $rangpur->id, 'value' => $v, 'label' => $l, 'sort_order' => $n + 1]);
-        }
-        // Mymensingh Division Districts
-        foreach ([
-                     ['jamalpur', 'Jamalpur'], ['mymensingh', 'Mymensingh'],
-                     ['netrokona', 'Netrokona'], ['sherpur', 'Sherpur'],
-                 ] as $n => [$v, $l]) {
-            $i(['group_key' => 'bd_district', 'parent_id' => $mymen->id, 'value' => $v, 'label' => $l, 'sort_order' => $n + 1]);
-        }
+        // Bangladesh divisions (parent = Bangladesh country row)
+        $bdDivisions = $seedCountryChildren($bd, [
+            ['dhaka', 'Dhaka'], ['chittagong', 'Chittagong'], ['rajshahi', 'Rajshahi'], ['khulna', 'Khulna'],
+            ['barisal', 'Barisal'], ['sylhet', 'Sylhet'], ['rangpur', 'Rangpur'], ['mymensingh', 'Mymensingh'],
+        ]);
+
+        $seedCountryChildren($bdDivisions['dhaka'], [
+            ['dhaka', 'Dhaka'], ['faridpur', 'Faridpur'], ['gazipur', 'Gazipur'], ['gopalganj', 'Gopalganj'],
+            ['kishoreganj', 'Kishoreganj'], ['madaripur', 'Madaripur'], ['manikganj', 'Manikganj'], ['munshiganj', 'Munshiganj'],
+            ['narayanganj', 'Narayanganj'], ['narsingdi', 'Narsingdi'], ['rajbari', 'Rajbari'], ['shariatpur', 'Shariatpur'], ['tangail', 'Tangail'],
+        ]);
+        $seedCountryChildren($bdDivisions['chittagong'], [
+            ['bandarban', 'Bandarban'], ['brahmanbaria', 'Brahmanbaria'], ['chandpur', 'Chandpur'], ['chittagong', 'Chittagong'],
+            ['comilla', 'Comilla'], ["cox's_bazar", "Cox's Bazar"], ['feni', 'Feni'], ['khagrachhari', 'Khagrachhari'],
+            ['lakshmipur', 'Lakshmipur'], ['noakhali', 'Noakhali'], ['rangamati', 'Rangamati'],
+        ]);
+        $seedCountryChildren($bdDivisions['rajshahi'], [
+            ['bogra', 'Bogra'], ['chapai_nawabganj', 'Chapai Nawabganj'], ['joypurhat', 'Joypurhat'], ['naogaon', 'Naogaon'],
+            ['natore', 'Natore'], ['pabna', 'Pabna'], ['rajshahi', 'Rajshahi'], ['sirajganj', 'Sirajganj'],
+        ]);
+        $seedCountryChildren($bdDivisions['khulna'], [
+            ['bagerhat', 'Bagerhat'], ['chuadanga', 'Chuadanga'], ['jessore', 'Jessore'], ['jhenaidah', 'Jhenaidah'],
+            ['khulna', 'Khulna'], ['kushtia', 'Kushtia'], ['magura', 'Magura'], ['meherpur', 'Meherpur'],
+            ['narail', 'Narail'], ['satkhira', 'Satkhira'],
+        ]);
+        $seedCountryChildren($bdDivisions['barisal'], [
+            ['barguna', 'Barguna'], ['barisal', 'Barisal'], ['bhola', 'Bhola'],
+            ['jhalokati', 'Jhalokati'], ['patuakhali', 'Patuakhali'], ['pirojpur', 'Pirojpur'],
+        ]);
+        $seedCountryChildren($bdDivisions['sylhet'], [
+            ['habiganj', 'Habiganj'], ['moulvibazar', 'Moulvibazar'], ['sunamganj', 'Sunamganj'], ['sylhet', 'Sylhet'],
+        ]);
+        $seedCountryChildren($bdDivisions['rangpur'], [
+            ['dinajpur', 'Dinajpur'], ['gaibandha', 'Gaibandha'], ['kurigram', 'Kurigram'], ['lalmonirhat', 'Lalmonirhat'],
+            ['nilphamari', 'Nilphamari'], ['panchagarh', 'Panchagarh'], ['rangpur', 'Rangpur'], ['thakurgaon', 'Thakurgaon'],
+        ]);
+        $seedCountryChildren($bdDivisions['mymensingh'], [
+            ['jamalpur', 'Jamalpur'], ['mymensingh', 'Mymensingh'], ['netrokona', 'Netrokona'], ['sherpur', 'Sherpur'],
+        ]);
+
+        // United States states + federal district
+        $seedCountryChildren($us, [
+            ['alabama', 'Alabama'], ['alaska', 'Alaska'], ['arizona', 'Arizona'], ['arkansas', 'Arkansas'], ['california', 'California'],
+            ['colorado', 'Colorado'], ['connecticut', 'Connecticut'], ['delaware', 'Delaware'], ['district_of_columbia', 'District of Columbia'],
+            ['florida', 'Florida'], ['georgia', 'Georgia'], ['hawaii', 'Hawaii'], ['idaho', 'Idaho'], ['illinois', 'Illinois'],
+            ['indiana', 'Indiana'], ['iowa', 'Iowa'], ['kansas', 'Kansas'], ['kentucky', 'Kentucky'], ['louisiana', 'Louisiana'],
+            ['maine', 'Maine'], ['maryland', 'Maryland'], ['massachusetts', 'Massachusetts'], ['michigan', 'Michigan'], ['minnesota', 'Minnesota'],
+            ['mississippi', 'Mississippi'], ['missouri', 'Missouri'], ['montana', 'Montana'], ['nebraska', 'Nebraska'], ['nevada', 'Nevada'],
+            ['new_hampshire', 'New Hampshire'], ['new_jersey', 'New Jersey'], ['new_mexico', 'New Mexico'], ['new_york', 'New York'], ['north_carolina', 'North Carolina'],
+            ['north_dakota', 'North Dakota'], ['ohio', 'Ohio'], ['oklahoma', 'Oklahoma'], ['oregon', 'Oregon'], ['pennsylvania', 'Pennsylvania'],
+            ['rhode_island', 'Rhode Island'], ['south_carolina', 'South Carolina'], ['south_dakota', 'South Dakota'], ['tennessee', 'Tennessee'], ['texas', 'Texas'],
+            ['utah', 'Utah'], ['vermont', 'Vermont'], ['virginia', 'Virginia'], ['washington', 'Washington'], ['west_virginia', 'West Virginia'],
+            ['wisconsin', 'Wisconsin'], ['wyoming', 'Wyoming'],
+        ]);
+
+        // Canada provinces + territories
+        $seedCountryChildren($ca, [
+            ['alberta', 'Alberta'], ['british_columbia', 'British Columbia'], ['manitoba', 'Manitoba'], ['new_brunswick', 'New Brunswick'],
+            ['newfoundland_and_labrador', 'Newfoundland and Labrador'], ['northwest_territories', 'Northwest Territories'], ['nova_scotia', 'Nova Scotia'],
+            ['nunavut', 'Nunavut'], ['ontario', 'Ontario'], ['prince_edward_island', 'Prince Edward Island'], ['quebec', 'Quebec'],
+            ['saskatchewan', 'Saskatchewan'], ['yukon', 'Yukon'],
+        ]);
 
         // ── Residing Status ───────────────────────────────────────────
         foreach ([
@@ -431,6 +449,8 @@ class SelectOptionSeeder extends Seeder
                  ] as $n => [$v, $l]) {
             $i(['group_key' => 'pref_has_children', 'value' => $v, 'label' => $l, 'sort_order' => $n + 1]);
         }
+
+        Cache::flush();
     }
 }
 
