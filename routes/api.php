@@ -63,7 +63,7 @@ Route::prefix('v1')->group(function () {
             ->middleware('throttle:3,1');        // 3 requests per minute
 
         Route::post('/login', [AuthController::class, 'login'])
-            ->middleware('throttle:5,1');        // 5 requests per minute
+            ->middleware('throttle:10,1');        // 5 requests per minute
 
         // Password Reset (Public)
         Route::post('/password/forgot', [ForgotPasswordController::class, 'sendLink'])
