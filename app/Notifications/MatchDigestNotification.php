@@ -4,6 +4,7 @@ namespace App\Notifications;
 
 use App\Mail\MatchDigestMailable;
 use App\Models\MatchScore;
+use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
@@ -13,19 +14,33 @@ class MatchDigestNotification extends Notification implements ShouldQueue
     use Queueable;
 
     /**
-     * @param  MatchScore[]  $topMatches  Top match score records (eager-loaded candidate)
+     * @param  MatchScore[] $topMatches  Top match score records (eager-loaded candidate)
+     * @param  bool         $sendEmail   Whether to also send the email digest.
+     *                                   Controlled by the user's `email_digest_frequency`
+     *                                   subscription feature ('daily' | 'weekly' | 'none').
      */
     public function __construct(
-        public readonly array $topMatches
+        public readonly array $topMatches,
+        public readonly bool  $sendEmail = false,
     ) {}
 
+    /**
+     * Channels: always store in-app (database); only email when $sendEmail is true.
+     */
     public function via(object $notifiable): array
     {
-        return ['database', 'mail'];
+        $channels = ['database'];
+
+        if ($this->sendEmail) {
+            $channels[] = 'mail';
+        }
+
+        return $channels;
     }
 
     public function toMail(object $notifiable): MatchDigestMailable
     {
+        /** @var User $notifiable */
         return new MatchDigestMailable($notifiable, $this->topMatches);
     }
 
@@ -45,4 +60,3 @@ class MatchDigestNotification extends Notification implements ShouldQueue
         ];
     }
 }
-
