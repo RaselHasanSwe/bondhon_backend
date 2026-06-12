@@ -128,6 +128,11 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(ProfilePhoto::class);
     }
 
+    public function faceScanSession(): HasOne
+    {
+        return $this->hasOne(FaceScanSession::class);
+    }
+
     public function sentInterests(): HasMany
     {
         return $this->hasMany(Interest::class, 'sender_id');

@@ -6,6 +6,8 @@ use App\Http\Controllers\Api\V1\ApiController;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Models\Profile;
+use App\Models\FaceScanSession;
+use App\Models\SiteSetting;
 use App\Models\SubscriptionPlan;
 use App\Models\User;
 use App\Services\ProfileCompletionService;
@@ -80,6 +82,13 @@ class AuthController extends ApiController
                 // Calculate initial completion percentage
                 $this->completionService->recalculateAndSave($user->fresh());
 
+                if (SiteSetting::booleanValue('face_scan_enabled', true)) {
+                    FaceScanSession::firstOrCreate(
+                        ['user_id' => $user->id],
+                        ['status' => 'pending']
+                    );
+                }
+
                 // Auto-assign free subscription on registration
                 $freePlan = SubscriptionPlan::where('price_bdt', 0)
                     ->where('is_active', true)
@@ -96,7 +105,7 @@ class AuthController extends ApiController
                 return [
                     'token'      => $token,
                     'token_type' => 'Bearer',
-                    'user'       => $this->formatUser($user->load('profile')),
+                    'user'       => $this->formatUser($user->load(['profile', 'faceScanSession'])),
                 ];
             });
 
@@ -166,7 +175,7 @@ class AuthController extends ApiController
             return $this->successResponse([
                 'token'      => $token,
                 'token_type' => 'Bearer',
-                'user'       => $this->formatUser($user->load('profile')),
+                'user'       => $this->formatUser($user->load(['profile', 'faceScanSession'])),
             ], 'Login successful.');
 
         } catch (\Throwable $e) {
@@ -223,7 +232,7 @@ class AuthController extends ApiController
         try {
             $user = $request->user()->load([
                 'profile', 'religiousDetail', 'familyDetail',
-                'educationCareer', 'lifestyle', 'horoscopeDetail', 'partnerPreference',
+                'educationCareer', 'lifestyle', 'horoscopeDetail', 'partnerPreference', 'faceScanSession',
             ]);
 
             return $this->successResponse($this->formatUser($user), 'User details retrieved successfully.');
@@ -277,6 +286,9 @@ class AuthController extends ApiController
             'subscription_plan'       => $user->subscription_plan,
             'subscription_expires_at' => $user->subscription_expires_at,
             'profile'                 => $user->profile,
+            'face_scan_required'      => SiteSetting::booleanValue('face_scan_enabled', true),
+            'face_scan_status'        => $user->faceScanSession?->status,
+            'face_scan_completed_at'  => $user->faceScanSession?->completed_at,
             'created_at'              => $user->created_at,
         ];
     }

@@ -10,7 +10,7 @@
 
             {{-- Branding --}}
             <div class="table-card p-4 mb-4">
-                <h6 class="fw-bold mb-3" style="color:var(--gold)"><i class="bi bi-badge me-2"></i>Branding</h6>
+                <h6 class="fw-bold mb-3" style="color:#C9A227"><i class="bi bi-badge me-2"></i>Branding</h6>
                 <div class="row g-3">
                     <div class="col-md-6">
                         <label class="form-label fw-semibold small">Site Name</label>
@@ -58,7 +58,7 @@
 
             {{-- Contact Info --}}
             <div class="table-card p-4 mb-4">
-                <h6 class="fw-bold mb-3" style="color:var(--gold)"><i class="bi bi-envelope me-2"></i>Contact Information</h6>
+                <h6 class="fw-bold mb-3" style="color:#C9A227"><i class="bi bi-envelope me-2"></i>Contact Information</h6>
                 <div class="row g-3">
                     <div class="col-md-6">
                         <label class="form-label fw-semibold small">Contact Email</label>
@@ -81,9 +81,21 @@
                 </div>
             </div>
 
+            {{-- Face Verification --}}
+            <div class="table-card p-4 mb-4">
+                <h6 class="fw-bold mb-3" style="color:#C9A227"><i class="bi bi-camera-video me-2"></i>Face Verification</h6>
+                <div class="d-flex flex-column gap-2">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" role="switch" id="face_scan_enabled" name="face_scan_enabled" value="1" {{ !empty($settings['face_scan_enabled']) && filter_var($settings['face_scan_enabled'], FILTER_VALIDATE_BOOLEAN) ? 'checked' : '' }}>
+                        <label class="form-check-label fw-semibold" for="face_scan_enabled">Require face scan after registration</label>
+                    </div>
+                    <p class="small text-muted mb-0">When enabled, new users must complete the camera-based face scan before they can access the dashboard. Their captures will be stored for super-admin review.</p>
+                </div>
+            </div>
+
             {{-- Social Links --}}
             <div class="table-card p-4 mb-4">
-                <h6 class="fw-bold mb-3" style="color:var(--gold)"><i class="bi bi-share me-2"></i>Social Media Links</h6>
+                <h6 class="fw-bold mb-3" style="color:#C9A227"><i class="bi bi-share me-2"></i>Social Media Links</h6>
                 <div class="row g-3">
                     <div class="col-md-4">
                         <label class="form-label fw-semibold small"><i class="bi bi-facebook me-1"></i>Facebook URL</label>
@@ -108,7 +120,7 @@
 
             {{-- SEO --}}
             <div class="table-card p-4 mb-4">
-                <h6 class="fw-bold mb-3" style="color:var(--gold)"><i class="bi bi-search me-2"></i>SEO / Meta Defaults</h6>
+                <h6 class="fw-bold mb-3" style="color:#C9A227"><i class="bi bi-search me-2"></i>SEO / Meta Defaults</h6>
                 <div class="row g-3">
                     <div class="col-12">
                         <label class="form-label fw-semibold small">Default Meta Title <small class="text-muted">(max 160 chars)</small></label>
@@ -131,7 +143,7 @@
                 </div>
             </div>
 
-            <button type="submit" class="btn btn-warning fw-semibold px-4" style="background:var(--gold);border-color:var(--gold);color:#fff;">
+            <button type="submit" class="btn btn-warning fw-semibold px-4" style="background:#C9A227;border-color:#C9A227;color:#fff;">
                 <i class="bi bi-check-lg me-1"></i>Save Settings
             </button>
         </form>
@@ -148,7 +160,7 @@
                 <i class="bi bi-currency-exchange text-success fs-5"></i>
                 <span class="fw-semibold small">Current Currency</span>
             </div>
-            <div class="fs-4 fw-bold" style="color:var(--gold)">
+            <div class="fs-4 fw-bold" style="color:#C9A227">
                 {{ $settings['currency_symbol'] ?? '৳' }} {{ $settings['currency'] ?? 'BDT' }}
             </div>
         </div>

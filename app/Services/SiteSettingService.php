@@ -25,6 +25,7 @@ class SiteSettingService
             'contact_email'    => ['type' => 'email', 'label' => 'Contact Email'],
             'contact_phone'    => ['type' => 'text',  'label' => 'Contact Phone'],
             'contact_address'  => ['type' => 'text',  'label' => 'Contact Address'],
+            'face_scan_enabled' => ['type' => 'boolean', 'label' => 'Enable Face Scan Verification'],
             'facebook_url'     => ['type' => 'url',   'label' => 'Facebook URL'],
             'twitter_url'      => ['type' => 'url',   'label' => 'Twitter / X URL'],
             'instagram_url'    => ['type' => 'url',   'label' => 'Instagram URL'],

@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\V1\Admin\AdminReportController;
 use App\Http\Controllers\Api\V1\Admin\AdminSubscriptionController;
 use App\Http\Controllers\Api\V1\Admin\AdminUserController;
 use App\Http\Controllers\Api\V1\Auth\AuthController;
+use App\Http\Controllers\Api\V1\Auth\FaceScanController;
 use App\Http\Controllers\Api\V1\Auth\EmailVerificationController;
 use App\Http\Controllers\Api\V1\Auth\ForgotPasswordController;
 use App\Http\Controllers\Api\V1\Auth\ResetPasswordController;
@@ -60,10 +61,10 @@ Route::prefix('v1')->group(function () {
     */
     Route::prefix('auth')->group(function () {
         Route::post('/register', [AuthController::class, 'register'])
-            ->middleware('throttle:3,1');        // 3 requests per minute
+            ->middleware('throttle:300,1');        // 3 requests per minute
 
         Route::post('/login', [AuthController::class, 'login'])
-            ->middleware('throttle:10,1');        // 5 requests per minute
+            ->middleware('throttle:100,1');        // 5 requests per minute
 
         // Password Reset (Public)
         Route::post('/password/forgot', [ForgotPasswordController::class, 'sendLink'])
@@ -83,6 +84,11 @@ Route::prefix('v1')->group(function () {
             Route::get('/me', [AuthController::class, 'me']);
             Route::put('/change-password', [AuthController::class, 'changePassword'])
                 ->middleware('throttle:10,1');
+
+            Route::prefix('face-scan')->group(function () {
+                Route::get('/status', [FaceScanController::class, 'status']);
+                Route::post('/captures', [FaceScanController::class, 'storeCapture'])->middleware('throttle:60,1');
+            });
         });
     });
 
@@ -217,8 +223,10 @@ Route::prefix('v1')->group(function () {
         Route::middleware('admin')->prefix('admin')->group(function () {
             Route::get('/dashboard', [AdminDashboardController::class, 'stats']);
             Route::get('/users', [AdminUserController::class, 'index']);
+            Route::get('/users/{id}', [AdminUserController::class, 'show']);
             Route::put('/users/{id}/ban', [AdminUserController::class, 'ban']);
             Route::put('/users/{id}/verify', [AdminUserController::class, 'verify']);
+            Route::put('/users/{id}/face-scan', [AdminUserController::class, 'reviewFaceScan']);
             Route::get('/photos/pending', [AdminPhotoModerationController::class, 'pending']);
             Route::put('/photos/{id}/approve', [AdminPhotoModerationController::class, 'approve']);
             Route::put('/photos/{id}/reject', [AdminPhotoModerationController::class, 'reject']);

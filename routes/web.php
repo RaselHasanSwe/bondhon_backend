@@ -45,6 +45,9 @@ Route::prefix('super-admin')->name('admin.web.')->group(function () {
 
         // Users
         Route::get('/users', [AdminWebController::class, 'users'])->name('users');
+        Route::get('/users/{userId}', [AdminWebController::class, 'userDetails'])->name('users.show');
+        Route::post('/users/{userId}/ban-toggle', [AdminWebController::class, 'toggleUserBan'])->name('users.ban-toggle');
+        Route::post('/users/{userId}/face-scan-review', [AdminWebController::class, 'reviewUserFaceScan'])->name('users.face-scan-review');
         Route::get('/users/{userId}/notifications', [AdminWebController::class, 'userNotifications'])->name('users.notifications');
 
         // Subscription Plans (CRUD)

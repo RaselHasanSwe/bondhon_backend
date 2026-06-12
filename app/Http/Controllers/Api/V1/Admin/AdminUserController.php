@@ -32,7 +32,7 @@ class AdminUserController extends ApiController
         Log::info('[ADMIN USER - Index] Request by Admin ID: ' . $request->user()->id);
 
         try {
-            $query = User::with('profile')->withTrashed();
+            $query = User::with(['profile', 'faceScanSession.latestCapture'])->withTrashed();
 
             if ($request->filled('search')) {
                 $query->where(function ($q) use ($request) {
@@ -60,6 +60,46 @@ class AdminUserController extends ApiController
                 'exception' => $e,
             ]);
             return $this->serverErrorResponse('Failed to retrieve users.');
+        }
+    }
+
+    #[OA\Get(
+        path: '/api/v1/admin/users/{id}',
+        summary: 'Get a full user profile for admin review',
+        security: [['sanctum' => []]],
+        tags: ['Admin - Users'],
+        parameters: [new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer'))],
+        responses: [
+            new OA\Response(response: 200, description: 'User details'),
+            new OA\Response(response: 404, description: 'User not found'),
+            new OA\Response(response: 500, description: 'Server error'),
+        ]
+    )]
+    public function show(Request $request, int $id): JsonResponse
+    {
+        try {
+            /** @var User $user */
+            $user = User::withTrashed()->with([
+                'profile',
+                'religiousDetail',
+                'familyDetail',
+                'educationCareer',
+                'lifestyle',
+                'horoscopeDetail',
+                'partnerPreference',
+                'photos',
+                'faceScanSession.captures',
+                'faceScanSession.latestCapture',
+            ])->findOrFail($id);
+
+            return $this->successResponse($this->formatUserDetail($user), 'User details retrieved successfully.');
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return $this->errorResponse('User not found.', null, 404);
+        } catch (\Throwable $e) {
+            Log::error('[ADMIN USER - Show] Failed for User ID: ' . $id . ' | Error: ' . $e->getMessage(), [
+                'exception' => $e,
+            ]);
+            return $this->serverErrorResponse('Failed to retrieve user details.');
         }
     }
 
@@ -157,5 +197,112 @@ class AdminUserController extends ApiController
             ]);
             return $this->serverErrorResponse('Failed to verify user profile.');
         }
+    }
+
+    #[OA\Put(
+        path: '/api/v1/admin/users/{id}/face-scan',
+        summary: 'Review a user face-scan submission',
+        security: [['sanctum' => []]],
+        tags: ['Admin - Users'],
+        parameters: [new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer'))],
+        requestBody: new OA\RequestBody(content: new OA\JsonContent(
+            required: ['decision'],
+            properties: [
+                new OA\Property(property: 'decision', type: 'string', enum: ['approved', 'rejected', 'ban'], example: 'approved'),
+                new OA\Property(property: 'review_note', type: 'string', example: 'Face verified successfully.'),
+            ]
+        )),
+        responses: [
+            new OA\Response(response: 200, description: 'Face scan reviewed'),
+            new OA\Response(response: 404, description: 'User not found'),
+            new OA\Response(response: 400, description: 'Face scan missing'),
+            new OA\Response(response: 500, description: 'Server error'),
+        ]
+    )]
+    public function reviewFaceScan(Request $request, int $id): JsonResponse
+    {
+        $request->validate([
+            'decision' => ['required', 'in:approved,rejected,ban'],
+            'review_note' => ['nullable', 'string', 'max:2000'],
+        ]);
+
+        try {
+            $user = User::withTrashed()->with('faceScanSession')->findOrFail($id);
+
+            if (! $user->faceScanSession) {
+                return $this->errorResponse('Face scan session not found.', null, 400);
+            }
+
+            DB::transaction(function () use ($user, $request) {
+                $session = $user->faceScanSession;
+                $status = $request->string('decision')->toString();
+
+                $session->update([
+                    'status' => $status === 'ban' ? 'rejected' : $status,
+                    'review_note' => $request->input('review_note'),
+                    'reviewed_by' => $request->user()->id,
+                    'reviewed_at' => now(),
+                ]);
+
+                if ($status === 'ban') {
+                    $user->update(['is_banned' => true]);
+                }
+            });
+
+            return $this->successResponse($user->fresh(['faceScanSession.captures']), 'Face scan review updated successfully.');
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return $this->errorResponse('User not found.', null, 404);
+        } catch (\Throwable $e) {
+            Log::error('[ADMIN USER - FaceScanReview] Failed for User ID: ' . $id . ' | Error: ' . $e->getMessage(), [
+                'exception' => $e,
+            ]);
+            return $this->serverErrorResponse('Failed to review face scan.');
+        }
+    }
+
+    private function formatUserDetail($user): array
+    {
+        $session = $user->faceScanSession;
+
+        return [
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'gender' => $user->gender,
+                'profile_created_by' => $user->profile_created_by,
+                'role' => $user->role,
+                'is_active' => $user->is_active,
+                'is_banned' => $user->is_banned,
+                'subscription_plan' => $user->subscription_plan,
+                'subscription_expires_at' => $user->subscription_expires_at,
+                'email_verified_at' => $user->email_verified_at,
+                'created_at' => $user->created_at,
+                'deleted_at' => $user->deleted_at,
+                'profile' => $user->profile,
+                'religious_detail' => $user->religiousDetail,
+                'family_detail' => $user->familyDetail,
+                'education_career' => $user->educationCareer,
+                'lifestyle' => $user->lifestyle,
+                'horoscope_detail' => $user->horoscopeDetail,
+                'partner_preference' => $user->partnerPreference,
+                'photos' => $user->photos,
+            ],
+            'face_scan' => $session ? [
+                'id' => $session->id,
+                'status' => $session->status,
+                'completed_at' => $session->completed_at,
+                'reviewed_at' => $session->reviewed_at,
+                'review_note' => $session->review_note,
+                'reviewed_by' => $session->reviewed_by,
+                'captures' => $session->captures->map(fn ($capture) => [
+                    'id' => $capture->id,
+                    'capture_key' => $capture->capture_key,
+                    'image_url' => asset('storage/' . $capture->image_path),
+                    'metadata' => $capture->metadata,
+                    'captured_at' => $capture->captured_at,
+                ])->values(),
+            ] : null,
+        ];
     }
 }

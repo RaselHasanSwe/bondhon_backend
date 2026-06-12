@@ -121,7 +121,7 @@ class AdminWebController extends Controller
 
     public function users(Request $request): View
     {
-        $query = User::with('profile')->withTrashed();
+        $query = User::with(['profile', 'faceScanSession.latestCapture'])->withTrashed();
 
         if ($request->filled('search')) {
             $q = $request->search;
@@ -143,6 +143,62 @@ class AdminWebController extends Controller
         $users = $query->orderByDesc('created_at')->paginate(20)->withQueryString();
 
         return view('admin.users.index', compact('users'));
+    }
+
+    public function userDetails(int $userId): View
+    {
+        $user = User::withTrashed()->with([
+            'profile',
+            'religiousDetail',
+            'familyDetail',
+            'educationCareer',
+            'lifestyle',
+            'horoscopeDetail',
+            'partnerPreference',
+            'photos',
+            'faceScanSession.captures',
+            'faceScanSession.latestCapture',
+        ])->findOrFail($userId);
+
+        return view('admin.users.show', compact('user'));
+    }
+
+    public function toggleUserBan(Request $request, int $userId): RedirectResponse
+    {
+        $user = User::withTrashed()->findOrFail($userId);
+        $user->update(['is_banned' => ! $user->is_banned]);
+
+        return back()->with('success', $user->is_banned ? 'User banned successfully.' : 'User unbanned successfully.');
+    }
+
+    public function reviewUserFaceScan(Request $request, int $userId): RedirectResponse
+    {
+        $request->validate([
+            'decision' => ['required', 'in:approved,rejected,ban'],
+            'review_note' => ['nullable', 'string', 'max:2000'],
+        ]);
+
+        $user = User::withTrashed()->with('faceScanSession')->findOrFail($userId);
+
+        if (! $user->faceScanSession) {
+            return back()->with('error', 'Face scan session not found.');
+        }
+
+        $session = $user->faceScanSession;
+        $status = $request->string('decision')->toString();
+
+        $session->update([
+            'status' => $status === 'ban' ? 'rejected' : $status,
+            'review_note' => $request->input('review_note'),
+            'reviewed_by' => Auth::id(),
+            'reviewed_at' => now(),
+        ]);
+
+        if ($status === 'ban') {
+            $user->update(['is_banned' => true]);
+        }
+
+        return back()->with('success', 'Face scan review updated successfully.');
     }
 
     // -----------------------------------------------------------------------
@@ -279,6 +335,7 @@ class AdminWebController extends Controller
             'contact_email'    => ['nullable', 'email', 'max:150'],
             'contact_phone'    => ['nullable', 'string', 'max:50'],
             'contact_address'  => ['nullable', 'string', 'max:255'],
+            'face_scan_enabled'=> ['nullable'],
             'facebook_url'     => ['nullable', 'url', 'max:255'],
             'twitter_url'      => ['nullable', 'url', 'max:255'],
             'instagram_url'    => ['nullable', 'url', 'max:255'],
@@ -298,6 +355,8 @@ class AdminWebController extends Controller
             }
             unset($validated[$imageKey]);
         }
+
+        $validated['face_scan_enabled'] = $request->has('face_scan_enabled') ? '1' : '0';
 
         $service->update(array_filter($validated, fn ($v) => $v !== null));
 
