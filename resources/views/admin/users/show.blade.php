@@ -96,32 +96,6 @@
                 <div class="text-muted">This user has not completed the face-scan step.</div>
             @endif
         </div>
-
-        <div class="table-card p-4 mb-3">
-            <h6 class="fw-bold mb-3">User Relations</h6>
-            <div class="row g-3 small">
-                <div class="col-md-6"><strong>Religion:</strong> {{ $user->religiousDetail ? 'Available' : 'Not set' }}</div>
-                <div class="col-md-6"><strong>Family:</strong> {{ $user->familyDetail ? 'Available' : 'Not set' }}</div>
-                <div class="col-md-6"><strong>Education & Career:</strong> {{ $user->educationCareer ? 'Available' : 'Not set' }}</div>
-                <div class="col-md-6"><strong>Lifestyle:</strong> {{ $user->lifestyle ? 'Available' : 'Not set' }}</div>
-                <div class="col-md-6"><strong>Horoscope:</strong> {{ $user->horoscopeDetail ? 'Available' : 'Not set' }}</div>
-                <div class="col-md-6"><strong>Partner Preference:</strong> {{ $user->partnerPreference ? 'Available' : 'Not set' }}</div>
-                <div class="col-12"><strong>Photos:</strong> {{ $user->photos->count() }}</div>
-            </div>
-        </div>
-
-        <div class="table-card p-4">
-            <h6 class="fw-bold mb-3">Raw Profile Data</h6>
-            <pre class="small mb-0" style="white-space: pre-wrap; word-break: break-word;">{{ json_encode([
-                'profile' => $user->profile,
-                'religiousDetail' => $user->religiousDetail,
-                'familyDetail' => $user->familyDetail,
-                'educationCareer' => $user->educationCareer,
-                'lifestyle' => $user->lifestyle,
-                'horoscopeDetail' => $user->horoscopeDetail,
-                'partnerPreference' => $user->partnerPreference,
-            ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) }}</pre>
-        </div>
     </div>
 </div>
 @endsection
