@@ -5,7 +5,7 @@ use Illuminate\Support\Facades\Broadcast;
 
 /*
 |--------------------------------------------------------------------------
-| Broadcast Channels — Bondhon Matrimony Platform
+| Broadcast Channels — MyBouma Matrimony Platform
 |--------------------------------------------------------------------------
 */
 

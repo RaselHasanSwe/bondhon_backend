@@ -8,15 +8,20 @@ use App\Http\Resources\ProfileCardResource;
 use App\Models\Block;
 use App\Models\MatchScore;
 use App\Models\Profile;
+use App\Models\ProfileView;
 use App\Models\User;
 use App\Services\MatchingService;
+use App\Services\SubscriptionFeatureService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
 class MatchController extends ApiController
 {
-    public function __construct(private readonly MatchingService $matchingService) {}
+    public function __construct(
+        private readonly MatchingService $matchingService,
+        private readonly SubscriptionFeatureService $featureService,
+    ) {}
 
     /**
      * GET /api/v1/matches
@@ -27,7 +32,11 @@ class MatchController extends ApiController
         $user = $request->user();
         Log::info('[MATCH - Index] User ID: ' . $user->id);
 
-        $paginator = $this->matchingService->getSuggestions($user, 20);
+        // Enforce daily_matches limit
+        $dailyLimit = (int) $this->featureService->value($user, 'daily_matches');
+        $perPage    = ($dailyLimit > 0) ? min(20, $dailyLimit) : 20;
+
+        $paginator = $this->matchingService->getSuggestions($user, $perPage);
 
         return $this->successResponse(
             MatchResource::collection($paginator)->response()->getData(true),
@@ -43,6 +52,36 @@ class MatchController extends ApiController
     {
         $user = $request->user();
         Log::info('[MATCH - Search] User ID: ' . $user->id . ' | Filters: ' . json_encode($request->validated()));
+
+        // Guard: basic search_access
+        if (! $this->featureService->can($user, 'search_access')) {
+            return $this->errorResponse(
+                'Search is not available on your current subscription plan.',
+                ['feature' => 'search_access'],
+                403
+            );
+        }
+
+        // Guard: advanced filters require search_filters_advanced
+        $advancedFields = ['income_min', 'income_max', 'caste', 'diet', 'smoking', 'drinking', 'employed_in'];
+        $hasAdvanced    = collect($advancedFields)->contains(fn ($f) => $request->filled($f));
+
+        if ($hasAdvanced && ! $this->featureService->can($user, 'search_filters_advanced')) {
+            return $this->errorResponse(
+                'Advanced search filters (income, caste, etc.) require an upgraded plan.',
+                ['feature' => 'search_filters_advanced'],
+                403
+            );
+        }
+
+        // Guard: BON-XXXXXX profile ID search
+        if ($request->filled('profile_id') && ! $this->featureService->can($user, 'profile_id_search')) {
+            return $this->errorResponse(
+                'Search by Profile ID requires an upgraded subscription plan.',
+                ['feature' => 'profile_id_search'],
+                403
+            );
+        }
 
         // IDs the auth user has blocked or been blocked by
         $blockedIds   = Block::where('blocker_id', $user->id)->pluck('blocked_id');
@@ -102,6 +141,7 @@ class MatchController extends ApiController
             ->leftJoin('religious_details', 'religious_details.user_id', '=', 'users.id')
             ->leftJoin('education_careers', 'education_careers.user_id', '=', 'users.id')
             ->leftJoin('lifestyles', 'lifestyles.user_id', '=', 'users.id')
+            ->leftJoin('family_details', 'family_details.user_id', '=', 'users.id')
             ->select('users.*')
             ->where('users.gender', $gender)
             ->where('users.is_active', true)
@@ -125,12 +165,21 @@ class MatchController extends ApiController
             $query->where('profiles.height_cm', '<=', $request->height_max);
         }
 
-        // Location
+        // Location — use exact match for structured country values, LIKE for free text state/city
         if ($request->filled('country')) {
-            $query->where('profiles.country', 'like', '%' . $request->country . '%');
+            $query->where('profiles.country', $request->country);
+        }
+        if ($request->filled('state')) {
+            $query->where('profiles.state', 'like', '%' . $request->state . '%');
         }
         if ($request->filled('city')) {
             $query->where('profiles.city', 'like', '%' . $request->city . '%');
+        }
+        if ($request->filled('nationality')) {
+            $query->where('profiles.nationality', $request->nationality);
+        }
+        if ($request->filled('residing_status')) {
+            $query->where('profiles.residing_status', $request->residing_status);
         }
 
         // Marital status
@@ -138,24 +187,37 @@ class MatchController extends ApiController
             $query->where('profiles.marital_status', $request->marital_status);
         }
 
-        // Religion
+        // Physical attributes
+        if ($request->filled('body_type')) {
+            $query->where('profiles.body_type', $request->body_type);
+        }
+        if ($request->filled('complexion')) {
+            $query->where('profiles.complexion', $request->complexion);
+        }
+        if ($request->filled('blood_group')) {
+            $query->where('profiles.blood_group', $request->blood_group);
+        }
+        if ($request->filled('mother_tongue')) {
+            $query->where('profiles.mother_tongue', $request->mother_tongue);
+        }
+
+        // Religion / caste — LIKE so partial seeder values still match
         if ($request->filled('religion')) {
-            $query->where('religious_details.religion', 'like', '%' . $request->religion . '%');
+            $query->where('religious_details.religion', $request->religion);
         }
-
-        // Caste
         if ($request->filled('caste')) {
-            $query->where('religious_details.caste', 'like', '%' . $request->caste . '%');
+            $query->where('religious_details.caste', $request->caste);
         }
 
-        // Education
+        // Education / career
         if ($request->filled('education')) {
-            $query->where('education_careers.highest_education', 'like', '%' . $request->education . '%');
+            $query->where('education_careers.highest_education', $request->education);
         }
-
-        // Profession
         if ($request->filled('profession')) {
-            $query->where('education_careers.profession', 'like', '%' . $request->profession . '%');
+            $query->where('education_careers.profession', $request->profession);
+        }
+        if ($request->filled('employed_in')) {
+            $query->where('education_careers.employed_in', $request->employed_in);
         }
 
         // Income
@@ -166,21 +228,51 @@ class MatchController extends ApiController
             $query->where('education_careers.annual_income_bdt', '<=', $request->income_max);
         }
 
-        // Diet
+        // Lifestyle
         if ($request->filled('diet')) {
             $query->where('lifestyles.diet', $request->diet);
         }
+        if ($request->filled('smoking')) {
+            $query->where('lifestyles.smoking', $request->smoking);
+        }
+        if ($request->filled('drinking')) {
+            $query->where('lifestyles.drinking', $request->drinking);
+        }
 
-        // Full-text keyword search on about_me / city
+        // Family
+        if ($request->filled('has_children')) {
+            $query->where('family_details.has_children', $request->has_children);
+        }
+
+        // Global full-text keyword search — searches across all meaningful text fields
         if ($request->filled('query')) {
-            $kw = $request->query;
-            $query->where(function ($q) use ($kw) {
-                $q->where('profiles.about_me', 'like', '%' . $kw . '%')
+            $kw = (string) $request->input('query');
+            $query->where(function ($q) use ($kw, $user) {
+                $q->where('users.name', 'like', '%' . $kw . '%')
+                  ->orWhere('profiles.about_me', 'like', '%' . $kw . '%')
                   ->orWhere('profiles.city', 'like', '%' . $kw . '%')
                   ->orWhere('profiles.state', 'like', '%' . $kw . '%')
-                  ->orWhere('users.name', 'like', '%' . $kw . '%');
+                  ->orWhere('profiles.country', 'like', '%' . $kw . '%')
+                  ->orWhere('profiles.nationality', 'like', '%' . $kw . '%')
+                  ->orWhere('religious_details.religion', 'like', '%' . $kw . '%')
+                  ->orWhere('education_careers.profession', 'like', '%' . $kw . '%')
+                  ->orWhere('education_careers.highest_education', 'like', '%' . $kw . '%')
+                  ->orWhere('education_careers.employer_name', 'like', '%' . $kw . '%');
+
+                if ($this->featureService->can($user, 'profile_id_search')) {
+                    $q->orWhere('profiles.profile_id', 'like', '%' . $kw . '%');
+                }
             });
         }
+
+        // Sorting
+        $sort = $request->input('sort', 'latest');
+        match ($sort) {
+            'age_asc'    => $query->orderByRaw('profiles.dob DESC'),   // youngest → oldest
+            'age_desc'   => $query->orderByRaw('profiles.dob ASC'),    // oldest → youngest
+            'completion' => $query->orderBy('profiles.profile_completion_percentage', 'desc'),
+            default      => $query->orderBy('users.id', 'desc'),        // latest registrations
+        };
 
         $paginator = $query->paginate(20);
 
@@ -203,6 +295,15 @@ class MatchController extends ApiController
             ->firstOrFail();
 
         Log::info('[MATCH - CompatibilityScore] User ID: ' . $user->id . ' | Candidate ID: ' . $userId);
+
+        // Guard: compatibility_score_visible feature
+        if (! $this->featureService->can($user, 'compatibility_score_visible')) {
+            return $this->errorResponse(
+                'Compatibility score visibility requires an upgraded subscription plan.',
+                ['feature' => 'compatibility_score_visible'],
+                403
+            );
+        }
 
         // Check blocked
         $isBlocked = Block::where('blocker_id', $user->id)->where('blocked_id', $userId)->exists()

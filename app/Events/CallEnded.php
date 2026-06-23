@@ -27,5 +27,13 @@ class CallEnded implements ShouldBroadcast
     {
         return 'call.ended';
     }
-}
 
+    public function broadcastWith(): array
+    {
+        return [
+            'call_id'          => $this->callLog->id,
+            'status'           => $this->callLog->status,
+            'duration_seconds' => $this->callLog->duration_seconds,
+        ];
+    }
+}

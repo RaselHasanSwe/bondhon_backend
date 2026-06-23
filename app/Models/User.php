@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -36,6 +37,8 @@ class User extends Authenticatable implements MustVerifyEmail
         'is_banned',
         'subscription_plan',
         'subscription_expires_at',
+        'active_subscription_id',
+        'email_verified_at'
     ];
 
     public function sendEmailVerificationNotification()
@@ -82,6 +85,14 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasOne(Profile::class);
     }
 
+    /**
+     * Override the database notification model to use our custom casts.
+     */
+    public function databaseNotificationModel(): string
+    {
+        return \App\Models\Notification::class;
+    }
+
     public function religiousDetail(): HasOne
     {
         return $this->hasOne(ReligiousDetail::class);
@@ -115,6 +126,11 @@ class User extends Authenticatable implements MustVerifyEmail
     public function photos(): HasMany
     {
         return $this->hasMany(ProfilePhoto::class);
+    }
+
+    public function faceScanSession(): HasOne
+    {
+        return $this->hasOne(FaceScanSession::class);
     }
 
     public function sentInterests(): HasMany
@@ -195,6 +211,14 @@ class User extends Authenticatable implements MustVerifyEmail
     public function subscriptions(): HasMany
     {
         return $this->hasMany(Subscription::class);
+    }
+
+    /**
+     * The subscription currently providing feature access.
+     */
+    public function activeSubscription(): BelongsTo
+    {
+        return $this->belongsTo(Subscription::class, 'active_subscription_id');
     }
 
     public function matchScores(): HasMany

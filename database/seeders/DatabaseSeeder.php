@@ -22,12 +22,23 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        // ── Subscription Plans (must run before subscriptions are created) ──
+        $this->call(SubscriptionPlanSeeder::class);
+
+        // ── Site Settings & Pages ──
+        $this->call(SiteSettingSeeder::class);
+        $this->call(PageSeeder::class);
+
+        // ── Dynamic Select Options ──
+        $this->call(SelectOptionSeeder::class);
+        $this->call(OptionGroupConfigSeeder::class);
+
         // Create an admin user (idempotent)
         $admin = User::firstOrCreate(
-            ['email' => 'admin@bondhon.com'],
+            ['email' => 'admin@mybouma.com'],
             [
                 'name'               => 'Admin User',
-                'email'              => 'admin@bondhon.com',
+                'email'              => 'admin@mybouma.com',
                 'password'           => bcrypt('password'),
                 'gender'             => 'male',
                 'profile_created_by' => 'self',

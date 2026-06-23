@@ -6,20 +6,28 @@ use App\Http\Controllers\Api\V1\ApiController;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Models\Profile;
+use App\Models\FaceScanSession;
+use App\Models\SiteSetting;
+use App\Models\SubscriptionPlan;
 use App\Models\User;
 use App\Services\ProfileCompletionService;
+use App\Services\SubscriptionService;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use OpenApi\Attributes as OA;
 
 #[OA\Tag(name: 'Authentication', description: 'User registration, login, and session management')]
 class AuthController extends ApiController
 {
-    public function __construct(private readonly ProfileCompletionService $completionService) {}
+    public function __construct(
+        private readonly ProfileCompletionService $completionService,
+        private readonly SubscriptionService $subscriptionService,
+    ) {}
 
     #[OA\Post(
         path: '/api/v1/auth/register',
@@ -57,6 +65,7 @@ class AuthController extends ApiController
                     'password'           => $request->password,
                     'gender'             => $request->gender,
                     'profile_created_by' => $request->profile_created_by,
+                    'email_verified_at' => now(),
                 ]);
 
                 // Auto-generate profile_id (BON-XXXXXX)
@@ -73,6 +82,22 @@ class AuthController extends ApiController
                 // Calculate initial completion percentage
                 $this->completionService->recalculateAndSave($user->fresh());
 
+                if (SiteSetting::booleanValue('face_scan_enabled', true)) {
+                    FaceScanSession::firstOrCreate(
+                        ['user_id' => $user->id],
+                        ['status' => 'pending']
+                    );
+                }
+
+                // Auto-assign free subscription on registration
+                $freePlan = SubscriptionPlan::where('price_bdt', 0)
+                    ->where('is_active', true)
+                    ->first();
+                if ($freePlan) {
+                    $this->subscriptionService->activateFree($user, $freePlan);
+                    $user->refresh();
+                }
+
                 $token = $user->createToken('auth_token')->plainTextToken;
 
                 Log::info('[AUTH - Register] Success. User ID: ' . $user->id . ' | Profile ID: ' . $profileId);
@@ -80,7 +105,7 @@ class AuthController extends ApiController
                 return [
                     'token'      => $token,
                     'token_type' => 'Bearer',
-                    'user'       => $this->formatUser($user->load('profile')),
+                    'user'       => $this->formatUser($user->load(['profile', 'faceScanSession'])),
                 ];
             });
 
@@ -150,7 +175,7 @@ class AuthController extends ApiController
             return $this->successResponse([
                 'token'      => $token,
                 'token_type' => 'Bearer',
-                'user'       => $this->formatUser($user->load('profile')),
+                'user'       => $this->formatUser($user->load(['profile', 'faceScanSession'])),
             ], 'Login successful.');
 
         } catch (\Throwable $e) {
@@ -207,7 +232,7 @@ class AuthController extends ApiController
         try {
             $user = $request->user()->load([
                 'profile', 'religiousDetail', 'familyDetail',
-                'educationCareer', 'lifestyle', 'horoscopeDetail', 'partnerPreference',
+                'educationCareer', 'lifestyle', 'horoscopeDetail', 'partnerPreference', 'faceScanSession',
             ]);
 
             return $this->successResponse($this->formatUser($user), 'User details retrieved successfully.');
@@ -218,6 +243,30 @@ class AuthController extends ApiController
             ]);
             return $this->serverErrorResponse('Failed to retrieve user details.');
         }
+    }
+
+    /**
+     * Change the authenticated user's password.
+     */
+    public function changePassword(Request $request): JsonResponse
+    {
+        $request->validate([
+            'current_password'      => ['required', 'string'],
+            'new_password'          => ['required', 'string', 'min:8', 'confirmed'],
+        ]);
+
+        /** @var User $user */
+        $user = $request->user();
+
+        if (! Hash::check($request->current_password, $user->password)) {
+            return $this->errorResponse('Current password is incorrect.', null, 422);
+        }
+
+        $user->update(['password' => Hash::make($request->new_password)]);
+
+        Log::info('[AUTH - ChangePassword] User ID: ' . $user->id . ' changed their password.');
+
+        return $this->successResponse(null, 'Password changed successfully.');
     }
 
     /**
@@ -237,6 +286,9 @@ class AuthController extends ApiController
             'subscription_plan'       => $user->subscription_plan,
             'subscription_expires_at' => $user->subscription_expires_at,
             'profile'                 => $user->profile,
+            'face_scan_required'      => SiteSetting::booleanValue('face_scan_enabled', true),
+            'face_scan_status'        => $user->faceScanSession?->status,
+            'face_scan_completed_at'  => $user->faceScanSession?->completed_at,
             'created_at'              => $user->created_at,
         ];
     }

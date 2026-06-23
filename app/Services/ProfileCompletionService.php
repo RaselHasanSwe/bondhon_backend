@@ -33,7 +33,7 @@ class ProfileCompletionService
         }
 
         // Basic Info (15%)
-        $basicFields = ['dob', 'height_cm', 'weight_kg', 'complexion', 'marital_status', 'mother_tongue', 'country', 'city'];
+        $basicFields = ['dob', 'height_cm', 'weight_kg', 'complexion', 'marital_status', 'mother_tongue', 'country'];
         $filledBasic = collect($basicFields)->filter(fn ($f) => ! empty($profile->$f))->count();
         $score += (int) round(($filledBasic / count($basicFields)) * 15);
 

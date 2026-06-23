@@ -26,5 +26,21 @@ class CallInitiated implements ShouldBroadcast
     {
         return 'call.initiated';
     }
-}
 
+    public function broadcastWith(): array
+    {
+        $caller = $this->callLog->caller;
+        $photo  = $caller?->photos()->where('is_primary', true)->where('is_approved', true)->first();
+
+        return [
+            'call_id'     => $this->callLog->id,
+            'type'        => $this->callLog->type,
+            'caller' => [
+                'id'         => $caller?->id,
+                'name'       => $caller?->name,
+                'avatar'     => $photo ? $photo->file_path : null,
+                'profile_id' => $caller?->profile?->profile_id,
+            ],
+        ];
+    }
+}

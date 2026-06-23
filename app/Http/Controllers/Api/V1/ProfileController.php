@@ -128,15 +128,30 @@ class ProfileController extends ApiController
 
         try {
             DB::transaction(function () use ($request, $user) {
+                // Update user-level fields if provided
+                $userData = array_filter([
+                    'name'               => $request->input('name'),
+                    'profile_created_by' => $request->input('profile_created_by'),
+                ]);
+                if (!empty($userData)) {
+                    $user->update($userData);
+                }
+
                 $profileData = $request->only([
-                    'dob', 'height_cm', 'weight_kg', 'complexion', 'blood_group',
-                    'marital_status', 'mother_tongue', 'nationality', 'country', 'state',
-                    'city', 'about_me', 'privacy_settings',
+                    'nick_name', 'profile_created_for', 'looking_for',
+                    'dob', 'height_cm', 'weight_kg', 'body_type',
+                    'eye_color', 'hair_color', 'complexion', 'blood_group',
+                    'marital_status', 'disability', 'mother_tongue', 'nationality',
+                    'country', 'state', 'city', 'postal_code', 'residing_status',
+                    'about_me', 'what_looking_for', 'privacy_settings',
                 ]);
 
                 $user->profile()->updateOrCreate(['user_id' => $user->id], $profileData);
 
-                $religiousData = $request->only(['religion', 'caste', 'sub_caste', 'gotra', 'manglik_status']);
+                $religiousData = $request->only([
+                    'religion', 'caste', 'sub_caste', 'gotra', 'manglik_status',
+                    'religiousness', 'pray',
+                ]);
                 if (array_filter($religiousData)) {
                     $user->religiousDetail()->updateOrCreate(['user_id' => $user->id], $religiousData);
                 }
@@ -144,19 +159,22 @@ class ProfileController extends ApiController
                 $familyData = $request->only([
                     'family_type', 'family_status', 'family_income_bdt_per_month',
                     'father_occupation', 'mother_occupation', 'brothers_count', 'sisters_count',
+                    'has_children', 'child_living_status', 'family_values', 'sibling_position',
                 ]);
                 if (array_filter($familyData)) {
                     $user->familyDetail()->updateOrCreate(['user_id' => $user->id], $familyData);
                 }
 
                 $educationData = $request->only([
-                    'highest_education', 'college_university', 'profession', 'employed_in', 'annual_income_bdt',
+                    'highest_education', 'college_university', 'institution_name_year',
+                    'employer_name', 'job_location', 'designation', 'experience_years',
+                    'profession', 'employed_in', 'annual_income_bdt',
                 ]);
                 if (array_filter($educationData)) {
                     $user->educationCareer()->updateOrCreate(['user_id' => $user->id], $educationData);
                 }
 
-                $lifestyleData = $request->only(['diet', 'smoking', 'drinking', 'hobbies', 'languages_known']);
+                $lifestyleData = $request->only(['diet', 'smoking', 'drinking', 'eye_wear', 'hobbies', 'languages_known']);
                 if (array_filter($lifestyleData)) {
                     $user->lifestyle()->updateOrCreate(['user_id' => $user->id], $lifestyleData);
                 }
@@ -244,7 +262,7 @@ class ProfileController extends ApiController
 
             // has_basic_info is true only when ALL 8 scored basic fields are filled,
             // so the completion bar accurately shows which section still needs work.
-            $basicRequiredFields = ['dob', 'height_cm', 'weight_kg', 'complexion', 'marital_status', 'mother_tongue', 'country', 'city'];
+            $basicRequiredFields = ['dob', 'height_cm', 'weight_kg', 'complexion', 'marital_status', 'mother_tongue', 'country'];
             $allBasicFilled = $user->profile
                 && collect($basicRequiredFields)->every(fn ($f) => ! empty($user->profile->$f));
 
@@ -450,7 +468,9 @@ class ProfileController extends ApiController
             'profile_created_by' => $user->profile_created_by,
             'subscription_plan'  => $user->subscription_plan,
             'email_verified_at'  => $user->email_verified_at,
-            'profile'            => $user->profile,
+            'profile'            => $user->profile ? array_merge($user->profile->toArray(), [
+                'dob' => $user->profile->dob?->format('Y-m-d'),
+            ]) : null,
             'religious_detail'   => $user->religiousDetail,
             'family_detail'      => $user->familyDetail,
             'education_career'   => $user->educationCareer,

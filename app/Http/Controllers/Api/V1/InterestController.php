@@ -8,6 +8,8 @@ use App\Http\Resources\InterestResource;
 use App\Models\Block;
 use App\Models\Interest;
 use App\Models\User;
+use App\Services\NotificationService;
+use App\Services\SubscriptionFeatureService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -15,6 +17,10 @@ use Illuminate\Support\Facades\Log;
 
 class InterestController extends ApiController
 {
+    public function __construct(
+        private readonly NotificationService $notificationService,
+        private readonly SubscriptionFeatureService $featureService,
+    ) {}
     /**
      * POST /api/v1/interests
      * Send an interest to another user.
@@ -29,6 +35,20 @@ class InterestController extends ApiController
         // Cannot send interest to yourself
         if ($sender->id === $receiverId) {
             return $this->errorResponse('You cannot send an interest to yourself.', null, 422);
+        }
+
+        // Check daily interest limit
+        $sentToday = Interest::where('sender_id', $sender->id)
+            ->whereDate('created_at', today())
+            ->count();
+
+        if (! $this->featureService->withinDailyLimit($sender, 'send_interest_per_day', $sentToday)) {
+            $limit = (int) $this->featureService->value($sender, 'send_interest_per_day');
+            return $this->errorResponse(
+                "You have reached your daily interest limit ({$limit}/day). Upgrade your plan to send more.",
+                ['feature' => 'send_interest_per_day', 'limit' => $limit, 'used' => $sentToday],
+                429
+            );
         }
 
         // Check if blocked (either direction)
@@ -158,6 +178,38 @@ class InterestController extends ApiController
         return $this->updateStatus($request->user(), $id, 'ignored', 'Interest ignored.');
     }
 
+    /**
+     * GET /api/v1/interests/status/{userId}
+     * Get interest status between current user and another user.
+     */
+    public function checkStatus(Request $request, int $userId): JsonResponse
+    {
+        $currentUser = $request->user();
+        Log::info('[INTEREST - CheckStatus] Current User: ' . $currentUser->id . ' | Target User: ' . $userId);
+
+        // Check for existing interest in either direction
+        $interest = Interest::where(function ($q) use ($currentUser, $userId) {
+                $q->where('sender_id', $currentUser->id)->where('receiver_id', $userId);
+            })
+            ->orWhere(function ($q) use ($currentUser, $userId) {
+                $q->where('sender_id', $userId)->where('receiver_id', $currentUser->id);
+            })
+            ->whereIn('status', ['pending', 'accepted'])
+            ->latest()
+            ->first();
+
+        if (!$interest) {
+            return $this->successResponse(['status' => 'none'], 'No interest found.');
+        }
+
+        return $this->successResponse([
+            'status'      => $interest->status,
+            'is_sender'   => $interest->sender_id === $currentUser->id,
+            'created_at'  => $interest->created_at,
+            'expires_at'  => $interest->expires_at,
+        ], 'Interest status retrieved.');
+    }
+
     // -----------------------------------------------------------------------
     // Private helpers
     // -----------------------------------------------------------------------
@@ -179,6 +231,14 @@ class InterestController extends ApiController
         $interest->update(['status' => $newStatus]);
 
         Log::info('[INTEREST - UpdateStatus] Success. Interest ID: ' . $interestId . ' → ' . $newStatus);
+
+        // Notify the sender when interest is accepted
+        if ($newStatus === 'accepted') {
+            $sender = User::find($interest->sender_id);
+            if ($sender) {
+                $this->notificationService->notifyInterestAccepted($sender, $user);
+            }
+        }
 
         $interest->load([
             'sender.profile',

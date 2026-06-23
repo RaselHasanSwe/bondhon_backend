@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1\Admin;
 
 use App\Http\Controllers\Api\V1\ApiController;
 use App\Models\ProfilePhoto;
+use App\Services\NotificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -13,6 +14,7 @@ use OpenApi\Attributes as OA;
 #[OA\Tag(name: 'Admin - Photo Moderation', description: 'Admin photo approval queue')]
 class AdminPhotoModerationController extends ApiController
 {
+    public function __construct(private readonly NotificationService $notificationService) {}
     #[OA\Get(
         path: '/api/v1/admin/photos/pending',
         summary: 'Get photos pending moderation',
@@ -69,6 +71,9 @@ class AdminPhotoModerationController extends ApiController
                 app(\App\Services\ProfileCompletionService::class)->recalculateAndSave($photo->user);
             });
 
+            // Notify the photo owner
+            $this->notificationService->notifyPhotoApproved($photo->user);
+
             Log::info('[ADMIN PHOTO - Approve] Successfully approved Photo ID: ' . $id . ' by Admin: ' . $request->user()->id);
 
             return $this->successResponse($photo->fresh(), 'Photo approved successfully.');
@@ -111,6 +116,9 @@ class AdminPhotoModerationController extends ApiController
             DB::transaction(function () use ($photo) {
                 $photo->update(['moderation_status' => 'rejected', 'is_approved' => false]);
             });
+
+            // Notify the photo owner with the rejection reason
+            $this->notificationService->notifyPhotoRejected($photo->user, $request->input('reason', ''));
 
             Log::info('[ADMIN PHOTO - Reject] Successfully rejected Photo ID: ' . $id . ' by Admin: ' . $request->user()->id);
 

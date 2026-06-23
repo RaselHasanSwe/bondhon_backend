@@ -10,8 +10,8 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-// Run daily match digest every day at 8:00 AM
-Schedule::job(new SendDailyMatchDigest)->dailyAt('08:00');
+// Run daily match digest every day at midnight (00:00)
+Schedule::job(new SendDailyMatchDigest)->dailyAt('00:00');
 
 // Expire old pending interests every day at midnight
 Schedule::job(new ExpireOldInterests)->dailyAt('00:00');

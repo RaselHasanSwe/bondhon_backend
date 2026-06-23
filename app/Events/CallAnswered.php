@@ -26,5 +26,12 @@ class CallAnswered implements ShouldBroadcast
     {
         return 'call.answered';
     }
-}
 
+    public function broadcastWith(): array
+    {
+        return [
+            'call_id' => $this->callLog->id,
+            'type'    => $this->callLog->type,
+        ];
+    }
+}
