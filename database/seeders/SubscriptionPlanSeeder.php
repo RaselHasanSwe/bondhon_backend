@@ -40,36 +40,21 @@ class SubscriptionPlanSeeder extends Seeder
             'audio_call_access'        => false,
             'video_call_access'        => false,
             'message_read_receipt'     => false,
-            'voice_message_access'     => false,
             // Visibility & Insights
             'contact_info_views_per_month' => 0,
             'see_who_liked_me'             => false,
             'see_who_viewed_profile'       => false,
             'profile_visitors_detailed'    => false,
             // Profile Promotion
-            'profile_boost_per_month'  => 0,
-            'featured_profile'         => false,
-            'highlighted_in_search'    => false,
-            'top_of_match_list'        => false,
             // Photos & Privacy
             'max_photos_upload'           => 3,
-            'private_photo_access'        => false,
-            'photo_request_per_day'       => 0,
             'profile_visibility_control'  => false,
             // Trust & Verification
-            'verified_badge_eligible'  => false,
-            'priority_verification'    => false,
             // Reports & Analytics
             'compatibility_score_visible' => false,
-            'profile_completion_tips'     => false,
             'match_report_monthly'        => false,
-            // Support
-            'priority_support'     => false,
-            'relationship_advisor' => false,
             // Notifications
-            'email_digest_frequency' => 'none',
             'push_notifications'     => true,
-            'sms_notifications'      => false,
         ];
     }
 
@@ -91,36 +76,19 @@ class SubscriptionPlanSeeder extends Seeder
             'audio_call_access'        => false,
             'video_call_access'        => false,
             'message_read_receipt'     => true,
-            'voice_message_access'     => false,
             // Visibility & Insights
             'contact_info_views_per_month' => 10,
             'see_who_liked_me'             => false,
             'see_who_viewed_profile'       => true,
             'profile_visitors_detailed'    => false,
-            // Profile Promotion
-            'profile_boost_per_month'  => 0,
-            'featured_profile'         => false,
-            'highlighted_in_search'    => false,
-            'top_of_match_list'        => false,
             // Photos & Privacy
             'max_photos_upload'           => 6,
-            'private_photo_access'        => true,
-            'photo_request_per_day'       => 3,
             'profile_visibility_control'  => true,
-            // Trust & Verification
-            'verified_badge_eligible'  => true,
-            'priority_verification'    => false,
             // Reports & Analytics
             'compatibility_score_visible' => false,
-            'profile_completion_tips'     => true,
             'match_report_monthly'        => false,
-            // Support
-            'priority_support'     => false,
-            'relationship_advisor' => false,
             // Notifications
-            'email_digest_frequency' => 'weekly',
             'push_notifications'     => true,
-            'sms_notifications'      => false,
         ];
     }
 
@@ -142,36 +110,19 @@ class SubscriptionPlanSeeder extends Seeder
             'audio_call_access'        => true,
             'video_call_access'        => true,
             'message_read_receipt'     => true,
-            'voice_message_access'     => true,
             // Visibility & Insights
             'contact_info_views_per_month' => 30,
             'see_who_liked_me'             => true,
             'see_who_viewed_profile'       => true,
             'profile_visitors_detailed'    => true,
-            // Profile Promotion
-            'profile_boost_per_month'  => 1,
-            'featured_profile'         => false,
-            'highlighted_in_search'    => true,
-            'top_of_match_list'        => false,
             // Photos & Privacy
             'max_photos_upload'           => 12,
-            'private_photo_access'        => true,
-            'photo_request_per_day'       => 10,
             'profile_visibility_control'  => true,
-            // Trust & Verification
-            'verified_badge_eligible'  => true,
-            'priority_verification'    => true,
             // Reports & Analytics
             'compatibility_score_visible' => true,
-            'profile_completion_tips'     => true,
             'match_report_monthly'        => true,
-            // Support
-            'priority_support'     => false,
-            'relationship_advisor' => false,
             // Notifications
-            'email_digest_frequency' => 'daily',
             'push_notifications'     => true,
-            'sms_notifications'      => true,
         ];
     }
 
@@ -193,36 +144,19 @@ class SubscriptionPlanSeeder extends Seeder
             'audio_call_access'        => true,
             'video_call_access'        => true,
             'message_read_receipt'     => true,
-            'voice_message_access'     => true,
             // Visibility & Insights
             'contact_info_views_per_month' => -1,
             'see_who_liked_me'             => true,
             'see_who_viewed_profile'       => true,
             'profile_visitors_detailed'    => true,
-            // Profile Promotion
-            'profile_boost_per_month'  => 5,
-            'featured_profile'         => true,
-            'highlighted_in_search'    => true,
-            'top_of_match_list'        => true,
             // Photos & Privacy
             'max_photos_upload'           => 20,
-            'private_photo_access'        => true,
-            'photo_request_per_day'       => -1,
             'profile_visibility_control'  => true,
-            // Trust & Verification
-            'verified_badge_eligible'  => true,
-            'priority_verification'    => true,
             // Reports & Analytics
             'compatibility_score_visible' => true,
-            'profile_completion_tips'     => true,
             'match_report_monthly'        => true,
-            // Support
-            'priority_support'     => true,
-            'relationship_advisor' => true,
             // Notifications
-            'email_digest_frequency' => 'daily',
             'push_notifications'     => true,
-            'sms_notifications'      => true,
         ];
     }
 
