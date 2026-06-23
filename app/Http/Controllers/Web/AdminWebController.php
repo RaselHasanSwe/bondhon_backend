@@ -166,7 +166,16 @@ class AdminWebController extends Controller
     public function toggleUserBan(Request $request, int $userId): RedirectResponse
     {
         $user = User::withTrashed()->findOrFail($userId);
+
+        if ($user->id === auth()->id()) {
+            return back()->with('error', 'You cannot ban yourself.');
+        }
+
         $user->update(['is_banned' => ! $user->is_banned]);
+
+        if ($user->is_banned) {
+            $user->tokens()->delete();
+        }
 
         return back()->with('success', $user->is_banned ? 'User banned successfully.' : 'User unbanned successfully.');
     }
