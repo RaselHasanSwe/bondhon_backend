@@ -50,21 +50,23 @@
                     </thead>
                     <tbody>
                         @forelse($plans as $plan)
-                        @php
-                            $tierColors = [
-                                'free'     => 'bg-secondary',
-                                'silver'   => 'bg-light text-dark border',
-                                'gold'     => 'bg-warning text-dark',
-                                'platinum' => 'bg-primary',
-                            ];
-                            $tierIcons = [
-                                'free' => '🆓', 'silver' => '🥈', 'gold' => '🥇', 'platinum' => '💎',
-                            ];
-                            $tc = $tierColors[$plan->plan_type] ?? 'bg-secondary';
-                            $ti = $tierIcons[$plan->plan_type] ?? '⭐';
-                        @endphp
+                            @php
+                                $tierColors = [
+                                    'free'     => 'bg-secondary',
+                                    'silver'   => 'bg-light text-dark border',
+                                    'gold'     => 'bg-warning text-dark',
+                                    'platinum' => 'bg-primary',
+                                ];
+                                $tierIcons = [
+                                    'free' => '🆓', 'silver' => '🥈', 'gold' => '🥇', 'platinum' => '💎',
+                                ];
+                                $tc = $tierColors[$plan->plan_type] ?? 'bg-secondary';
+                                $ti = $tierIcons[$plan->plan_type] ?? '⭐';
+                            @endphp
                         <tr>
-                            <td class="text-muted" style="font-size:.7rem;">{{ $plan->sort_order }}</td>
+                            <td class="text-muted" style="font-size:.7rem;">
+                                {{ $loop->iteration }}
+                            </td>
                             <td>
                                 <div class="fw-semibold">{{ $plan->name }}</div>
                                 @if($plan->description)

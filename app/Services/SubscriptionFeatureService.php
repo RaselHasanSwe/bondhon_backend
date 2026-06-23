@@ -107,12 +107,6 @@ class SubscriptionFeatureService
                 'label'   => 'Message Read Receipts',
                 'group'   => 'Communication',
             ],
-            'voice_message_access' => [
-                'type'    => 'bool',
-                'default' => false,
-                'label'   => 'Voice Messages in Chat',
-                'group'   => 'Communication',
-            ],
 
             // ── Visibility & Insights ────────────────────────────────────────
             'contact_info_views_per_month' => [
@@ -141,52 +135,12 @@ class SubscriptionFeatureService
                 'group'   => 'Visibility & Insights',
             ],
 
-            // ── Profile Promotion ────────────────────────────────────────────
-            'profile_boost_per_month' => [
-                'type'    => 'qty',
-                'period'  => 'month',
-                'default' => 0,
-                'label'   => 'Profile Boosts per Month',
-                'group'   => 'Profile Promotion',
-            ],
-            'featured_profile' => [
-                'type'    => 'bool',
-                'default' => false,
-                'label'   => 'Appear in "Featured Profiles"',
-                'group'   => 'Profile Promotion',
-            ],
-            'highlighted_in_search' => [
-                'type'    => 'bool',
-                'default' => false,
-                'label'   => 'Highlighted Badge in Search Results',
-                'group'   => 'Profile Promotion',
-            ],
-            'top_of_match_list' => [
-                'type'    => 'bool',
-                'default' => false,
-                'label'   => 'Appear First in Others\' Daily Matches',
-                'group'   => 'Profile Promotion',
-            ],
-
             // ── Photos & Privacy ─────────────────────────────────────────────
             'max_photos_upload' => [
                 'type'    => 'qty',
                 'period'  => null,
                 'default' => 3,
                 'label'   => 'Max Photos Allowed to Upload',
-                'group'   => 'Photos & Privacy',
-            ],
-            'private_photo_access' => [
-                'type'    => 'bool',
-                'default' => false,
-                'label'   => 'Send / Receive Private Photo Requests',
-                'group'   => 'Photos & Privacy',
-            ],
-            'photo_request_per_day' => [
-                'type'    => 'qty',
-                'period'  => 'day',
-                'default' => 0,
-                'label'   => 'Private Photo Unlock Requests per Day',
                 'group'   => 'Photos & Privacy',
             ],
             'profile_visibility_control' => [
@@ -196,31 +150,11 @@ class SubscriptionFeatureService
                 'group'   => 'Photos & Privacy',
             ],
 
-            // ── Trust & Verification ─────────────────────────────────────────
-            'verified_badge_eligible' => [
-                'type'    => 'bool',
-                'default' => false,
-                'label'   => 'Can Apply for Verified Badge',
-                'group'   => 'Trust & Verification',
-            ],
-            'priority_verification' => [
-                'type'    => 'bool',
-                'default' => false,
-                'label'   => 'Priority NID/Photo Verification',
-                'group'   => 'Trust & Verification',
-            ],
-
             // ── Reports & Analytics ──────────────────────────────────────────
             'compatibility_score_visible' => [
                 'type'    => 'bool',
                 'default' => false,
                 'label'   => 'See Match % Compatibility Score',
-                'group'   => 'Reports & Analytics',
-            ],
-            'profile_completion_tips' => [
-                'type'    => 'bool',
-                'default' => false,
-                'label'   => 'AI Profile Completion Tips',
                 'group'   => 'Reports & Analytics',
             ],
             'match_report_monthly' => [
@@ -230,38 +164,11 @@ class SubscriptionFeatureService
                 'group'   => 'Reports & Analytics',
             ],
 
-            // ── Support ──────────────────────────────────────────────────────
-            'priority_support' => [
-                'type'    => 'bool',
-                'default' => false,
-                'label'   => 'Priority Customer Support',
-                'group'   => 'Support',
-            ],
-            'relationship_advisor' => [
-                'type'    => 'bool',
-                'default' => false,
-                'label'   => 'Access to Matrimony Advisor',
-                'group'   => 'Support',
-            ],
-
             // ── Notifications ────────────────────────────────────────────────
-            'email_digest_frequency' => [
-                'type'    => 'enum',
-                'options' => ['none', 'weekly', 'daily'],
-                'default' => 'none',
-                'label'   => 'Email Digest Frequency',
-                'group'   => 'Notifications',
-            ],
             'push_notifications' => [
                 'type'    => 'bool',
                 'default' => true,
                 'label'   => 'Browser / App Push Notifications',
-                'group'   => 'Notifications',
-            ],
-            'sms_notifications' => [
-                'type'    => 'bool',
-                'default' => false,
-                'label'   => 'SMS Alerts',
                 'group'   => 'Notifications',
             ],
         ];

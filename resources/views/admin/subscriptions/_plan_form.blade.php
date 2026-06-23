@@ -96,11 +96,7 @@
             <input type="number" name="sort_order"
                    class="form-control form-control-sm"
                    value="{{ old('sort_order', $plan->sort_order ?? 0) }}"
-                   min="0"
-                   title="Lower numbers appear first. Use 10,11,12,13 for Silver; 20-23 Gold; 30-33 Platinum.">
-            <div class="form-text" style="font-size:.68rem;">
-                Free=0 · Silver=10–13 · Gold=20–23 · Platinum=30–33
-            </div>
+                   min="0">
         </div>
     </div>
 
