@@ -52,9 +52,9 @@
                     <th>Gender</th>
                     <th>Plan</th>
                     <th>Plan Expires</th>
-                    <th>Face</th>
                     <th>Joined</th>
                     <th>Status</th>
+                    <th>Role</th>
                     <th class="text-center">Actions</th>
                 </tr>
                 </thead>
@@ -101,8 +101,13 @@
                                 <span class="badge bg-secondary"><i class="bi bi-x-circle me-1"></i>Not Given</span>
                             @endif
                         </td>
-                        <td>{{ $user->created_at->format('d M Y') }}</td>
                         <td>
+                            <span class="badge
+                                {{ $user->role === 'admin' ? 'bg-danger' : ($user->role === 'user' ? 'bg-primary' : 'bg-secondary') }}">
+                                {{ ucfirst($user->role) }}
+                            </span>
+                        </td>
+                        <td class="text-center">
                             @if($user->trashed())
                                 <span class="badge bg-secondary">Deleted</span>
                             @elseif($user->is_banned)

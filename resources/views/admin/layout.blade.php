@@ -78,10 +78,10 @@
 <!-- Sidebar -->
 <aside class="sidebar">
     <div class="sidebar-brand">
-        @if($adminSiteLogo)
+        {{-- @if($adminSiteLogo)
             <img src="{{ $adminSiteLogo }}" alt="{{ $adminSiteName }}"
                  style="height:40px;width:auto;object-fit:contain;display:block;margin-bottom:.5rem;border-radius:6px;">
-        @endif
+        @endif --}}
         <small>Super Admin Panel</small>
     </div>
     <nav class="sidebar-nav">

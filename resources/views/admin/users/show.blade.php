@@ -5,98 +5,510 @@
 @section('content')
 @php
     $faceSession = $user->faceScanSession;
+    $profile = $user->profile;
+    $religious = $user->religiousDetail;
+    $family = $user->familyDetail;
+    $education = $user->educationCareer;
+    $lifestyle = $user->lifestyle;
+    $horoscope = $user->horoscopeDetail;
+    $partner = $user->partnerPreference;
+
+    $statusColor = $user->trashed() ? 'secondary' : ($user->is_banned ? 'danger' : 'success');
+    $statusLabel = $user->trashed() ? 'Deleted' : ($user->is_banned ? 'Banned' : 'Active');
+
+    $initials = collect(explode(' ', $user->name))->map(fn($w) => strtoupper($w[0] ?? ''))->take(2)->implode('');
 @endphp
 
+<style>
+    .ud-avatar {
+        width: 72px; height: 72px; border-radius: 50%;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.5rem; font-weight: 700; color: #fff; flex-shrink: 0;
+    }
+    .ud-card {
+        background: #fff;
+        border: 1px solid rgba(0,0,0,.07);
+        border-radius: 14px;
+        box-shadow: 0 1px 4px rgba(0,0,0,.05);
+        margin-bottom: 1.25rem;
+    }
+    .ud-card-header {
+        padding: 1rem 1.4rem .6rem;
+        border-bottom: 1px solid rgba(0,0,0,.07);
+        display: flex; align-items: center; gap: .55rem;
+    }
+    .ud-card-header i { font-size: 1.1rem; color: #6366f1; }
+    .ud-card-header h6 { margin: 0; font-weight: 700; font-size: .875rem; letter-spacing: .02em; color: #1e1e2e; }
+    .ud-card-body { padding: 1.1rem 1.4rem; }
+    .ud-meta-row { display: flex; flex-wrap: wrap; gap: .25rem 0; }
+    .ud-meta-item { width: 50%; padding: .35rem 0; font-size: .82rem; }
+    .ud-meta-item .label { color: #6b7280; font-weight: 500; display: block; font-size: .75rem; margin-bottom: 1px; }
+    .ud-meta-item .value { color: #111827; font-weight: 500; }
+    .ud-meta-full { width: 100% !important; }
+    .face-img-wrap img { height: 110px; width: 100%; object-fit: cover; border-radius: 10px; }
+    .face-img-wrap .cap-label { font-size: .72rem; font-weight: 600; color: #374151; margin-top: 5px; }
+    .face-img-wrap .cap-time { font-size: .68rem; color: #9ca3af; }
+    .ud-action-btn { border-radius: 10px; font-size: .83rem; font-weight: 600; padding: .55rem 1rem; }
+    .photo-grid img { border-radius: 10px; aspect-ratio: 1/1; object-fit: cover; width: 100%; border: 1px solid rgba(0,0,0,.08); }
+    .section-divider { font-size: .7rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #9ca3af; margin-bottom: .75rem; }
+    .status-dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+    .ud-sticky { position: sticky; top: 1rem; }
+    @media (max-width: 1199px) { .ud-sticky { position: static; } }
+    @media (max-width: 767px) { .ud-meta-item { width: 100%; } }
+</style>
+
 <div class="row g-4">
-    <div class="col-12 col-xl-4">
-        <div class="table-card p-4 mb-3">
-            <div class="d-flex align-items-center justify-content-between mb-3">
-                <div>
-                    <h5 class="fw-bold mb-1">{{ $user->name }}</h5>
-                    <div class="text-muted small">#{{ $user->id }} · {{ $user->email }}</div>
+
+    {{-- ===== LEFT SIDEBAR ===== --}}
+    <div class="col-12 col-xl-3">
+        <div class="ud-sticky">
+
+            {{-- Identity card --}}
+            <div class="ud-card">
+                <div class="ud-card-body text-center py-4">
+                    <div class="ud-avatar mx-auto mb-3">{{ $initials }}</div>
+                    <h5 class="fw-bold mb-1 fs-6">{{ $user->name }}</h5>
+                    <p class="text-muted mb-2" style="font-size:.78rem">{{ $user->email }}</p>
+                    <div class="d-flex justify-content-center gap-2 mb-3">
+                        <span class="badge rounded-pill bg-{{ $statusColor }}">
+                            <span class="status-dot bg-{{ $statusColor === 'success' ? 'white' : 'white' }}"></span>
+                            {{ $statusLabel }}
+                        </span>
+                        <span class="badge rounded-pill bg-light text-dark border">{{ ucfirst($user->role) }}</span>
+                    </div>
+                    <hr class="my-2">
+                    <div class="text-start px-1">
+                        <div class="ud-meta-row">
+                            <div class="ud-meta-item">
+                                <span class="label">User ID</span>
+                                <span class="value">#{{ $user->id }}</span>
+                            </div>
+                            <div class="ud-meta-item">
+                                <span class="label">Gender</span>
+                                <span class="value">{{ ucfirst($user->gender ?? '—') }}</span>
+                            </div>
+                            <div class="ud-meta-item">
+                                <span class="label">Plan</span>
+                                <span class="value">{{ ucfirst($user->subscription_plan) }}</span>
+                            </div>
+                            <div class="ud-meta-item">
+                                <span class="label">Profile ID</span>
+                                <span class="value">{{ $user->profile->profile_id ?? '—' }}</span>
+                            </div>
+                            <div class="ud-meta-item ud-meta-full">
+                                <span class="label">Email Verified</span>
+                                <span class="value">{{ $user->email_verified_at ? $user->email_verified_at->format('d M Y') : 'Not verified' }}</span>
+                            </div>
+                            <div class="ud-meta-item ud-meta-full">
+                                <span class="label">Joined</span>
+                                <span class="value">{{ $user->created_at->format('d M Y, h:i A') }}</span>
+                            </div>
+                            @if($user->subscription_expires_at)
+                            <div class="ud-meta-item ud-meta-full">
+                                <span class="label">Subscription Expires</span>
+                                <span class="value">{{ $user->subscription_expires_at->format('d M Y, h:i A') }}</span>
+                            </div>
+                            @endif
+                            @if($user->deleted_at)
+                            <div class="ud-meta-item ud-meta-full">
+                                <span class="label text-danger">Deleted At</span>
+                                <span class="value text-danger">{{ $user->deleted_at->format('d M Y, h:i A') }}</span>
+                            </div>
+                            @endif
+                        </div>
+                    </div>
                 </div>
-                @if($user->trashed())
-                    <span class="badge bg-secondary">Deleted</span>
-                @elseif($user->is_banned)
-                    <span class="badge bg-danger">Banned</span>
-                @else
-                    <span class="badge bg-success">Active</span>
-                @endif
             </div>
 
-            <div class="mb-2 small"><strong>Gender:</strong> {{ ucfirst($user->gender ?? '-') }}</div>
-            <div class="mb-2 small"><strong>Role:</strong> {{ ucfirst($user->role) }}</div>
-            <div class="mb-2 small"><strong>Plan:</strong> {{ ucfirst($user->subscription_plan) }}</div>
-            <div class="mb-2 small"><strong>Profile ID:</strong> {{ $user->profile->profile_id ?? '—' }}</div>
-            <div class="mb-2 small"><strong>Email Verified:</strong> {{ $user->email_verified_at ? $user->email_verified_at->format('d M Y h:i A') : 'No' }}</div>
-            <div class="mb-2 small"><strong>Joined:</strong> {{ $user->created_at->format('d M Y h:i A') }}</div>
-        </div>
-
-        <div class="table-card p-4">
-            <h6 class="fw-bold mb-3">Actions</h6>
-            <div class="d-grid gap-2">
-                <form method="POST" action="{{ route('admin.web.users.ban-toggle', $user->id) }}">
-                    @csrf
-                    <button class="btn {{ $user->is_banned ? 'btn-success' : 'btn-danger' }} w-100">
-                        {{ $user->is_banned ? 'Unban User' : 'Ban User' }}
-                    </button>
-                </form>
-
-                @if($faceSession)
-                    <form method="POST" action="{{ route('admin.web.users.face-scan-review', $user->id) }}">
+            {{-- Actions --}}
+            <div class="ud-card">
+                <div class="ud-card-header">
+                    <i class="bi bi-lightning-charge-fill text-warning"></i>
+                    <h6>Quick Actions</h6>
+                </div>
+                <div class="ud-card-body d-grid gap-2">
+                    <form method="POST" action="{{ route('admin.web.users.ban-toggle', $user->id) }}">
                         @csrf
-                        <input type="hidden" name="decision" value="approved">
-                        <button class="btn btn-primary w-100" {{ $faceSession->status === 'approved' ? 'disabled' : '' }}>Approve Face Scan</button>
+                        <button class="btn ud-action-btn w-100 {{ $user->is_banned ? 'btn-success' : 'btn-danger' }}">
+                            <i class="bi bi-{{ $user->is_banned ? 'check-circle' : 'slash-circle' }} me-1"></i>
+                            {{ $user->is_banned ? 'Unban User' : 'Ban User' }}
+                        </button>
                     </form>
-                    <form method="POST" action="{{ route('admin.web.users.face-scan-review', $user->id) }}">
-                        @csrf
-                        <input type="hidden" name="decision" value="rejected">
-                        <button class="btn btn-outline-danger w-100">Reject Face Scan</button>
-                    </form>
-                @endif
+                </div>
             </div>
+
         </div>
     </div>
 
-    <div class="col-12 col-xl-8">
-        <div class="table-card p-4 mb-3">
-            <h6 class="fw-bold mb-3">Face Scan Status</h6>
-            @if($faceSession)
-                <div class="d-flex flex-wrap gap-2 mb-3">
-                    <span class="badge {{ $faceSession->status === 'approved' ? 'bg-success' : ($faceSession->status === 'rejected' ? 'bg-danger' : 'bg-warning text-dark') }}">
+    {{-- ===== RIGHT MAIN CONTENT ===== --}}
+    <div class="col-12 col-xl-9">
+
+        {{-- ===== FACE SCAN ===== --}}
+        <div class="ud-card">
+            <div class="ud-card-header">
+                <i class="bi bi-person-bounding-box"></i>
+                <h6>Face Scan Verification</h6>
+                @if($faceSession)
+                    <span class="badge ms-auto rounded-pill
+                        {{ $faceSession->status === 'approved' ? 'bg-success' : ($faceSession->status === 'rejected' ? 'bg-danger' : 'bg-warning text-dark') }}">
                         {{ ucfirst($faceSession->status) }}
                     </span>
-                    @if($faceSession->completed_at)
-                        <span class="badge bg-info text-dark">Submitted {{ $faceSession->completed_at->format('d M Y h:i A') }}</span>
-                    @endif
-                    @if($faceSession->reviewed_at)
-                        <span class="badge bg-secondary">Reviewed {{ $faceSession->reviewed_at->format('d M Y h:i A') }}</span>
-                    @endif
-                </div>
-                @if($faceSession->review_note)
-                    <div class="alert alert-light border small mb-3">{{ $faceSession->review_note }}</div>
                 @endif
+            </div>
+            <div class="ud-card-body">
+                @if($faceSession)
+                    <div class="d-flex flex-wrap gap-2 mb-3">
+                        @if($faceSession->completed_at)
+                            <span class="badge bg-light text-dark border"><i class="bi bi-send-check me-1"></i>Submitted {{ $faceSession->completed_at->format('d M Y, h:i A') }}</span>
+                        @endif
+                        @if($faceSession->reviewed_at)
+                            <span class="badge bg-light text-dark border"><i class="bi bi-eye-fill me-1"></i>Reviewed {{ $faceSession->reviewed_at->format('d M Y, h:i A') }}</span>
+                        @endif
+                    </div>
 
-                <div class="row g-3">
-                    @forelse($faceSession->captures as $capture)
-                        <div class="col-6 col-lg-4">
-                            <div class="border rounded-3 p-2 h-100">
-                                <img src="{{ asset('storage/' . $capture->image_path) }}" alt="{{ $capture->capture_key }}" class="img-fluid rounded-2 mb-2" style="aspect-ratio: 3/4; object-fit: cover; width: 100%;">
-                                <div class="d-flex justify-content-between align-items-center small">
-                                    <strong>{{ str_replace('-', ' ', ucfirst($capture->capture_key)) }}</strong>
-                                    <span class="text-muted">{{ $capture->captured_at?->format('h:i A') }}</span>
+                    @if($faceSession->review_note)
+                        <div class="alert alert-info py-2 px-3 small mb-3 rounded-3">
+                            <i class="bi bi-info-circle me-1"></i>{{ $faceSession->review_note }}
+                        </div>
+                    @endif
+
+                    {{-- Capture images --}}
+                    <div class="row g-2">
+                        @forelse($faceSession->captures as $capture)
+                            <div class="col-4 col-sm-3 col-md-2">
+                                <div class="face-img-wrap">
+                                    <img src="{{ asset('storage/' . $capture->image_path) }}"
+                                         alt="{{ $capture->capture_key }}">
+                                    <div class="cap-label">{{ str_replace('-', ' ', ucfirst($capture->capture_key)) }}</div>
+                                    <div class="cap-time">{{ $capture->captured_at?->format('h:i A') }}</div>
                                 </div>
                             </div>
-                        </div>
-                    @empty
-                        <div class="col-12 text-muted">No captures stored yet.</div>
-                    @endforelse
-                </div>
-            @else
-                <div class="text-muted">This user has not completed the face-scan step.</div>
-            @endif
+                        @empty
+                            <div class="col-12">
+                                <p class="text-muted mb-0 small"><i class="bi bi-images me-1"></i>No captures stored yet.</p>
+                            </div>
+                        @endforelse
+                    </div>
+
+                    {{-- Face scan action buttons --}}
+                    <div class="d-flex gap-2 mt-3 pt-3 border-top">
+                        <form method="POST" action="{{ route('admin.web.users.face-scan-review', $user->id) }}">
+                            @csrf
+                            <input type="hidden" name="decision" value="approved">
+                            <button class="btn btn-success ud-action-btn"
+                                {{ $faceSession->status === 'approved' ? 'disabled' : '' }}>
+                                <i class="bi bi-check-circle me-1"></i>Approve
+                            </button>
+                        </form>
+                        <form method="POST" action="{{ route('admin.web.users.face-scan-review', $user->id) }}">
+                            @csrf
+                            <input type="hidden" name="decision" value="rejected">
+                            <button class="btn btn-outline-danger ud-action-btn">
+                                <i class="bi bi-x-circle me-1"></i>Reject
+                            </button>
+                        </form>
+                    </div>
+                @else
+                    <p class="text-muted mb-0 small"><i class="bi bi-exclamation-circle me-1"></i>This user has not completed the face-scan step.</p>
+                @endif
+            </div>
         </div>
-    </div>
+
+        {{-- ===== PROFILE DETAILS ===== --}}
+        <div class="ud-card">
+            <div class="ud-card-header">
+                <i class="bi bi-person-lines-fill"></i>
+                <h6>Profile Details</h6>
+            </div>
+            <div class="ud-card-body">
+                @if($profile)
+                    <div class="section-divider">Basic Information</div>
+                    <div class="ud-meta-row mb-3">
+                        <div class="ud-meta-item"><span class="label">Full Name</span><span class="value">{{ $user->name ?? '—' }}</span></div>
+                        <div class="ud-meta-item"><span class="label">Nick Name</span><span class="value">{{ $profile->nick_name ?? '—' }}</span></div>
+                        <div class="ud-meta-item">
+                            <span class="label">Date of Birth</span>
+                            <span class="value">
+                                @if($profile->dob)
+                                    {{ \Carbon\Carbon::parse($profile->dob)->format('d M Y') }}
+                                    <span class="badge bg-light text-dark border ms-1">{{ \Carbon\Carbon::parse($profile->dob)->age }} yrs</span>
+                                @else —
+                                @endif
+                            </span>
+                        </div>
+                        <div class="ud-meta-item"><span class="label">Profile Created For</span><span class="value">{{ humanize($profile->profile_created_for) ?? '—' }}</span></div>
+                        <div class="ud-meta-item"><span class="label">Looking For</span><span class="value">{{ humanize($profile->looking_for) ??  '—' }}</span></div>
+                        <div class="ud-meta-item"><span class="label">Marital Status</span><span class="value">{{ humanize($profile->marital_status) ?? '—' }}</span></div>
+                    </div>
+
+                    <div class="section-divider">Physical Attributes</div>
+                    <div class="ud-meta-row mb-3">
+                        <div class="ud-meta-item"><span class="label">Height</span><span class="value">{{ $profile->height_cm ? $profile->height_cm . ' cm' : '—' }}</span></div>
+                        <div class="ud-meta-item"><span class="label">Weight</span><span class="value">{{ $profile->weight_kg ? $profile->weight_kg . ' kg' : '—' }}</span></div>
+                        <div class="ud-meta-item"><span class="label">Body Type</span><span class="value">{{ humanize($profile->body_type) ?? $profile->body_type ?? '—' }}</span></div>
+                        <div class="ud-meta-item"><span class="label">Complexion</span><span class="value">{{ humanize($profile->complexion) ?? $profile->complexion ?? '—' }}</span></div>
+                        <div class="ud-meta-item"><span class="label">Eye Color</span><span class="value">{{ humanize($profile->eye_color) ?? $profile->eye_color ?? '—' }}</span></div>
+                        <div class="ud-meta-item"><span class="label">Hair Color</span><span class="value">{{ humanize($profile->hair_color) ?? $profile->hair_color ?? '—' }}</span></div>
+                        <div class="ud-meta-item"><span class="label">Blood Group</span><span class="value">{{ humanize($profile->blood_group) ?? $profile->blood_group ?? '—' }}</span></div>
+                        <div class="ud-meta-item"><span class="label">Disability</span><span class="value">{{ humanize($profile->disability) ?? $profile->disability ?? '—' }}</span></div>
+                    </div>
+
+                    <div class="section-divider">Location & Background</div>
+                    <div class="ud-meta-row mb-3">
+                        <div class="ud-meta-item"><span class="label">Mother Tongue</span><span class="value">{{ humanize($profile->mother_tongue) ?? $profile->mother_tongue ?? '—' }}</span></div>
+                        <div class="ud-meta-item"><span class="label">Nationality</span><span class="value">{{ humanize($profile->nationality) ?? $profile->nationality ?? '—' }}</span></div>
+                        <div class="ud-meta-item"><span class="label">Country</span><span class="value">{{ humanize($profile->country) ?? $profile->country ?? '—' }}</span></div>
+                        <div class="ud-meta-item"><span class="label">State / Division</span><span class="value">{{ humanize($profile->state) ?? $profile->state ?? '—' }}</span></div>
+                        <div class="ud-meta-item"><span class="label">City</span><span class="value">{{ humanize($profile->city) ?? $profile->city ?? '—' }}</span></div>
+                        <div class="ud-meta-item"><span class="label">Postal Code</span><span class="value">{{ $profile->postal_code ?? '—' }}</span></div>
+                        <div class="ud-meta-item"><span class="label">Residing Status</span><span class="value">{{ humanize($profile->residing_status) ?? $profile->residing_status ?? '—' }}</span></div>
+                    </div>
+
+                    <div class="section-divider">About</div>
+                    <div class="ud-meta-row">
+                        <div class="ud-meta-item ud-meta-full">
+                            <span class="label">About Me</span>
+                            <span class="value">{{ $profile->about_me ?? '—' }}</span>
+                        </div>
+                        <div class="ud-meta-item ud-meta-full">
+                            <span class="label">What I'm Looking For</span>
+                            <span class="value">{{ $profile->what_looking_for ?? '—' }}</span>
+                        </div>
+                    </div>
+                @else
+                    <p class="text-muted mb-0 small">No profile data available.</p>
+                @endif
+            </div>
+        </div>
+
+        {{-- ===== RELIGIOUS DETAILS ===== --}}
+        <div class="ud-card">
+            <div class="ud-card-header">
+                <i class="bi bi-moon-stars-fill"></i>
+                <h6>Religious Details</h6>
+            </div>
+            <div class="ud-card-body">
+                @if($religious)
+                    <div class="ud-meta-row">
+                        <div class="ud-meta-item"><span class="label">Religion</span><span class="value">{{ humanize($religious->religion) ?? $religious->religion ?? '—' }}</span></div>
+                        <div class="ud-meta-item"><span class="label">Caste</span><span class="value">{{ humanize($religious->caste) ?? $religious->caste ?? '—' }}</span></div>
+                        <div class="ud-meta-item"><span class="label">Sub Caste</span><span class="value">{{ humanize($religious->sub_caste) ?? $religious->sub_caste ?? '—' }}</span></div>
+                        <div class="ud-meta-item"><span class="label">Gotra</span><span class="value">{{ humanize($religious->gotra) ?? $religious->gotra ?? '—' }}</span></div>
+                        <div class="ud-meta-item"><span class="label">Manglik Status</span><span class="value">{{ humanize($religious->manglik_status) ?? $religious->manglik_status ?? '—' }}</span></div>
+                        <div class="ud-meta-item"><span class="label">Religiousness</span><span class="value">{{ humanize($religious->religiousness) ?? $religious->religiousness ?? '—' }}</span></div>
+                        <div class="ud-meta-item"><span class="label">Religiousness</span><span class="value">{{ humanize($religious->religiousness) ?? $religious->religiousness ?? '—' }}</span></div>
+                        <div class="ud-meta-item"><span class="label">Prayer Frequency</span><span class="value">{{ humanize($religious->pray) ?? $religious->pray ?? '—' }}</span></div>
+                    </div>
+                @else
+                    <p class="text-muted mb-0 small">No religious details available.</p>
+                @endif
+            </div>
+        </div>
+
+        {{-- ===== FAMILY DETAILS ===== --}}
+        <div class="ud-card">
+            <div class="ud-card-header">
+                <i class="bi bi-people-fill"></i>
+                <h6>Family Details</h6>
+            </div>
+            <div class="ud-card-body">
+                @if($family)
+                    <div class="ud-meta-row">
+                        <div class="ud-meta-item"><span class="label">Family Type</span><span class="value">{{ humanize($family->family_type) ?? $family->family_type ?? '—' }}</span></div>
+                        <div class="ud-meta-item"><span class="label">Family Status</span><span class="value">{{ humanize($family->family_status) ?? $family->family_status ?? '—' }}</span></div>
+                        <div class="ud-meta-item"><span class="label">Family Income</span><span class="value">{{ $family->family_income_bdt_per_month ? '৳ ' . number_format($family->family_income_bdt_per_month) . '/mo' : '—' }}</span></div>
+                        <div class="ud-meta-item"><span class="label">Father's Occupation</span><span class="value">{{ humanize($family->father_occupation) ?? $family->father_occupation ?? '—' }}</span></div>
+                        <div class="ud-meta-item"><span class="label">Mother's Occupation</span><span class="value">{{ humanize($family->mother_occupation) ?? $family->mother_occupation ?? '—' }}</span></div>
+                        <div class="ud-meta-item"><span class="label">Brothers</span><span class="value">{{ $family->brothers_count ?? '—' }}</span></div>
+                        <div class="ud-meta-item"><span class="label">Sisters</span><span class="value">{{ $family->sisters_count ?? '—' }}</span></div>
+                        <div class="ud-meta-item"><span class="label">Has Children</span><span class="value">{{ humanize($family->has_children) ?? $family->has_children ?? '—' }}</span></div>
+                        <div class="ud-meta-item"><span class="label">Child Living Status</span><span class="value">{{ $family->child_living_status ?? '—' }}</span></div>
+                        <div class="ud-meta-item"><span class="label">Family Values</span><span class="value">{{ humanize($family->family_values) ?? $family->family_values ?? '—' }}</span></div>
+                        <div class="ud-meta-item"><span class="label">Sibling Position</span><span class="value">{{ humanize        ($family->sibling_position) ?? $family->sibling_position ?? '—' }}</span></div>
+                    </div>
+                @else
+                    <p class="text-muted mb-0 small">No family details available.</p>
+                @endif
+            </div>
+        </div>
+
+        {{-- ===== EDUCATION & CAREER ===== --}}
+        <div class="ud-card">
+            <div class="ud-card-header">
+                <i class="bi bi-mortarboard-fill"></i>
+                <h6>Education & Career</h6>
+            </div>
+            <div class="ud-card-body">
+                @if($education)
+                    <div class="ud-meta-row">
+                        <div class="ud-meta-item"><span class="label">Highest Education</span><span class="value">{{humanize($education->highest_education) ?? $education->highest_education ?? '—' }}</span></div>
+                        <div class="ud-meta-item"><span class="label">College / University</span><span class="value">{{ humanize($education->college_university) ?? $education->college_university ?? '—' }}</span></div>
+                        <div class="ud-meta-item"><span class="label">Institution & Year</span><span class="value">{{ humanize($education->institution_name_year) ?? $education->institution_name_year ?? '—' }}</span></div>
+                        <div class="ud-meta-item"><span class="label">Employer</span><span class="value">{{ humanize($education->employer_name) ?? $education->employer_name ?? '—' }}</span></div>
+                        <div class="ud-meta-item"><span class="label">Job Location</span><span class="value">{{ humanize($education->job_location) ?? $education->job_location ?? '—' }}</span></div>
+                        <div class="ud-meta-item"><span class="label">Designation</span><span class="value">{{ humanize($education->designation) ?? $education->designation ?? '—' }}</span></div>
+                        <div class="ud-meta-item"><span class="label">Experience</span><span class="value">{{ $education->experience_years ? $education->experience_years . ' years' : '—' }}</span></div>
+                        <div class="ud-meta-item"><span class="label">Profession</span><span class="value">{{ humanize        ($education->profession) ?? $education->profession ?? '—' }}</span></div>
+                        <div class="ud-meta-item"><span class="label">Employed In</span><span class="value">{{ humanize($education->employed_in) ?? $education->employed_in ?? '—' }}</span></div>
+                        <div class="ud-meta-item"><span class="label">Annual Income</span><span class="value">{{ $education->annual_income_bdt ? '৳ ' . number_format($education->annual_income_bdt) : '—' }}</span></div>
+                    </div>
+                @else
+                    <p class="text-muted mb-0 small">No education / career data available.</p>
+                @endif
+            </div>
+        </div>
+
+        {{-- ===== LIFESTYLE ===== --}}
+        <div class="ud-card">
+            <div class="ud-card-header">
+                <i class="bi bi-stars"></i>
+                <h6>Lifestyle</h6>
+            </div>
+            <div class="ud-card-body">
+                @if($lifestyle)
+                    <div class="ud-meta-row">
+                        <div class="ud-meta-item"><span class="label">Diet</span><span class="value">{{ humanize($lifestyle->diet) ?? $lifestyle->diet ?? '—' }}</span></div>
+                        <div class="ud-meta-item"><span class="label">Smoking</span><span class="value">{{ humanize($lifestyle->smoking) ?? $lifestyle->smoking ?? '—' }}</span></div>
+                        <div class="ud-meta-item"><span class="label">Drinking</span><span class="value">{{ humanize($lifestyle->drinking) ?? $lifestyle->drinking ?? '—' }}</span></div>
+                        <div class="ud-meta-item"><span class="label">Eye Wear</span><span class="value">{{ humanize($lifestyle->eye_wear) ?? $lifestyle->eye_wear ?? '—' }}</span></div>
+                        @if($lifestyle->hobbies)
+                        <div class="ud-meta-item ud-meta-full">
+                            <span class="label">Hobbies</span>
+                            <div class="d-flex flex-wrap gap-1 mt-1">
+                                @foreach($lifestyle->hobbies as $hobby)
+                                    <span class="badge bg-light text-dark border rounded-pill">{{ humanize($hobby) ?? $hobby }}</span>
+                                @endforeach
+                            </div>
+                        </div>
+                        @endif
+                    </div>
+                @else
+                    <p class="text-muted mb-0 small">No lifestyle data available.</p>
+                @endif
+            </div>
+        </div>
+
+        {{-- ===== HOROSCOPE ===== --}}
+        <div class="ud-card">
+            <div class="ud-card-header">
+                <i class="bi bi-moon-fill"></i>
+                <h6>Horoscope Details</h6>
+            </div>
+            <div class="ud-card-body">
+                @if($horoscope)
+                    <div class="ud-meta-row">
+                        <div class="ud-meta-item"><span class="label">Birth Place</span><span class="value">{{ $horoscope->birth_place ?? '—' }}</span></div>
+                        <div class="ud-meta-item"><span class="label">Birth Time</span><span class="value">{{ $horoscope->birth_time ? date('h:i A', strtotime($horoscope->birth_time)) : '—' }}</span></div>
+                        <div class="ud-meta-item"><span class="label">Rashi</span><span class="value">{{ $horoscope->rashi ?? '—' }}</span></div>
+                        <div class="ud-meta-item"><span class="label">Nakshatra</span><span class="value">{{ $horoscope->nakshatra ?? '—' }}</span></div>
+                        <div class="ud-meta-item"><span class="label">Manglik</span>
+                            <span class="value">
+                                @if(isset($horoscope->manglik))
+                                    <span class="badge rounded-pill {{ $horoscope->manglik > 0 ? 'bg-warning text-dark' : 'bg-success' }}">
+                                        {{ $horoscope->manglik > 0 ? 'Yes' : 'No' }}
+                                    </span>
+                                @else —
+                                @endif
+                            </span>
+                        </div>
+                    </div>
+                @else
+                    <p class="text-muted mb-0 small">No horoscope details available.</p>
+                @endif
+            </div>
+        </div>
+
+        {{-- ===== PARTNER PREFERENCE ===== --}}
+        <div class="ud-card">
+            <div class="ud-card-header">
+                <i class="bi bi-heart-fill text-danger" style="color:#e11d48 !important"></i>
+                <h6>Partner Preference</h6>
+            </div>
+            <div class="ud-card-body">
+                @if($partner)
+                    <div class="section-divider">Age & Physical</div>
+                    <div class="ud-meta-row mb-3">
+                        <div class="ud-meta-item"><span class="label">Age Range</span><span class="value">{{ $partner->age_min ?? '—' }} – {{ $partner->age_max ?? '—' }} yrs</span></div>
+                        <div class="ud-meta-item"><span class="label">Height Range</span><span class="value">{{ $partner->height_min_cm ?? '—' }} – {{ $partner->height_max_cm ?? '—' }} cm</span></div>
+                        <div class="ud-meta-item"><span class="label">Body Type</span><span class="value">{{ json_list($partner->body_type) }}</span></div>
+                        <div class="ud-meta-item"><span class="label">Complexion</span><span class="value">{{ json_list($partner->complexion) }}</span></div>
+                        <div class="ud-meta-item"><span class="label">Blood Group</span><span class="value">{{ json_list($partner->blood_group) }}</span></div>
+                    </div>
+
+                    <div class="section-divider">Religion & Values</div>
+                    <div class="ud-meta-row mb-3">
+                        <div class="ud-meta-item"><span class="label">Religion</span><span class="value">{{ json_list($partner->religion) }}</span></div>
+                        <div class="ud-meta-item"><span class="label">Caste</span><span class="value">{{ json_list($partner->caste) }}</span></div>
+                        <div class="ud-meta-item"><span class="label">Religiousness</span><span class="value">{{ json_list($partner->religiousness) }}</span></div>
+                        <div class="ud-meta-item"><span class="label">Prayer Frequency</span><span class="value">{{ json_list($partner->pray) }}</span></div>
+                        <div class="ud-meta-item"><span class="label">Manglik Status</span><span class="value">{{ json_list($partner->manglik_status) }}</span></div>
+                        <div class="ud-meta-item"><span class="label">Rashi / Zodiac</span><span class="value">{{ json_list($partner->rashi) }}</span></div>
+                    </div>
+
+                    <div class="section-divider">Family & Lifestyle</div>
+                    <div class="ud-meta-row mb-3">
+                        <div class="ud-meta-item"><span class="label">Marital Status</span><span class="value">{{ json_list($partner->marital_status) }}</span></div>
+                        <div class="ud-meta-item"><span class="label">Family Type</span><span class="value">{{ json_list($partner->family_type) }}</span></div>
+                        <div class="ud-meta-item"><span class="label">Family Values</span><span class="value">{{ json_list($partner->family_values) }}</span></div>
+                        <div class="ud-meta-item"><span class="label">Has Children</span><span class="value">{{ ucfirst($partner->has_children) ?? '—' }}</span></div>
+                        <div class="ud-meta-item"><span class="label">Child Living Status</span><span class="value">{{ json_list($partner->child_living_status) }}</span></div>
+                        <div class="ud-meta-item"><span class="label">Diet</span><span class="value">{{ json_list($partner->diet) }}</span></div>
+                        <div class="ud-meta-item"><span class="label">Smoking Acceptable</span>
+                            <span class="value"><span class="badge rounded-pill {{ $partner->smoking_acceptable == 1 ? 'bg-success' : 'bg-danger' }}">{{ $partner->smoking_acceptable == 1 ? 'Yes' : 'No' }}</span></span>
+                        </div>
+                        <div class="ud-meta-item"><span class="label">Drinking Acceptable</span>
+                            <span class="value"><span class="badge rounded-pill {{ $partner->drinking_acceptable == 1 ? 'bg-success' : 'bg-danger' }}">{{ $partner->drinking_acceptable == 1 ? 'Yes' : 'No' }}</span></span>
+                        </div>
+                    </div>
+
+                    <div class="section-divider">Career & Education</div>
+                    <div class="ud-meta-row mb-3">
+                        <div class="ud-meta-item"><span class="label">Annual Income (min)</span><span class="value">{{ $partner->income_min_bdt ? '৳ ' . number_format($partner->income_min_bdt) : '—' }}</span></div>
+                        <div class="ud-meta-item"><span class="label">Working Status</span><span class="value">{{ json_list($partner->working_status) }}</span></div>
+                        <div class="ud-meta-item"><span class="label">Employed In</span><span class="value">{{ json_list($partner->employed_in) }}</span></div>
+                        <div class="ud-meta-item"><span class="label">Profession</span><span class="value">{{ json_list($partner->profession) }}</span></div>
+                        <div class="ud-meta-item"><span class="label">Minimum Education</span><span class="value">{{ json_list($partner->education) }}</span></div>
+                        <div class="ud-meta-item"><span class="label">Mother Tongue</span><span class="value">{{ json_list($partner->mother_tongue) }}</span></div>
+                    </div>
+
+                    <div class="section-divider">Location Preferences</div>
+                    <div class="ud-meta-row">
+                        <div class="ud-meta-item"><span class="label">Country</span><span class="value">{{ json_list($partner->country) }}</span></div>
+                        <div class="ud-meta-item"><span class="label">Residing Status</span><span class="value">{{ json_list($partner->pref_residing_status) }}</span></div>
+                        <div class="ud-meta-item"><span class="label">Division (BD)</span><span class="value">{{ json_list($partner->pref_divisions) }}</span></div>
+                        <div class="ud-meta-item"><span class="label">District (BD)</span><span class="value">{{ json_list($partner->pref_districts) }}</span></div>
+                        <div class="ud-meta-item"><span class="label">Province (CA)</span><span class="value">{{ json_list($partner->pref_provinces) }}</span></div>
+                        <div class="ud-meta-item"><span class="label">State (USA)</span><span class="value">{{ json_list($partner->pref_states) }}</span></div>
+                    </div>
+                @else
+                    <p class="text-muted mb-0 small">No partner preference data available.</p>
+                @endif
+            </div>
+        </div>
+
+        {{-- ===== PROFILE PHOTOS ===== --}}
+        <div class="ud-card">
+            <div class="ud-card-header">
+                <i class="bi bi-images"></i>
+                <h6>Profile Photos</h6>
+                <span class="badge bg-light text-dark border ms-auto">{{ $user->photos->count() }} photo{{ $user->photos->count() !== 1 ? 's' : '' }}</span>
+            </div>
+            <div class="ud-card-body">
+                @if($user->photos->count())
+                    <div class="row g-3 photo-grid">
+                        @foreach($user->photos as $photo)
+                            <div class="col-6 col-sm-4 col-md-3">
+                                <img src="{{ asset('storage/' . $photo->file_path) }}" alt="Photo">
+                            </div>
+                        @endforeach
+                    </div>
+                @else
+                    <p class="text-muted mb-0 small"><i class="bi bi-image me-1"></i>No photos uploaded yet.</p>
+                @endif
+            </div>
+        </div>
+
+    </div>{{-- /col right --}}
 </div>
 @endsection
-

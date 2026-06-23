@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\Schedule;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Facades\Blade;
+
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -34,5 +36,9 @@ class AppServiceProvider extends ServiceProvider
         // Schedule recurring jobs
         Schedule::job(new ExpireOldInterests())->dailyAt('00:00');
         Schedule::job(new SendDailyMatchDigest())->dailyAt('08:00');
+
+
+
+
     }
 }
