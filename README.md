@@ -1,15 +1,33 @@
-my previous prompt
-NO all work expected. but all the edit profile tab(frontend) field i have given all data but progress bar showing 93%. why? if it is worng fix it. and when i page load (from any page) i am going to logout from frontend need to fix
+# Clone and enter directory
+git clone https://github.com/RaselHasanSwe/bondhon_backend.git
+cd bondhon/backend
 
-AI finding was:
-Now fix profile completion 93% — add complexion + blood_group to Basic tab and add the missing Horoscope tab:
+# Install dependencies
+composer install
 
-AI worked(some task completed and unfortunatly closed by session timeout)
-during work check becouse some work done by ai for this issue.
+# Setup environment
+cp .env.example .env
 
-frontend
-C:\xampp\htdocs\bondhon\frontend
-backend
-C:\xampp\htdocs\bondhon\frontend
-Project document:
-C:\xampp\htdocs\bondhon\frontend
+# Generate key
+php artisan key:generate
+
+# Run migrations and seeders
+php artisan migrate --seed
+
+# Create storage link
+php artisan storage:link
+
+# Clear cache
+php artisan cache:clear
+php artisan config:clear
+php artisan view:clear
+php artisan optimize:clear
+
+# Start main server
+php artisan serve
+
+# Start Reverb (WebSocket) - in new terminal
+php artisan reverb:start
+
+# Start Queue Worker - in new terminal
+php artisan queue:work
