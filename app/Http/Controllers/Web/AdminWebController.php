@@ -196,6 +196,16 @@ class AdminWebController extends Controller
         $session = $user->faceScanSession;
         $status = $request->string('decision')->toString();
 
+        // also remove faceScanSession captures image if reject face scan
+        if ($status === 'rejected' && $session->captures) {
+            $session->captures->each(function ($capture) {
+                if ($capture->image_path && \Storage::disk('public')->exists($capture->image_path)) {
+                    \Storage::disk('public')->delete($capture->image_path);
+                }
+                $capture->delete();
+            });
+        }
+
         $session->update([
             'status' => $status === 'ban' ? 'rejected' : $status,
             'review_note' => $request->input('review_note'),
