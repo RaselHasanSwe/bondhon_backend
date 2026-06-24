@@ -1,6 +1,6 @@
 @extends('admin.layout')
 @section('title', 'Subscription Plans')
-@section('page-title', 'Subscription Plans')
+@section('page-title', 'Plans')
 @use(App\Services\SubscriptionFeatureService)
 
 @section('content')
@@ -43,7 +43,7 @@
                             <th>Tier</th>
                             <th>Price</th>
                             <th>Duration</th>
-                            <th>Subs</th>
+                            <th>Serial</th>
                             <th>Status</th>
                             <th class="text-end">Actions</th>
                         </tr>
@@ -77,7 +77,7 @@
                             </td>
                             <td>
                                 <span class="badge {{ $tc }}" style="font-size:.65rem;">
-                                    {{ $ti }} {{ ucfirst($plan->plan_type ?: '—') }}
+                                    {{ $plan?->subscriptionType?->name }}
                                 </span>
                             </td>
                             <td class="fw-semibold">
@@ -96,7 +96,7 @@
                             </td>
                             <td>
                                 <span class="badge bg-light text-dark border">
-                                    {{ $plan->subscriptions_count }}
+                                    {{ $plan->sort_order }}
                                 </span>
                             </td>
                             <td>
@@ -112,13 +112,7 @@
                                    title="Edit plan">
                                     <i class="bi bi-pencil"></i>
                                 </a>
-                                @if($plan->price_bdt === 0)
-                                    <button class="btn btn-xs btn-outline-secondary btn-sm py-0 px-2"
-                                            title="Free plans cannot be deleted"
-                                            disabled>
-                                        <i class="bi bi-lock"></i>
-                                    </button>
-                                @else
+
                                 <form method="POST"
                                       action="{{ route('admin.web.plans.destroy', $plan->id) }}"
                                       class="d-inline"
@@ -128,7 +122,7 @@
                                         <i class="bi bi-trash"></i>
                                     </button>
                                 </form>
-                                @endif
+
                             </td>
                         </tr>
                         @empty

@@ -95,7 +95,7 @@
         </a>
         <a href="{{ route('admin.web.plans') }}"
            class="nav-link {{ request()->routeIs('admin.web.plans') ? 'active' : '' }}">
-            <i class="bi bi-layers"></i> Subscription Plans
+            <i class="bi bi-layers"></i> Plans
         </a>
         <a href="{{ route('admin.web.subscriptions') }}"
            class="nav-link {{ request()->routeIs('admin.web.subscriptions') ? 'active' : '' }}">

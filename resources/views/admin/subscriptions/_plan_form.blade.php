@@ -76,13 +76,14 @@
             <select name="plan_type"
                     class="form-select form-select-sm @error('plan_type') is-invalid @enderror"
                     required>
-                <option value="" disabled {{ old('plan_type', $plan->plan_type ?? '') === '' ? 'selected' : '' }}>
+                <option value="">
                     — Select a tier —
                 </option>
-                @foreach($tierMeta as $value => $meta)
-                    <option value="{{ $value }}"
-                        {{ old('plan_type', $plan->plan_type ?? '') === $value ? 'selected' : '' }}>
-                        {{ $meta['icon'] }}  {{ $meta['label'] }}
+                @foreach($types as $cPlanType)
+                    <option value="{{$cPlanType->id}}" {{ old('plan_type') == $cPlanType->id ? 'selected' : '' }}
+                        {{isset($plan) && $plan->plan_type == $cPlanType->id ? 'selected' : ''}}
+                        >
+                        {{ ucfirst($cPlanType->name) }}
                     </option>
                 @endforeach
             </select>
