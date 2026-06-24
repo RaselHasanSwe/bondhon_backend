@@ -122,7 +122,7 @@ When the **Reject** button is clicked, display a popup with the following fields
 **NOTE** Subscription Tier CRUD LEFT
 
 
-## Sales
+## Sales - (DONE)
 
 **URL:** http://127.0.0.1:8000/super-admin/subscriptions
 

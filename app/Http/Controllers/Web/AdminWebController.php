@@ -28,6 +28,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
+use Carbon\Carbon;
 
 /**
  * AdminWebController — Blade-based super admin panel.
@@ -124,7 +125,8 @@ class AdminWebController extends Controller
 
     public function users(Request $request): View
     {
-        $query = User::with(['profile', 'faceScanSession.latestCapture'])->withTrashed();
+        $query = User::with(['profile', 'subscription.subscriptionPlan', 'faceScanSession.latestCapture'])->withTrashed();
+        //dd($request->all());
 
         if ($request->filled('search')) {
             $q = $request->search;
@@ -132,7 +134,9 @@ class AdminWebController extends Controller
         }
 
         if ($request->filled('plan')) {
-            $query->where('subscription_plan', $request->plan);
+            $query->whereHas('subscription.subscriptionPlan', function ($q) use ($request) {
+                $q->where('id', $request->plan);
+            });
         }
         if ($request->filled('role')) {
             $query->where('role', $request->role);
@@ -150,6 +154,8 @@ class AdminWebController extends Controller
         }
 
         $users = $query->orderByDesc('created_at')->paginate(20)->withQueryString();
+
+        //dd($users->toArray());
         $roles = ['user', 'admin'];
         $plans = SubscriptionType::orderBy('sort_order')->get();
 
@@ -1330,7 +1336,7 @@ class AdminWebController extends Controller
 
     public function subscriptions(Request $request): View
     {
-        $query = Subscription::with(['user:id,name,email', 'subscriptionPlan:id,name,plan_type'])
+        $query = Subscription::with(['user:id,name,email', 'subscriptionPlan:id,name,plan_type', 'subscriptionPlan.subscriptionType'])
             ->latest('created_at');
 
         if ($request->filled('status')) {
@@ -1338,7 +1344,24 @@ class AdminWebController extends Controller
         }
 
         if ($request->filled('plan')) {
-            $query->where('plan', $request->plan);
+            $query->whereHas('subscriptionPlan.subscriptionType', function ($q) use ($request) {
+                $q->where('plan_type', $request->plan);
+            });
+        }
+
+        if ($request->filled('from') && !$request->filled('to')) {
+            $query->where(
+                'starts_at',
+                '>=',
+                Carbon::parse($request->from)->startOfDay()
+            );
+        }
+
+        if ($request->filled('from') && $request->filled('to')) {
+            $query->whereBetween('starts_at', [
+                Carbon::parse($request->from)->startOfDay(),
+                Carbon::parse($request->to)->endOfDay(),
+            ]);
         }
 
         if ($request->filled('search')) {
@@ -1347,6 +1370,8 @@ class AdminWebController extends Controller
                   ->orWhere('email', 'like', '%' . $request->search . '%')
             );
         }
+
+        $filteredQuery = clone $query;
 
         $subscriptions = $query->paginate(20)->withQueryString();
 
@@ -1359,7 +1384,18 @@ class AdminWebController extends Controller
             'total_count'         => Subscription::where('status', 'active')->count(),
         ];
 
-        return view('admin.subscriptions.index', compact('subscriptions', 'summary'));
+        $plans = SubscriptionType::orderBy('sort_order')->get();
+
+        $filteredSummary = [
+            'revenue' => (clone $filteredQuery)->sum('amount_bdt'),
+            'active_subscriptions' => (clone $filteredQuery)
+                ->where('status', 'active')
+                ->where('expires_at', '>', now())
+                ->count(),
+            'total_sold' => (clone $filteredQuery)->count(),
+        ];
+
+        return view('admin.subscriptions.index', compact('subscriptions', 'summary', 'plans','filteredSummary'));
     }
 }
 
