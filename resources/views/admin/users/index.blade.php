@@ -7,25 +7,32 @@
     {{-- Search / Filter --}}
     <div class="table-card p-3 mb-3">
         <form method="GET" action="{{ route('admin.web.users') }}" class="row g-2">
-            <div class="col-sm-5">
+            <div class="col-sm-3">
                 <input type="text" name="search" class="form-control form-control-sm"
                        placeholder="Search by name or email…" value="{{ request('search') }}">
             </div>
             <div class="col-sm-3">
                 <select name="plan" class="form-select form-select-sm">
-                    <option value="">All Plans</option>
-                    <option value="free" {{ request('plan')=='free'     ? 'selected':'' }}>Free</option>
-                    <option value="silver" {{ request('plan')=='silver'   ? 'selected':'' }}>Silver</option>
-                    <option value="gold" {{ request('plan')=='gold'     ? 'selected':'' }}>Gold</option>
-                    <option value="platinum" {{ request('plan')=='platinum' ? 'selected':'' }}>Platinum</option>
+                    <option value="">--plans--</option>
+                    @foreach($plans as $plan)
+                        <option value="{{ $plan->id }}" {{ request('plan')==$plan->id ? 'selected':'' }}>{{ ucfirst($plan->name) }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="col-sm-2">
+                <select name="role" class="form-select form-select-sm">
+                    <option value="">--role--</option>
+                    @foreach($roles as $role)
+                        <option value="{{ $role }}" {{ request('role')==$role ? 'selected':'' }}>{{ ucfirst($role) }}</option>
+                    @endforeach
                 </select>
             </div>
             <div class="col-sm-2">
                 <select name="status" class="form-select form-select-sm">
-                    <option value="">All Status</option>
+                    <option value="">--status--</option>
                     <option value="active" {{ request('status')=='active'   ? 'selected':'' }}>Active</option>
                     <option value="banned" {{ request('status')=='banned'   ? 'selected':'' }}>Banned</option>
-                    <option value="inactive" {{ request('status')=='inactive' ? 'selected':'' }}>Deleted</option>
+                    {{-- <option value="inactive" {{ request('status')=='inactive' ? 'selected':'' }}>Deleted</option> --}}
                 </select>
             </div>
             <div class="col-sm-2 d-flex gap-1">
@@ -39,7 +46,7 @@
     <div class="table-card p-0">
         <div class="p-3 border-bottom d-flex justify-content-between align-items-center">
             <h6 class="mb-0 fw-semibold">
-                All Users <span class="badge bg-secondary ms-1">{{ $users->total() }}</span>
+                Users <span class="badge bg-secondary ms-1">{{ $users->total() }}</span>
             </h6>
         </div>
         <div class="table-responsive">
@@ -53,7 +60,7 @@
                     <th>Plan</th>
                     <th>Plan Expires</th>
                     <th>Joined</th>
-                    <th>Status</th>
+                    <th>Face Status</th>
                     <th>Role</th>
                     <th class="text-center">Actions</th>
                 </tr>
@@ -116,6 +123,7 @@
                                 <span class="badge bg-success">Active</span>
                             @endif
 
+                            @if($user->role === 'user')
                             <a href="{{ route('admin.web.users.show', $user->id) }}"
                                class="btn btn-xs btn-outline-primary me-1"
                                style="font-size:11px;padding:2px 8px;" title="View Details">
@@ -126,6 +134,7 @@
                                style="font-size:11px;padding:2px 8px;" title="View Notifications">
                                 <i class="bi bi-bell"></i>
                             </a>
+                            @endif
                         </td>
                     </tr>
                 @empty
