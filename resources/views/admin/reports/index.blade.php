@@ -5,7 +5,7 @@
 @section('content')
 {{-- Status Filter --}}
 <form method="GET" class="d-flex gap-2 mb-3 flex-wrap">
-    @foreach(['pending' => 'Pending', 'reviewed' => 'Reviewed', 'action_taken' => 'Action Taken', 'dismissed' => 'Dismissed'] as $val => $label)
+    @foreach(['pending' => 'Pending', 'dismissed' => 'Dismissed'] as $val => $label)
     <button type="submit" name="status" value="{{ $val }}"
             class="btn btn-sm {{ request('status', 'pending') === $val ? 'btn-warning' : 'btn-outline-secondary' }}"
             style="{{ request('status', 'pending') === $val ? 'background:var(--gold);border-color:var(--gold);color:#fff;' : '' }}">

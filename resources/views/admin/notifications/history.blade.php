@@ -1,6 +1,6 @@
 @extends('admin.layout')
-@section('title', 'Admin Notification History')
-@section('page-title', 'Admin Notification History')
+@section('title', 'Notifications')
+@section('page-title', 'Notifications')
 
 @section('content')
 <div class="alert alert-info d-flex align-items-center gap-2 py-2 mb-4 small">
@@ -46,7 +46,7 @@
         <div class="col-6 col-md-3">
             <label class="form-label fw-semibold small mb-1">Type</label>
             <select name="type" class="form-select form-select-sm">
-                <option value="">All Types</option>
+                <option value="">--types--</option>
                 @foreach($types as $t)
                     <option value="{{ $t }}" {{ request('type') === $t ? 'selected' : '' }}>
                         {{ ucwords(str_replace('_', ' ', $t)) }}
