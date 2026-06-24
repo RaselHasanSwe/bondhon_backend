@@ -1,6 +1,6 @@
 # Admin Module Implementation & Fixes
 
-## Dashboard
+## Dashboard - (DONE)
 
 **URL:** http://127.0.0.1:8000/super-admin/dashboard
 
@@ -10,7 +10,7 @@
 
 ---
 
-## Users Management
+## Users Management - (DONE)
 
 **URL:** http://127.0.0.1:8000/super-admin/users
 
@@ -25,6 +25,7 @@
    * Display Admin users in the list.
    * Hide the **View** and **Notification** action icons, as they are not required for Admin accounts.
 
+NOTE: **PLANS FILTERING NEED TO FIX AFTER SUBSCRIPTION MODULE FIX**
 ---
 
 ## User Details
