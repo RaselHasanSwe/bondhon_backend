@@ -23,7 +23,7 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // ── Subscription Plans (must run before subscriptions are created) ──
-        $this->call(SubscriptionPlanSeeder::class);
+//        $this->call(SubscriptionPlanSeeder::class);
 
         // ── Site Settings & Pages ──
         $this->call(SiteSettingSeeder::class);
@@ -130,19 +130,19 @@ class DatabaseSeeder extends Seeder
         CallLog::factory(5)->create();
 
         // Create some active subscriptions
-        $userIds = $users->pluck('id')->toArray();
-        foreach (array_slice($userIds, 0, 3) as $userId) {
-            Subscription::factory()->active()->create([
-                'user_id' => $userId,
-            ]);
-        }
-
-        // Create some expired subscriptions
-        foreach (array_slice($userIds, 3, 2) as $userId) {
-            Subscription::factory()->expired()->create([
-                'user_id' => $userId,
-            ]);
-        }
+//        $userIds = $users->pluck('id')->toArray();
+//        foreach (array_slice($userIds, 0, 3) as $userId) {
+//            Subscription::factory()->active()->create([
+//                'user_id' => $userId,
+//            ]);
+//        }
+//
+//        // Create some expired subscriptions
+//        foreach (array_slice($userIds, 3, 2) as $userId) {
+//            Subscription::factory()->expired()->create([
+//                'user_id' => $userId,
+//            ]);
+//        }
     }
 }
 

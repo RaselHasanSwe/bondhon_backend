@@ -67,6 +67,7 @@ class AuthController extends ApiController
                     'password'           => $request->password,
                     'gender'             => $request->gender,
                     'profile_created_by' => $request->profile_created_by,
+                    'is_active'          => 0,
                 ]);
 
                 // Auto-generate profile_id (BON-XXXXXX)

@@ -158,6 +158,8 @@ class SubscriptionService
                 ->where('status', 'active')
                 ->first();
 
+
+
             if ($subscription) {
                 $user->update([
                     'subscription_plan' => $plan->plan_type,
@@ -175,6 +177,14 @@ class SubscriptionService
                     'status' => 'active',
                     'starts_at' => now(),
                     'expires_at' => null, // forever — free plan never expires
+                ]);
+
+                $free_plan_expires = now()->addDays($plan->getDurationInDays());
+
+                $user->update([
+                    'subscription_plan' => $plan->plan_type,
+                    'subscription_expires_at' => $free_plan_expires,
+                    'active_subscription_id' => $subscription->id,
                 ]);
             }
 
