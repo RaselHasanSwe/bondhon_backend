@@ -182,9 +182,9 @@ When the **Reject** button is clicked, display a popup with the following fields
 
 
 
-## Reports
+## Reports - (DONE)
 
-**URL:** http://127.0.0.1:8000/super-admin/photos
+**URL:** http://127.0.0.1:8000/super-admin/reports
 
 ### Required Changes
 
@@ -193,7 +193,7 @@ When the **Reject** button is clicked, display a popup with the following fields
 2. Remove **Reviewed** and **Action Taken** from the heading.
 
 
-## Notifications
+## Notifications - (DONE)
 
 **URL:** http://127.0.0.1:8000/super-admin/notifications
 
@@ -213,7 +213,7 @@ When the **Reject** button is clicked, display a popup with the following fields
 3. Change sidebar Icon.
 
 
-## Messages
+## Messages - (DONE)
 
 **URL:** http://127.0.0.1:8000/super-admin/contact-messages
 

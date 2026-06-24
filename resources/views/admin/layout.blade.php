@@ -124,8 +124,8 @@
         </a>
         <a href="{{ route('admin.web.notifications.history') }}" style="font-size:15px;"
            class="nav-link {{ request()->routeIs('admin.web.notifications.history') || request()->routeIs('admin.web.notifications.view') ? 'active' : '' }}">
-            <i class="bi bi-megaphone"></i>
-            Notification History
+            <i class="bi bi-bell"></i>
+            Notifications
             @php $totalNotes = \Illuminate\Support\Facades\DB::table('notifications')->where('is_read', false)->count(); @endphp
             @if($totalNotes > 0)
                 <span class="badge bg-secondary ms-auto" style="font-size:10px">{{ $totalNotes > 99 ? '99+' : $totalNotes }}</span>
@@ -133,7 +133,7 @@
         </a>
         <a href="{{ route('admin.web.contact-messages') }}"
            class="nav-link {{ request()->routeIs('admin.web.contact-messages') ? 'active' : '' }}">
-            <i class="bi bi-envelope-open"></i> Contact Messages
+            <i class="bi bi-envelope-open"></i> Messages
             @php $newMessages = \App\Models\ContactMessage::where('status','new')->count(); @endphp
             @if($newMessages > 0)
                 <span class="badge bg-danger ms-auto">{{ $newMessages }}</span>
