@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Api\V1\Auth;
 
 use App\Http\Controllers\Api\V1\ApiController;
+use App\Models\SiteSetting;
 use App\Models\User;
+use App\Services\EmailVerificationOtpService;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -105,6 +107,60 @@ class EmailVerificationController extends ApiController
                 'exception' => $e,
             ]);
             return $this->serverErrorResponse('Failed to send verification email. Please try again.');
+        }
+    }
+
+    #[OA\Post(
+        path: '/api/v1/auth/email/verify-otp',
+        summary: 'Verify email with 6-digit OTP code',
+        security: [['sanctum' => []]],
+        tags: ['Email Verification'],
+        responses: [
+            new OA\Response(response: 200, description: 'Email verified successfully'),
+            new OA\Response(response: 422, description: 'Invalid or expired code'),
+            new OA\Response(response: 400, description: 'Email already verified or verification disabled'),
+            new OA\Response(response: 500, description: 'Server error'),
+        ]
+    )]
+    public function verifyOtp(Request $request, EmailVerificationOtpService $otpService): JsonResponse
+    {
+        $request->validate([
+            'code' => ['required', 'string', 'size:6', 'regex:/^\d{6}$/'],
+        ]);
+
+        /** @var User $user */
+        $user = $request->user();
+
+        Log::info('[EMAIL VERIFICATION - VerifyOtp] Attempt from User ID: ' . $user->id);
+
+        try {
+            if ($user->hasVerifiedEmail()) {
+                return $this->successResponse(null, 'Email already verified.');
+            }
+
+            if (! SiteSetting::booleanValue('email_verification_enabled', true)) {
+                return $this->errorResponse('Email verification is not required.', null, 400);
+            }
+
+            if (! $otpService->verify($user, $request->code)) {
+                Log::warning('[EMAIL VERIFICATION - VerifyOtp] Invalid code for User ID: ' . $user->id);
+                return $this->errorResponse('Invalid or expired verification code.', null, 422);
+            }
+
+            $user->markEmailAsVerified();
+            event(new Verified($user));
+
+            Log::info('[EMAIL VERIFICATION - VerifyOtp] Successfully verified User ID: ' . $user->id);
+
+            return $this->successResponse([
+                'email_verified_at' => $user->fresh()->email_verified_at,
+            ], 'Email verified successfully.');
+
+        } catch (\Throwable $e) {
+            Log::error('[EMAIL VERIFICATION - VerifyOtp] Failed for User ID: ' . $user->id . ' | Error: ' . $e->getMessage(), [
+                'exception' => $e,
+            ]);
+            return $this->serverErrorResponse('Email verification failed. Please try again.');
         }
     }
 }

@@ -81,6 +81,18 @@
                 </div>
             </div>
 
+            {{-- Email Verification --}}
+            <div class="table-card p-4 mb-4">
+                <h6 class="fw-bold mb-3" style="color:#C9A227"><i class="bi bi-envelope-check me-2"></i>Email Verification</h6>
+                <div class="d-flex flex-column gap-2">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" role="switch" id="email_verification_enabled" name="email_verification_enabled" value="1" {{ !empty($settings['email_verification_enabled']) && filter_var($settings['email_verification_enabled'], FILTER_VALIDATE_BOOLEAN) ? 'checked' : '' }}>
+                        <label class="form-check-label fw-semibold" for="email_verification_enabled">Require email verification after registration</label>
+                    </div>
+                    <p class="small text-muted mb-0">When enabled, new users must enter a 6-digit code sent to their email before they can proceed to face scan or the dashboard.</p>
+                </div>
+            </div>
+
             {{-- Face Verification --}}
             <div class="table-card p-4 mb-4">
                 <h6 class="fw-bold mb-3" style="color:#C9A227"><i class="bi bi-camera-video me-2"></i>Face Verification</h6>

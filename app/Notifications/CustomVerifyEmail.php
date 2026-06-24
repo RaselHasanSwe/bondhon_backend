@@ -2,11 +2,11 @@
 
 namespace App\Notifications;
 
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\MailMessage;
-use Illuminate\Notifications\Notification;
+use App\Models\SiteSetting;
+use App\Services\EmailVerificationOtpService;
 use Illuminate\Auth\Notifications\VerifyEmail;
+use Illuminate\Bus\Queueable;
+use Illuminate\Notifications\Messages\MailMessage;
 
 class CustomVerifyEmail extends VerifyEmail
 {
@@ -39,11 +39,23 @@ class CustomVerifyEmail extends VerifyEmail
         $backendUrl = $this->verificationUrl($notifiable);
         $frontendBase = rtrim(config('frontend.base_url', 'http://localhost:3000'), '/');
         $url = $frontendBase . '/verify-email?v_url=' . urlencode($backendUrl);
-        return (new \Illuminate\Notifications\Messages\MailMessage)
+
+        $otp = null;
+        $expiresIn = null;
+
+        if (SiteSetting::booleanValue('email_verification_enabled', true)) {
+            $otpService = app(EmailVerificationOtpService::class);
+            $otp = $otpService->issue($notifiable);
+            $expiresIn = $otpService->expiryMinutes() . ' minutes';
+        }
+
+        return (new MailMessage)
             ->subject('Verify Your Email')
-            ->view('emails.verify-email', [ // 👈 your custom blade
-                'url'  => $url,        // or frontend URL if you want
-                'user' => $notifiable,
+            ->view('emails.verify-email', [
+                'url'       => $url,
+                'user'      => $notifiable,
+                'otp'       => $otp,
+                'expiresIn' => $expiresIn,
             ]);
     }
 

@@ -79,6 +79,8 @@ Route::prefix('v1')->group(function () {
         Route::middleware('auth:sanctum')->group(function () {
             Route::post('/email/resend', [EmailVerificationController::class, 'resend'])
                 ->middleware('throttle:6,1');
+            Route::post('/email/verify-otp', [EmailVerificationController::class, 'verifyOtp'])
+                ->middleware('throttle:10,1');
 
             Route::post('/logout', [AuthController::class, 'logout']);
             Route::get('/me', [AuthController::class, 'me']);
