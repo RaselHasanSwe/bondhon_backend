@@ -1,6 +1,6 @@
 @extends('admin.layout')
-@section('title', 'Subscriptions & Sales')
-@section('page-title', 'Subscriptions & Revenue')
+@section('title', 'Subscriptions')
+@section('page-title', 'Subscriptions')
 
 @section('content')
 
@@ -35,26 +35,33 @@
 {{-- Filter --}}
 <div class="table-card p-3 mb-3">
     <form method="GET" action="{{ route('admin.web.subscriptions') }}" class="row g-2">
-        <div class="col-sm-4">
+        <div class="col-sm-2">
             <input type="text" name="search" class="form-control form-control-sm"
                    placeholder="Search by name or email…" value="{{ request('search') }}">
         </div>
-        <div class="col-sm-2">
+        <div class="col-sm-1">
             <select name="plan" class="form-select form-select-sm">
                 <option value="">All Plans</option>
-                <option value="free"     {{ request('plan')=='free'     ? 'selected':'' }}>Free</option>
-                <option value="silver"   {{ request('plan')=='silver'   ? 'selected':'' }}>Silver</option>
-                <option value="gold"     {{ request('plan')=='gold'     ? 'selected':'' }}>Gold</option>
-                <option value="platinum" {{ request('plan')=='platinum' ? 'selected':'' }}>Platinum</option>
+                @foreach ($plans as $plan)
+                    <option value="{{ $plan->id }}" {{ request('plan')==$plan->id ? 'selected':'' }}>{{ ucfirst($plan->name) }}</option>
+                @endforeach
             </select>
         </div>
-        <div class="col-sm-2">
+        <div class="col-sm-1">
             <select name="status" class="form-select form-select-sm">
                 <option value="">All Status</option>
                 <option value="active"  {{ request('status')=='active'  ?'selected':'' }}>Active</option>
                 <option value="pending" {{ request('status')=='pending' ?'selected':'' }}>Pending</option>
                 <option value="expired" {{ request('status')=='expired' ?'selected':'' }}>Expired</option>
             </select>
+        </div>
+        <div class="col-sm-2">
+            <input type="date" name="from" class="form-control form-control-sm"
+                    value="{{ request('from') }}" title="From Date">
+        </div>
+         <div class="col-sm-2">
+            <input type="date" name="to" class="form-control form-control-sm"
+                    value="{{ request('to') }}" title="To Date">
         </div>
         <div class="col-sm-2 d-flex gap-1">
             <button class="btn btn-sm btn-dark flex-fill">Filter</button>
@@ -69,6 +76,38 @@
         <h6 class="mb-0 fw-semibold">
             All Subscriptions <span class="badge bg-secondary ms-1">{{ $subscriptions->total() }}</span>
         </h6>
+        @if($filteredSummary['revenue'] > 0 || $filteredSummary['active_subscriptions'] > 0 || $filteredSummary['total_sold'] > 0)
+            <div class="d-flex flex-wrap gap-2 mt-2">
+
+                @if($filteredSummary['revenue'] > 0)
+                <div class="d-flex align-items-center gap-2 bg-info border rounded px-3">
+                    <i class="ti ti-currency-taka text-success fs-5"></i>
+                    <div>
+                        <div class="text-white" style="font-size:13px;">Revenue: ৳{{ number_format($filteredSummary['revenue']) }}</div>
+                    </div>
+                </div>
+                @endif
+
+                @if($filteredSummary['active_subscriptions'] > 0)
+                <div class="d-flex align-items-center gap-2 bg-success border rounded px-3">
+                    <i class="ti ti-refresh text-info fs-5"></i>
+                    <div>
+                        <div class="text-white" style="font-size:11px;">Active subscriptions: {{ $filteredSummary['active_subscriptions'] }}</div>
+                    </div>
+                </div>
+                @endif
+
+                @if($filteredSummary['total_sold'] > 0)
+                <div class="d-flex align-items-center gap-2 bg-warning border rounded px-3">
+                    <i class="ti ti-shopping-bag text-warning fs-5"></i>
+                    <div>
+                        <div class="text-white" style="font-size:11px;">Total sold qty: {{ $filteredSummary['total_sold'] }}</div>
+                    </div>
+                </div>
+                @endif
+
+            </div>
+            @endif
     </div>
     <div class="table-responsive">
         <table class="table table-hover mb-0 small align-middle">
