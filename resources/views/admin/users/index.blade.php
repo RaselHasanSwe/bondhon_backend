@@ -71,16 +71,19 @@
                         <td class="text-muted">#{{ $user->id }}</td>
                         <td>
                             <div class="fw-semibold">{{ $user->name }}</div>
-                            @if($user->profile)
+                        </td>
+                        <td>
+                            {{ $user->email }}
+                            @if($user->email_verified_at)
                                 <div class="text-muted" style="font-size:.72rem;">
-                                    {{ $user->profile->profile_id }}
-                                    @if($user->profile->is_verified)
-                                        <span class="text-success ms-1"><i class="bi bi-patch-check-fill"></i></span>
+                                    @if($user->email_verified_at)
+                                        <span class="text-success"><i class="bi bi-patch-check-fill"></i> Email Verified</span>
+                                    @else
+                                        <span class="text-danger">Email not verified</span>
                                     @endif
                                 </div>
                             @endif
                         </td>
-                        <td>{{ $user->email }}</td>
                         <td>{{ ucfirst($user->gender ?? '-') }}</td>
                         <td>
                         <span class="badge badge-{{ $user->subscription_plan }}">
@@ -119,8 +122,10 @@
                                 <span class="badge bg-secondary">Deleted</span>
                             @elseif($user->is_banned)
                                 <span class="badge bg-danger">Banned</span>
-                            @else
+                            @elseif($user->is_active)
                                 <span class="badge bg-success">Active</span>
+                            @else
+                                <span class="badge bg-warning">Pending</span>
                             @endif
 
                             @if($user->role === 'user')

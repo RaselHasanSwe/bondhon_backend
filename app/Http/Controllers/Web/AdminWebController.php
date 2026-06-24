@@ -124,7 +124,8 @@ class AdminWebController extends Controller
 
     public function users(Request $request): View
     {
-        $query = User::with(['profile', 'faceScanSession.latestCapture'])->withTrashed();
+        $query = User::with(['profile', 'subscription.subscriptionPlan', 'faceScanSession.latestCapture'])->withTrashed();
+        //dd($request->all());
 
         if ($request->filled('search')) {
             $q = $request->search;
@@ -132,7 +133,9 @@ class AdminWebController extends Controller
         }
 
         if ($request->filled('plan')) {
-            $query->where('subscription_plan', $request->plan);
+            $query->whereHas('subscription.subscriptionPlan', function ($q) use ($request) {
+                $q->where('id', $request->plan);
+            });
         }
         if ($request->filled('role')) {
             $query->where('role', $request->role);
@@ -150,6 +153,8 @@ class AdminWebController extends Controller
         }
 
         $users = $query->orderByDesc('created_at')->paginate(20)->withQueryString();
+
+        //dd($users->toArray());
         $roles = ['user', 'admin'];
         $plans = SubscriptionType::orderBy('sort_order')->get();
 
