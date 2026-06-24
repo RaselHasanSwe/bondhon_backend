@@ -58,14 +58,15 @@ class AuthController extends ApiController
         Log::info('[AUTH - Register] Registering new user: ' . $request->email);
 
         try {
-            $result = DB::transaction(function () use ($request) {
+            $emailVerificationEnabled = SiteSetting::booleanValue('email_verification_enabled', true);
+
+            $result = DB::transaction(function () use ($request, $emailVerificationEnabled) {
                 $user = User::create([
                     'name'               => $request->name,
                     'email'              => $request->email,
                     'password'           => $request->password,
                     'gender'             => $request->gender,
                     'profile_created_by' => $request->profile_created_by,
-                    'email_verified_at' => now(),
                 ]);
 
                 // Auto-generate profile_id (BON-XXXXXX)
@@ -76,8 +77,9 @@ class AuthController extends ApiController
                     'profile_id' => $profileId,
                 ]);
 
-                // Fire Laravel's built-in Registered event (triggers email verification)
-                event(new Registered($user));
+                if ($emailVerificationEnabled) {
+                    event(new Registered($user));
+                }
 
                 // Calculate initial completion percentage
                 $this->completionService->recalculateAndSave($user->fresh());
@@ -109,7 +111,11 @@ class AuthController extends ApiController
                 ];
             });
 
-            return $this->successResponse($result, 'Registration successful. Please verify your email.', 201);
+            $message = $emailVerificationEnabled
+                ? 'Registration successful. Please verify your email.'
+                : 'Registration successful.';
+
+            return $this->successResponse($result, $message, 201);
 
         } catch (\Throwable $e) {
             Log::error('[AUTH - Register] Failed for email: ' . $request->email . ' | Error: ' . $e->getMessage(), [
@@ -286,7 +292,8 @@ class AuthController extends ApiController
             'subscription_plan'       => $user->subscription_plan,
             'subscription_expires_at' => $user->subscription_expires_at,
             'profile'                 => $user->profile,
-            'face_scan_required'      => SiteSetting::booleanValue('face_scan_enabled', true),
+            'email_verification_required' => SiteSetting::booleanValue('email_verification_enabled', true),
+            'face_scan_required'          => SiteSetting::booleanValue('face_scan_enabled', true),
             'face_scan_status'        => $user->faceScanSession?->status,
             'face_scan_completed_at'  => $user->faceScanSession?->completed_at,
             'created_at'              => $user->created_at,

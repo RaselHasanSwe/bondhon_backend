@@ -25,6 +25,7 @@ class SiteSettingSeeder extends Seeder
             'meta_description'   => 'Find your perfect life partner on My Bouma — Bangladesh\'s most trusted premium matrimony platform.',
             'meta_keywords'      => 'matrimony, marriage, bride, groom, matchmaking, Bangladesh',
             'face_scan_enabled'  => true,
+            'email_verification_enabled' => true,
         ];
 
         foreach ($defaults as $key => $value) {
