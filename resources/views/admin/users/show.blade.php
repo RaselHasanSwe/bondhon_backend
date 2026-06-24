@@ -116,6 +116,16 @@
                                 <span class="value text-danger">{{ $user->deleted_at->format('d M Y, h:i A') }}</span>
                             </div>
                             @endif
+                            @if($user->is_banned)
+                            <div class="ud-meta-item ud-meta-full">
+                                <span class="label text-danger">Banned At</span>
+                                <span class="value text-danger">{{ $user->banned_at?->format('d M Y, h:i A') ?? '—' }}</span>
+                            </div>
+                            <div class="ud-meta-item ud-meta-full">
+                                <span class="label text-danger">Ban Reason</span>
+                                <span class="value text-danger">{{ $user->ban_reason ?? '—' }}</span>
+                            </div>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -128,13 +138,21 @@
                     <h6>Quick Actions</h6>
                 </div>
                 <div class="ud-card-body d-grid gap-2">
-                    <form method="POST" action="{{ route('admin.web.users.ban-toggle', $user->id) }}">
-                        @csrf
-                        <button class="btn ud-action-btn w-100 {{ $user->is_banned ? 'btn-success' : 'btn-danger' }}">
-                            <i class="bi bi-{{ $user->is_banned ? 'check-circle' : 'slash-circle' }} me-1"></i>
-                            {{ $user->is_banned ? 'Unban User' : 'Ban User' }}
+                    @if($user->is_banned)
+                        <form method="POST" action="{{ route('admin.web.users.ban-toggle', $user->id) }}"
+                              onsubmit="return confirm('Reactivate this user account? They will be able to sign in again.');">
+                            @csrf
+                            <button type="submit" class="btn ud-action-btn w-100 btn-success">
+                                <i class="bi bi-check-circle me-1"></i>
+                                Reactivate Account
+                            </button>
+                        </form>
+                    @else
+                        <button type="button" class="btn ud-action-btn w-100 btn-danger" data-bs-toggle="modal" data-bs-target="#banUserModal">
+                            <i class="bi bi-slash-circle me-1"></i>
+                            Ban User
                         </button>
-                    </form>
+                    @endif
                 </div>
             </div>
 
@@ -511,4 +529,65 @@
 
     </div>{{-- /col right --}}
 </div>
+
+@if(!$user->is_banned)
+<div class="modal fade" id="banUserModal" tabindex="-1" aria-labelledby="banUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="{{ route('admin.web.users.ban-toggle', $user->id) }}">
+                @csrf
+                <div class="modal-header">
+                    <h5 class="modal-title" id="banUserModalLabel">
+                        <i class="bi bi-slash-circle text-danger me-2"></i>Ban User
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted small mb-3">
+                        Banning <strong>{{ $user->name }}</strong> will immediately revoke their access and sign them out of all devices.
+                    </p>
+                    <div class="mb-3">
+                        <label for="ban_reason" class="form-label fw-semibold small">Reason for Ban <span class="text-danger">*</span></label>
+                        <textarea
+                            id="ban_reason"
+                            name="ban_reason"
+                            rows="4"
+                            class="form-control @error('ban_reason') is-invalid @enderror"
+                            placeholder="Describe why this account is being suspended…"
+                            required
+                            minlength="10"
+                            maxlength="2000"
+                        >{{ old('ban_reason') }}</textarea>
+                        @error('ban_reason')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                        <small class="text-muted">Minimum 10 characters. Shown to the user when they attempt to log in.</small>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="1" id="send_email_notification" name="send_email_notification" {{ old('send_email_notification') ? 'checked' : '' }}>
+                        <label class="form-check-label fw-semibold small" for="send_email_notification">
+                            Send email notification to user
+                        </label>
+                        <div class="form-text">If checked, an email with the ban reason will be sent to {{ $user->email }}.</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-slash-circle me-1"></i>Confirm Ban
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@endif
+
+@if($errors->has('ban_reason') && !$user->is_banned)
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        new bootstrap.Modal(document.getElementById('banUserModal')).show();
+    });
+</script>
+@endif
 @endsection

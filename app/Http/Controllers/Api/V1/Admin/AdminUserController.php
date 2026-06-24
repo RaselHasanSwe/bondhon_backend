@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1\Admin;
 
 use App\Http\Controllers\Api\V1\ApiController;
 use App\Models\User;
+use App\Services\UserBanService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -121,25 +122,36 @@ class AdminUserController extends ApiController
             new OA\Response(response: 500, description: 'Server error'),
         ]
     )]
-    public function ban(Request $request, int $id): JsonResponse
+    public function ban(Request $request, int $id, UserBanService $banService): JsonResponse
     {
-        $request->validate(['is_banned' => ['required', 'boolean']]);
+        $request->validate([
+            'is_banned'               => ['required', 'boolean'],
+            'reason'                  => ['required_if:is_banned,true', 'nullable', 'string', 'min:10', 'max:2000'],
+            'send_email_notification' => ['nullable', 'boolean'],
+        ]);
 
         Log::info('[ADMIN USER - Ban] Admin ID: ' . $request->user()->id . ' | Target User ID: ' . $id . ' | is_banned: ' . ($request->is_banned ? 'true' : 'false'));
 
         try {
             $user = User::withTrashed()->findOrFail($id);
 
-            DB::transaction(function () use ($user, $request) {
-                $user->update(['is_banned' => $request->is_banned]);
+            if ($request->user()->id === $user->id) {
+                return $this->errorResponse('You cannot ban yourself.', null, 422);
+            }
 
-                // Revoke all tokens when banning
-                if ($request->is_banned) {
-                    $user->tokens()->delete();
+            DB::transaction(function () use ($user, $request, $banService) {
+                if ($request->boolean('is_banned')) {
+                    $banService->ban(
+                        $user,
+                        $request->input('reason', 'Violation of terms of service.'),
+                        $request->boolean('send_email_notification'),
+                    );
+                } else {
+                    $banService->reactivate($user);
                 }
             });
 
-            $action = $request->is_banned ? 'banned' : 'unbanned';
+            $action = $request->boolean('is_banned') ? 'banned' : 'reactivated';
             Log::info('[ADMIN USER - ' . strtoupper($action) . '] Admin: ' . $request->user()->id . ' | User: ' . $id);
 
             return $this->successResponse($user->fresh(), 'User has been ' . $action . '.');
@@ -219,7 +231,7 @@ class AdminUserController extends ApiController
             new OA\Response(response: 500, description: 'Server error'),
         ]
     )]
-    public function reviewFaceScan(Request $request, int $id): JsonResponse
+    public function reviewFaceScan(Request $request, int $id, UserBanService $banService): JsonResponse
     {
         $request->validate([
             'decision' => ['required', 'in:approved,rejected,ban'],
@@ -233,7 +245,7 @@ class AdminUserController extends ApiController
                 return $this->errorResponse('Face scan session not found.', null, 400);
             }
 
-            DB::transaction(function () use ($user, $request) {
+            DB::transaction(function () use ($user, $request, $banService) {
                 $session = $user->faceScanSession;
                 $status = $request->string('decision')->toString();
 
@@ -245,7 +257,11 @@ class AdminUserController extends ApiController
                 ]);
 
                 if ($status === 'ban') {
-                    $user->update(['is_banned' => true]);
+                    $banService->ban(
+                        $user,
+                        $request->input('review_note') ?: 'Account banned following face scan review.',
+                        false,
+                    );
                 }
             });
 
@@ -274,6 +290,8 @@ class AdminUserController extends ApiController
                 'role' => $user->role,
                 'is_active' => $user->is_active,
                 'is_banned' => $user->is_banned,
+                'ban_reason' => $user->ban_reason,
+                'banned_at' => $user->banned_at,
                 'subscription_plan' => $user->subscription_plan,
                 'subscription_expires_at' => $user->subscription_expires_at,
                 'email_verified_at' => $user->email_verified_at,

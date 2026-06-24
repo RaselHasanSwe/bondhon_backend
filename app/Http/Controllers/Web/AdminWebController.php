@@ -21,6 +21,7 @@ use App\Services\PageService;
 use App\Services\ProfileCompletionService;
 use App\Services\SiteSettingService;
 use App\Services\SubscriptionFeatureService;
+use App\Services\UserBanService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -174,7 +175,7 @@ class AdminWebController extends Controller
         return view('admin.users.show', compact('user'));
     }
 
-    public function toggleUserBan(Request $request, int $userId): RedirectResponse
+    public function toggleUserBan(Request $request, int $userId, UserBanService $banService): RedirectResponse
     {
         $user = User::withTrashed()->findOrFail($userId);
 
@@ -182,17 +183,27 @@ class AdminWebController extends Controller
             return back()->with('error', 'You cannot ban yourself.');
         }
 
-        $user->update(['is_banned' => ! $user->is_banned]);
-        $user->update(['is_active' => ! $user->is_banned]);
-
         if ($user->is_banned) {
-            $user->tokens()->delete();
+            $banService->reactivate($user);
+
+            return back()->with('success', 'User account reactivated successfully.');
         }
 
-        return back()->with('success', $user->is_banned ? 'User banned successfully.' : 'User unbanned successfully.');
+        $validated = $request->validate([
+            'ban_reason'               => ['required', 'string', 'min:10', 'max:2000'],
+            'send_email_notification'  => ['nullable', 'boolean'],
+        ]);
+
+        $banService->ban(
+            $user,
+            $validated['ban_reason'],
+            $request->boolean('send_email_notification'),
+        );
+
+        return back()->with('success', 'User banned successfully.');
     }
 
-    public function reviewUserFaceScan(Request $request, int $userId): RedirectResponse
+    public function reviewUserFaceScan(Request $request, int $userId, UserBanService $banService): RedirectResponse
     {
         $request->validate([
             'decision' => ['required', 'in:approved,rejected,ban'],
@@ -226,7 +237,11 @@ class AdminWebController extends Controller
         ]);
 
         if ($status === 'ban') {
-            $user->update(['is_banned' => true]);
+            $banService->ban(
+                $user,
+                $request->input('review_note') ?: 'Account banned following face scan review.',
+                false,
+            );
         }
 
         return back()->with('success', 'Face scan review updated successfully.');
@@ -536,12 +551,16 @@ class AdminWebController extends Controller
         return redirect()->route('admin.web.reports')->with('success', 'Report dismissed.');
     }
 
-    public function banUserFromReport(Request $request, int $id): RedirectResponse
+    public function banUserFromReport(Request $request, int $id, UserBanService $banService): RedirectResponse
     {
         $report = Report::with('reported')->findOrFail($id);
 
-        DB::transaction(function () use ($report) {
-            $report->reported->update(['is_banned' => true]);
+        DB::transaction(function () use ($report, $banService) {
+            $banService->ban(
+                $report->reported,
+                $report->reason ?: 'Account banned following a user report review.',
+                false,
+            );
             $report->update(['status' => 'action_taken']);
         });
 

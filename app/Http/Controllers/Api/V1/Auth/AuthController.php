@@ -163,7 +163,15 @@ class AuthController extends ApiController
             if ($user->is_banned) {
                 Auth::logout();
                 Log::warning('[AUTH - Login] Banned user attempted login. User ID: ' . $user->id);
-                return $this->errorResponse('Your account has been suspended. Please contact support.', null, 403);
+                return response()->json([
+                    'success' => false,
+                    'data'    => [
+                        'status'     => 'banned',
+                        'ban_reason' => $user->ban_reason ?? 'No reason provided. Please contact support.',
+                    ],
+                    'message' => 'Your account has been banned.',
+                    'errors'  => null,
+                ], 403);
             }
 
             if (! $user->is_active) {
