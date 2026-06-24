@@ -1,6 +1,6 @@
 @extends('admin.layout')
-@section('title', 'Contact Messages')
-@section('page-title', 'Contact Messages')
+@section('title', 'Messages')
+@section('page-title', 'Messages')
 
 @section('content')
 {{-- Stats row --}}
@@ -8,7 +8,7 @@
     <div class="col-6 col-md-3">
         <div class="stat-card text-center">
             <div class="fw-bold fs-4" style="color:var(--gold)">{{ $unreadCount }}</div>
-            <div class="small text-muted">New / Unread</div>
+            <div class="small text-muted">Unread</div>
         </div>
     </div>
     <div class="col-6 col-md-3">
@@ -27,10 +27,9 @@
     </div>
     <div class="col-md-3">
         <select name="status" class="form-select form-select-sm">
-            <option value="">All Statuses</option>
-            <option value="new"     {{ request('status') === 'new'     ? 'selected' : '' }}>New</option>
+            <option value="">-- status --</option>
+            <option value="new"     {{ request('status') === 'new'     ? 'selected' : '' }}>Unread</option>
             <option value="read"    {{ request('status') === 'read'    ? 'selected' : '' }}>Read</option>
-            <option value="replied" {{ request('status') === 'replied' ? 'selected' : '' }}>Replied</option>
         </select>
     </div>
     <div class="col-auto">
@@ -96,11 +95,7 @@
                                     data-bs-toggle="modal" data-bs-target="#msgModal{{ $msg->id }}">
                                 <i class="bi bi-eye"></i>
                             </button>
-                            {{-- Reply by email --}}
-                            <a href="mailto:{{ $msg->email }}?subject=Re: {{ urlencode($msg->subject) }}"
-                               class="btn btn-sm btn-outline-success me-1" title="Reply via email">
-                                <i class="bi bi-reply"></i>
-                            </a>
+
                             @if($msg->status === 'new')
                             <form method="POST" action="{{ route('admin.web.contact-messages.read', $msg->id) }}" class="d-inline">
                                 @csrf
@@ -140,10 +135,6 @@
                                     <div class="bg-light rounded p-3" style="white-space:pre-wrap;line-height:1.7;font-size:.9rem;">{{ $msg->message }}</div>
                                 </div>
                                 <div class="modal-footer gap-2">
-                                    <a href="mailto:{{ $msg->email }}?subject=Re: {{ urlencode($msg->subject) }}"
-                                       class="btn btn-sm btn-success">
-                                        <i class="bi bi-reply me-1"></i>Reply via Email
-                                    </a>
                                     @if($msg->status === 'new')
                                     <form method="POST" action="{{ route('admin.web.contact-messages.read', $msg->id) }}">
                                         @csrf

@@ -238,9 +238,8 @@ class AdminWebController extends Controller
 
     public function plans(): View
     {
-        $plans = SubscriptionPlan::withCount('subscriptions')->orderBy('sort_order')->get();
+        $plans = SubscriptionPlan::withCount('subscriptions')->with('subscriptionType')->orderBy('sort_order')->get();
         $types = SubscriptionType::orderBy('sort_order')->get();
-
         return view('admin.subscriptions.plans', compact('plans', 'types'));
     }
 
@@ -257,6 +256,7 @@ class AdminWebController extends Controller
             'is_active'     => ['nullable'],
             'sort_order'    => ['nullable', 'integer', 'min:0'],
         ]);
+
 
         $featuresObj = $this->buildFeaturesArray($request->input('features', []));
 
@@ -287,9 +287,9 @@ class AdminWebController extends Controller
 
     public function editPlan(int $id): View
     {
-        $plan = SubscriptionPlan::findOrFail($id);
-
-        return view('admin.subscriptions.edit_plan', compact('plan'));
+        $plan = SubscriptionPlan::with('subscriptionType')->findOrFail($id);
+        $types = SubscriptionType::orderBy('sort_order')->get();
+        return view('admin.subscriptions.edit_plan', compact('plan','types'));
     }
 
     public function updatePlan(Request $request, int $id): RedirectResponse
@@ -330,10 +330,6 @@ class AdminWebController extends Controller
     public function deletePlan(Request $request, int $id): RedirectResponse
     {
         $plan = SubscriptionPlan::findOrFail($id);
-
-        if ($plan->price_bdt === 0) {
-            return back()->with('error', 'Free plans (price ৳0) cannot be deleted. They are required for new user registration.');
-        }
 
         if ($plan->subscriptions()->where('status', 'active')->exists()) {
             return back()->with('error', 'Cannot delete plan with active subscriptions.');

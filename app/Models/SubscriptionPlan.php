@@ -87,4 +87,9 @@ class SubscriptionPlan extends Model
     {
         return $query->where('is_active', true);
     }
+
+    public function subscriptionType()
+    {
+        return $this->belongsTo(SubscriptionType::class, 'plan_type', 'id');
+    }
 }
