@@ -1,5 +1,7 @@
 <?php
 
+use App\Services\CloudflareImageService;
+
 if (!function_exists('json_list')) {
     function json_list($value, $separator = ', ')
     {
@@ -30,4 +32,11 @@ function humanize($value)
     return $value
         ? ucwords(str_replace(['_', '-'], ' ', $value))
         : '—';
+}
+
+
+function cfImage(string $imageId, string $varient = 'public')
+{
+    $clouflareImageService = app(CloudflareImageService::class);
+    return $clouflareImageService->deliveryUrl($imageId, $varient);
 }

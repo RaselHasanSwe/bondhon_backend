@@ -9,10 +9,12 @@ use App\Models\Page;
 use App\Models\ProfilePhoto;
 use App\Models\Report;
 use App\Models\SelectOption;
+use App\Models\SiteSetting;
 use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
 use App\Models\User;
 use App\Services\BroadcastNotificationService;
+use App\Services\CloudflareImageService;
 use App\Services\NotificationService;
 use App\Services\PageService;
 use App\Services\ProfileCompletionService;
@@ -340,6 +342,7 @@ class AdminWebController extends Controller
     {
         $service  = new SiteSettingService();
         $settings = $service->all();
+
         $defs     = SiteSettingService::definitions();
 
         return view('admin.settings.index', compact('settings', 'defs'));
@@ -366,14 +369,28 @@ class AdminWebController extends Controller
         ]);
 
         $service = new SiteSettingService();
-
-        // Handle image uploads
+        $cloudflare = new CloudflareImageService();
         foreach (['site_logo', 'site_favicon'] as $imageKey) {
             if ($request->hasFile($imageKey)) {
-                $service->uploadImage($request->file($imageKey), $imageKey);
+
+                $oldCfId = SiteSetting::getValue($imageKey);
+                if ($oldCfId) {
+                    $cloudflare->delete($oldCfId);
+                }
+
+                $imageId = $imageKey.'/'.time().'.'. $request->file($imageKey)->getClientOriginalExtension();
+                $result = $cloudflare->upload($request->file($imageKey), $imageId);
+
+                if ($result['success']) {
+                    SiteSetting::setValue($imageKey, $imageId);
+                } else {
+                    return back()->withErrors([$imageKey => 'Image upload failed: ' . $result['error']]);
+                }
             }
+
             unset($validated[$imageKey]);
         }
+
 
         $validated['face_scan_enabled'] = $request->has('face_scan_enabled') ? '1' : '0';
 
