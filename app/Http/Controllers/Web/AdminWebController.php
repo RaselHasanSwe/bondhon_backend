@@ -9,10 +9,13 @@ use App\Models\Page;
 use App\Models\ProfilePhoto;
 use App\Models\Report;
 use App\Models\SelectOption;
+use App\Models\SiteSetting;
 use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
+use App\Models\SubscriptionType;
 use App\Models\User;
 use App\Services\BroadcastNotificationService;
+use App\Services\CloudflareImageService;
 use App\Services\NotificationService;
 use App\Services\PageService;
 use App\Services\ProfileCompletionService;
@@ -87,8 +90,8 @@ class AdminWebController extends Controller
     public function dashboard(): View
     {
         $stats = [
-            'total_users'          => User::count(),
-            'active_users'         => User::where('is_active', true)->where('is_banned', false)->count(),
+            'total_users'          => User::where('role', 'user')->count(),
+            'active_users'         => User::where('is_active', true)->where('is_banned', false)->where('role', 'user')->count(),
             'banned_users'         => User::where('is_banned', true)->count(),
             'new_users_today'      => User::whereDate('created_at', today())->count(),
             'active_subscriptions' => Subscription::where('status', 'active')->where('expires_at', '>', now())->count(),
@@ -131,6 +134,12 @@ class AdminWebController extends Controller
         if ($request->filled('plan')) {
             $query->where('subscription_plan', $request->plan);
         }
+        if ($request->filled('role')) {
+            $query->where('role', $request->role);
+        }else{
+            $query->where('role', 'user');
+            $request->merge(['role' => 'user']);
+        }
 
         if ($request->filled('status')) {
             match ($request->status) {
@@ -141,8 +150,10 @@ class AdminWebController extends Controller
         }
 
         $users = $query->orderByDesc('created_at')->paginate(20)->withQueryString();
+        $roles = ['user', 'admin'];
+        $plans = SubscriptionType::orderBy('sort_order')->get();
 
-        return view('admin.users.index', compact('users'));
+        return view('admin.users.index', compact('users', 'roles','plans'));
     }
 
     public function userDetails(int $userId): View
@@ -172,6 +183,7 @@ class AdminWebController extends Controller
         }
 
         $user->update(['is_banned' => ! $user->is_banned]);
+        $user->update(['is_active' => ! $user->is_banned]);
 
         if ($user->is_banned) {
             $user->tokens()->delete();
@@ -227,8 +239,9 @@ class AdminWebController extends Controller
     public function plans(): View
     {
         $plans = SubscriptionPlan::withCount('subscriptions')->orderBy('sort_order')->get();
+        $types = SubscriptionType::orderBy('sort_order')->get();
 
-        return view('admin.subscriptions.plans', compact('plans'));
+        return view('admin.subscriptions.plans', compact('plans', 'types'));
     }
 
     public function createPlan(Request $request): RedirectResponse
@@ -340,6 +353,7 @@ class AdminWebController extends Controller
     {
         $service  = new SiteSettingService();
         $settings = $service->all();
+
         $defs     = SiteSettingService::definitions();
 
         return view('admin.settings.index', compact('settings', 'defs'));
@@ -366,14 +380,28 @@ class AdminWebController extends Controller
         ]);
 
         $service = new SiteSettingService();
-
-        // Handle image uploads
+        $cloudflare = new CloudflareImageService();
         foreach (['site_logo', 'site_favicon'] as $imageKey) {
             if ($request->hasFile($imageKey)) {
-                $service->uploadImage($request->file($imageKey), $imageKey);
+
+                $oldCfId = SiteSetting::getValue($imageKey);
+                if ($oldCfId) {
+                    $cloudflare->delete($oldCfId);
+                }
+
+                $imageId = $imageKey.'/'.time().'.'. $request->file($imageKey)->getClientOriginalExtension();
+                $result = $cloudflare->upload($request->file($imageKey), $imageId);
+
+                if ($result['success']) {
+                    SiteSetting::setValue($imageKey, $imageId);
+                } else {
+                    return back()->withErrors([$imageKey => 'Image upload failed: ' . $result['error']]);
+                }
             }
+
             unset($validated[$imageKey]);
         }
+
 
         $validated['face_scan_enabled'] = $request->has('face_scan_enabled') ? '1' : '0';
 

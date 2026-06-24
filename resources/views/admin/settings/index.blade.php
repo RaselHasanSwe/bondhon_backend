@@ -35,7 +35,7 @@
                         <label class="form-label fw-semibold small">Site Logo</label>
                         @if(!empty($settings['site_logo']))
                             <div class="mb-2">
-                                <img src="{{ $settings['site_logo'] }}" alt="Logo" style="max-height:60px;border-radius:8px;border:1px solid #e5e7eb;">
+                                <img src="{{ cfImage($settings['site_logo']) }}" alt="Logo" style="max-height:60px;border-radius:8px;border:1px solid #e5e7eb;">
                             </div>
                         @endif
                         <input type="file" name="site_logo" class="form-control @error('site_logo') is-invalid @enderror" accept="image/*">
@@ -46,7 +46,7 @@
                         <label class="form-label fw-semibold small">Site Favicon</label>
                         @if(!empty($settings['site_favicon']))
                             <div class="mb-2">
-                                <img src="{{ $settings['site_favicon'] }}" alt="Favicon" style="max-height:32px;border-radius:4px;border:1px solid #e5e7eb;">
+                                <img src="{{ cfImage($settings['site_logo']) }}" alt="Favicon" style="max-height:32px;border-radius:4px;border:1px solid #e5e7eb;">
                             </div>
                         @endif
                         <input type="file" name="site_favicon" class="form-control @error('site_favicon') is-invalid @enderror" accept="image/*">
