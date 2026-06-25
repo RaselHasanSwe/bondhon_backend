@@ -99,7 +99,7 @@
         </a>
         <a href="{{ route('admin.web.subscriptions') }}"
            class="nav-link {{ request()->routeIs('admin.web.subscriptions') ? 'active' : '' }}">
-            <i class="bi bi-credit-card"></i> Subscriptions & Sales
+            <i class="bi bi-credit-card"></i> Subscriptions
         </a>
         <hr style="border-color:rgba(255,255,255,.1);margin:.5rem 1.25rem;">
         <a href="{{ route('admin.web.photos') }}"

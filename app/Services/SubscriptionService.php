@@ -133,6 +133,7 @@ class SubscriptionService
                 'subscription_plan' => $subscription->plan,
                 'subscription_expires_at' => $expireDate,
                 'active_subscription_id' => $subscription->id,
+                'is_active' => true,
             ]);
         });
 
@@ -158,12 +159,12 @@ class SubscriptionService
                 ->where('status', 'active')
                 ->first();
 
-
+            $free_plan_expires = now()->addDays($plan->getDurationInDays());
 
             if ($subscription) {
                 $user->update([
                     'subscription_plan' => $plan->plan_type,
-                    'subscription_expires_at' => null,
+                    'subscription_expires_at' => $free_plan_expires,
                     'active_subscription_id' => $subscription->id,
                 ]);
             } else {
@@ -174,12 +175,11 @@ class SubscriptionService
                     'amount_bdt' => 0,
                     'payment_method' => 'free',
                     'transaction_id' => $transactionId,
-                    'status' => 'active',
                     'starts_at' => now(),
-                    'expires_at' => null, // forever — free plan never expires
+                    'expires_at' => $free_plan_expires, // forever — free plan never expires
                 ]);
 
-                $free_plan_expires = now()->addDays($plan->getDurationInDays());
+
 
                 $user->update([
                     'subscription_plan' => $plan->plan_type,
