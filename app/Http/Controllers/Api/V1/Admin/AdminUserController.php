@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1\Admin;
 
 use App\Http\Controllers\Api\V1\ApiController;
 use App\Models\User;
+use App\Services\FaceScanReviewService;
 use App\Services\UserBanService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -231,11 +232,12 @@ class AdminUserController extends ApiController
             new OA\Response(response: 500, description: 'Server error'),
         ]
     )]
-    public function reviewFaceScan(Request $request, int $id, UserBanService $banService): JsonResponse
+    public function reviewFaceScan(Request $request, int $id, FaceScanReviewService $reviewService): JsonResponse
     {
         $request->validate([
             'decision' => ['required', 'in:approved,rejected,ban'],
-            'review_note' => ['nullable', 'string', 'max:2000'],
+            'review_note' => ['required_if:decision,rejected', 'nullable', 'string', 'max:2000'],
+            'send_email_notification' => ['nullable', 'boolean'],
         ]);
 
         try {
@@ -245,25 +247,14 @@ class AdminUserController extends ApiController
                 return $this->errorResponse('Face scan session not found.', null, 400);
             }
 
-            DB::transaction(function () use ($user, $request, $banService) {
-                $session = $user->faceScanSession;
-                $status = $request->string('decision')->toString();
-
-                $session->update([
-                    'status' => $status === 'ban' ? 'rejected' : $status,
-                    'review_note' => $request->input('review_note'),
-                    'reviewed_by' => $request->user()->id,
-                    'reviewed_at' => now(),
-                ]);
-
-                if ($status === 'ban') {
-                    $banService->ban(
-                        $user,
-                        $request->input('review_note') ?: 'Account banned following face scan review.',
-                        false,
-                    );
-                }
-            });
+            $reviewService->review(
+                $user,
+                $user->faceScanSession,
+                $request->string('decision')->toString(),
+                $request->input('review_note'),
+                $request->user()->id,
+                $request->boolean('send_email_notification'),
+            );
 
             return $this->successResponse($user->fresh(['faceScanSession.captures']), 'Face scan review updated successfully.');
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {

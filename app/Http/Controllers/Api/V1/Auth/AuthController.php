@@ -174,7 +174,7 @@ class AuthController extends ApiController
                 ], 403);
             }
 
-            if (! $user->is_active) {
+            if (! $user->is_active && ! $this->canLoginWhileInactive($user)) {
                 Auth::logout();
                 Log::warning('[AUTH - Login] Inactive user attempted login. User ID: ' . $user->id);
                 return $this->errorResponse('Your account is inactive.', null, 403);
@@ -305,8 +305,24 @@ class AuthController extends ApiController
             'face_scan_required'          => SiteSetting::booleanValue('face_scan_enabled', true),
             'face_scan_status'        => $user->faceScanSession?->status,
             'face_scan_completed_at'  => $user->faceScanSession?->completed_at,
+            'face_scan_review_note'   => $user->faceScanSession?->review_note,
             'created_at'              => $user->created_at,
         ];
+    }
+
+    /**
+     * Allow login for users still in onboarding (face scan not yet approved).
+     */
+    private function canLoginWhileInactive(User $user): bool
+    {
+        if (! SiteSetting::booleanValue('face_scan_enabled', true)) {
+            return false;
+        }
+
+        $user->loadMissing('faceScanSession');
+        $status = $user->faceScanSession?->status;
+
+        return $status !== 'approved';
     }
 }
 

@@ -23,6 +23,8 @@ class NotificationService
     public const TYPE_SUBSCRIPTION_EXPIRY = 'subscription_expiry';
     public const TYPE_PHOTO_APPROVED      = 'photo_approved';
     public const TYPE_PHOTO_REJECTED      = 'photo_rejected';
+    public const TYPE_FACE_SCAN_APPROVED  = 'face_scan_approved';
+    public const TYPE_FACE_SCAN_REJECTED  = 'face_scan_rejected';
     public const TYPE_INTEREST_EXPIRED    = 'interest_expired';
     public const TYPE_SYSTEM              = 'system';
     public const TYPE_BROADCAST_MESSAGE   = 'broadcast_message';
@@ -166,6 +168,25 @@ class NotificationService
         $this->send($user, self::TYPE_PHOTO_REJECTED, [
             'title'   => 'Photo Rejected',
             'message' => 'Your profile photo was rejected.' . ($reason ? ' Reason: ' . $reason : ''),
+            'reason'  => $reason,
+            'icon'    => 'x',
+        ]);
+    }
+
+    public function notifyFaceScanApproved(User $user): void
+    {
+        $this->send($user, self::TYPE_FACE_SCAN_APPROVED, [
+            'title'   => 'Face Verification Approved',
+            'message' => 'Your face scan has been approved. Your account is now fully active.',
+            'icon'    => 'check',
+        ]);
+    }
+
+    public function notifyFaceScanRejected(User $user, string $reason = ''): void
+    {
+        $this->send($user, self::TYPE_FACE_SCAN_REJECTED, [
+            'title'   => 'Face Verification Rejected',
+            'message' => 'Your face scan was rejected. Please submit a new scan.' . ($reason ? ' Reason: ' . $reason : ''),
             'reason'  => $reason,
             'icon'    => 'x',
         ]);

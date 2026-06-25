@@ -32,6 +32,17 @@ class FaceScanController extends ApiController
         $user = $request->user();
         $session = $user->faceScanSession()->with(['captures', 'latestCapture'])->first();
 
+        // Rejected users must log in again — begin a fresh attempt on first capture upload.
+        if ($session && $session->status === 'rejected' && $session->captures->isEmpty()) {
+            $session->update([
+                'status' => 'pending',
+                'reviewed_by' => null,
+                'reviewed_at' => null,
+                'completed_at' => null,
+            ]);
+            $session->refresh();
+        }
+
         return $this->successResponse([
             'face_scan_required' => SiteSetting::booleanValue('face_scan_enabled', true),
             'session' => $this->formatSession($session),
@@ -95,6 +106,14 @@ class FaceScanController extends ApiController
             ['status' => 'pending']
         );
 
+        if ($session->status !== 'pending') {
+            return $this->errorResponse(
+                'Face scan cannot accept new captures in the current state. Please log in again if your verification was rejected.',
+                null,
+                403,
+            );
+        }
+
         try {
             $image = Image::read($request->file('capture'));
             $image->scaleDown(width: 1200);
@@ -146,13 +165,13 @@ class FaceScanController extends ApiController
 
         $keys = $session->captures->pluck('capture_key')->values();
         $required = collect(['front', 'left', 'right', 'smile', 'down', 'up']);
-        $randomCount = $keys->filter(fn ($key) => str_starts_with((string) $key, 'random'))->count();
         $hasAllRequired = $required->every(fn ($key) => $keys->contains($key));
 
-        if ($session->status === 'pending' && $hasAllRequired && $randomCount >= 2) {
+        if ($session->status === 'pending' && $hasAllRequired) {
             $session->update([
                 'status' => 'submitted',
                 'completed_at' => now(),
+                'review_note' => null,
             ]);
         }
     }
@@ -169,6 +188,7 @@ class FaceScanController extends ApiController
             'completed_at' => $session->completed_at,
             'reviewed_at' => $session->reviewed_at,
             'review_note' => $session->review_note,
+            'review_history' => ($session->metadata['review_history'] ?? []) ?: null,
             'captures' => $session->captures->map(fn (FaceScanCapture $capture) => [
                 'id' => $capture->id,
                 'capture_key' => $capture->capture_key,

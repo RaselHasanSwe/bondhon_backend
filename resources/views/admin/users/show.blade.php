@@ -187,8 +187,19 @@
 
                     @if($faceSession->review_note)
                         <div class="alert alert-info py-2 px-3 small mb-3 rounded-3">
-                            <i class="bi bi-info-circle me-1"></i>{{ $faceSession->review_note }}
+                            <i class="bi bi-info-circle me-1"></i><strong>Latest note:</strong> {{ $faceSession->review_note }}
                         </div>
+                    @endif
+
+                    @php
+                        $reviewHistory = ($faceSession->metadata['review_history'] ?? []) ?: [];
+                        $archivedSubmissions = ($faceSession->metadata['archived_submissions'] ?? []) ?: [];
+                    @endphp
+
+                    @if($faceSession->status === 'submitted')
+                        <p class="small fw-semibold text-muted mb-2"><i class="bi bi-images me-1"></i>Current Submission (awaiting review)</p>
+                    @elseif($faceSession->captures->isNotEmpty())
+                        <p class="small fw-semibold text-muted mb-2"><i class="bi bi-images me-1"></i>Current Captures</p>
                     @endif
 
                     {{-- Capture images --}}
@@ -209,24 +220,64 @@
                         @endforelse
                     </div>
 
-                    {{-- Face scan action buttons --}}
-                    <div class="d-flex gap-2 mt-3 pt-3 border-top">
-                        <form method="POST" action="{{ route('admin.web.users.face-scan-review', $user->id) }}">
-                            @csrf
-                            <input type="hidden" name="decision" value="approved">
-                            <button class="btn btn-success ud-action-btn"
-                                {{ $faceSession->status === 'approved' ? 'disabled' : '' }}>
-                                <i class="bi bi-check-circle me-1"></i>Approve
-                            </button>
-                        </form>
-                        <form method="POST" action="{{ route('admin.web.users.face-scan-review', $user->id) }}">
-                            @csrf
-                            <input type="hidden" name="decision" value="rejected">
-                            <button class="btn btn-outline-danger ud-action-btn">
+                    {{-- Approve/Reject only for new submissions awaiting review --}}
+                    @if($faceSession->status === 'submitted')
+                        <div class="d-flex gap-2 mt-3 pt-3">
+                            <form method="POST" action="{{ route('admin.web.users.face-scan-review', $user->id) }}">
+                                @csrf
+                                <input type="hidden" name="decision" value="approved">
+                                <button class="btn btn-success ud-action-btn">
+                                    <i class="bi bi-check-circle me-1"></i>Approve
+                                </button>
+                            </form>
+                            <button type="button" class="btn btn-outline-danger ud-action-btn"
+                                    data-bs-toggle="modal" data-bs-target="#rejectFaceScanModal">
                                 <i class="bi bi-x-circle me-1"></i>Reject
                             </button>
-                        </form>
-                    </div>
+                        </div>
+                    @elseif($faceSession->status === 'approved')
+                        <p class="text-muted small mt-3 pt-3 border-top mb-0"><i class="bi bi-check-circle text-success me-1"></i>Face scan approved. No further action needed.</p>
+                    @elseif($faceSession->status === 'rejected')
+                        <p class="text-muted small mt-3 pt-3 border-top mb-0"><i class="bi bi-info-circle me-1"></i>Rejected — waiting for the user to log in and submit a new face scan.</p>
+                    @else
+                        <p class="text-muted small mt-3 pt-3 border-top mb-0"><i class="bi bi-hourglass-split me-1"></i>User has not completed a submission yet.</p>
+                    @endif
+
+                    <hr>
+
+                    @if(count($archivedSubmissions) > 0)
+                        <div class="mb-3 mt-3">
+                            <p class="small fw-semibold text-muted mb-2"><i class="bi bi-archive me-1"></i>Previous Submissions</p>
+                            @foreach(array_reverse($archivedSubmissions) as $index => $submission)
+                                <div class="border rounded-3 p-3 mb-2 bg-light">
+                                    <div class="d-flex flex-wrap gap-2 mb-2 align-items-center">
+                                        <span class="badge {{ ($submission['decision'] ?? '') === 'approved' ? 'bg-success' : 'bg-danger' }}">
+                                            {{ ucfirst($submission['decision'] ?? '—') }}
+                                        </span>
+                                        @if(!empty($submission['reviewed_at']))
+                                            <span class="small text-muted">{{ \Carbon\Carbon::parse($submission['reviewed_at'])->format('d M Y, h:i A') }}</span>
+                                        @endif
+                                    </div>
+                                    @if(!empty($submission['reason']))
+                                        <p class="small mb-2"><strong>Reason:</strong> {{ $submission['reason'] }}</p>
+                                    @endif
+                                    @if(!empty($submission['captures']))
+                                        <div class="row g-2">
+                                            @foreach($submission['captures'] as $capture)
+                                                <div class="col-4 col-sm-3 col-md-2">
+                                                    <div class="face-img-wrap">
+                                                        <img src="{{ asset('storage/' . $capture['image_path']) }}"
+                                                             alt="{{ $capture['capture_key'] ?? 'capture' }}">
+                                                        <div class="cap-label">{{ str_replace('-', ' ', ucfirst($capture['capture_key'] ?? '')) }}</div>
+                                                    </div>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    @endif
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
                 @else
                     <p class="text-muted mb-0 small"><i class="bi bi-exclamation-circle me-1"></i>This user has not completed the face-scan step.</p>
                 @endif
@@ -531,6 +582,56 @@
 </div>
 
 @if(!$user->is_banned)
+<div class="modal fade" id="rejectFaceScanModal" tabindex="-1" aria-labelledby="rejectFaceScanModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="{{ route('admin.web.users.face-scan-review', $user->id) }}">
+                @csrf
+                <input type="hidden" name="decision" value="rejected">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="rejectFaceScanModalLabel">
+                        <i class="bi bi-x-circle text-danger me-2"></i>Reject Face Scan
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted small mb-3">
+                        Rejecting the face scan for <strong>{{ $user->name }}</strong> will require them to submit a new scan. Captured images will be kept for review.
+                    </p>
+                    <div class="mb-3">
+                        <label for="face_scan_reject_reason" class="form-label fw-semibold small">Reason for Rejection <span class="text-danger">*</span></label>
+                        <textarea
+                            id="face_scan_reject_reason"
+                            name="review_note"
+                            rows="4"
+                            class="form-control @error('review_note') is-invalid @enderror"
+                            placeholder="Explain why this face scan was rejected…"
+                            required
+                            maxlength="2000"
+                        >{{ old('review_note') }}</textarea>
+                        @error('review_note')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                        <small class="text-muted">Shown to the user on the face verification page.</small>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="1" id="face_scan_send_email" name="send_email_notification" {{ old('send_email_notification') ? 'checked' : '' }}>
+                        <label class="form-check-label fw-semibold small" for="face_scan_send_email">
+                            Send email notification to user
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-x-circle me-1"></i>Reject Face Scan
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <div class="modal fade" id="banUserModal" tabindex="-1" aria-labelledby="banUserModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -587,6 +688,14 @@
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         new bootstrap.Modal(document.getElementById('banUserModal')).show();
+    });
+</script>
+@endif
+
+@if($errors->has('review_note') && !$user->is_banned)
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        new bootstrap.Modal(document.getElementById('rejectFaceScanModal')).show();
     });
 </script>
 @endif

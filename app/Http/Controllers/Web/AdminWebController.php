@@ -21,6 +21,7 @@ use App\Services\PageService;
 use App\Services\ProfileCompletionService;
 use App\Services\SiteSettingService;
 use App\Services\SubscriptionFeatureService;
+use App\Services\FaceScanReviewService;
 use App\Services\UserBanService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -209,11 +210,12 @@ class AdminWebController extends Controller
         return back()->with('success', 'User banned successfully.');
     }
 
-    public function reviewUserFaceScan(Request $request, int $userId, UserBanService $banService): RedirectResponse
+    public function reviewUserFaceScan(Request $request, int $userId, FaceScanReviewService $reviewService): RedirectResponse
     {
         $request->validate([
             'decision' => ['required', 'in:approved,rejected,ban'],
-            'review_note' => ['nullable', 'string', 'max:2000'],
+            'review_note' => ['required_if:decision,rejected', 'nullable', 'string', 'max:2000'],
+            'send_email_notification' => ['nullable', 'boolean'],
         ]);
 
         $user = User::withTrashed()->with('faceScanSession')->findOrFail($userId);
@@ -222,33 +224,16 @@ class AdminWebController extends Controller
             return back()->with('error', 'Face scan session not found.');
         }
 
-        $session = $user->faceScanSession;
-        $status = $request->string('decision')->toString();
+        $decision = $request->string('decision')->toString();
 
-        // also remove faceScanSession captures image if reject face scan
-        if ($status === 'rejected' && $session->captures) {
-            $session->captures->each(function ($capture) {
-                if ($capture->image_path && \Storage::disk('public')->exists($capture->image_path)) {
-                    \Storage::disk('public')->delete($capture->image_path);
-                }
-                $capture->delete();
-            });
-        }
-
-        $session->update([
-            'status' => $status === 'ban' ? 'rejected' : $status,
-            'review_note' => $request->input('review_note'),
-            'reviewed_by' => Auth::id(),
-            'reviewed_at' => now(),
-        ]);
-
-        if ($status === 'ban') {
-            $banService->ban(
-                $user,
-                $request->input('review_note') ?: 'Account banned following face scan review.',
-                false,
-            );
-        }
+        $reviewService->review(
+            $user,
+            $user->faceScanSession,
+            $decision,
+            $request->input('review_note'),
+            Auth::id(),
+            $request->boolean('send_email_notification'),
+        );
 
         return back()->with('success', 'Face scan review updated successfully.');
     }
