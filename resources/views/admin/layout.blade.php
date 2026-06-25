@@ -102,7 +102,7 @@
         <hr style="border-color:rgba(255,255,255,.1);margin:.5rem 1.25rem;">
         <a href="{{ route('admin.web.photos') }}"
            class="nav-link {{ request()->routeIs('admin.web.photos') ? 'active' : '' }}">
-            <i class="bi bi-images"></i> Photo Moderation
+            <i class="bi bi-images"></i> Approvals
             @php $pendingPhotos = \App\Models\ProfilePhoto::where('moderation_status','pending')->count(); @endphp
             @if($pendingPhotos > 0)
                 <span class="badge bg-danger ms-auto">{{ $pendingPhotos }}</span>
