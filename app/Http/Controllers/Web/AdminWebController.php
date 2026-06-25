@@ -430,6 +430,40 @@ class AdminWebController extends Controller
         return view('admin.pages.index', compact('pages'));
     }
 
+    public function createPage(): View
+    {
+        return view('admin.pages.create');
+    }
+
+    public function storePage(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'title'            => ['required', 'string', 'max:255'],
+            'content'          => ['nullable', 'string'],
+            'meta_title'       => ['nullable', 'string', 'max:160'],
+            'meta_description' => ['nullable', 'string', 'max:320'],
+            'is_published'     => ['nullable'],
+            'show_in_menu'     => ['nullable'],
+            'sort_order'       => ['nullable', 'integer', 'min:0'],
+        ]);
+
+        $validated['is_published'] = $request->has('is_published');
+        $validated['sort_order']   = $validated['sort_order'] ?? 0;
+        $validated['show_in_menu'] = $request->has('show_in_menu');
+        $validated['slug'] = Str::slug($validated['title']);
+
+        if (Page::where('slug', $validated['slug'])->exists()) {
+            return back()->withErrors(['title' => 'The page title has already been taken.']);
+        }
+
+        $pageService = new PageService();
+        $page        = $pageService->create($validated);
+
+        Log::info('[ADMIN WEB - StorePage] Admin: ' . Auth::id() . ' created page ID: ' . $page->id);
+        return redirect()->route('admin.web.pages')->with('success', 'Page updated successfully.');
+    }
+
+
     public function editPage(int $id): View
     {
         $pageService = new PageService();
@@ -450,16 +484,26 @@ class AdminWebController extends Controller
             'meta_description' => ['nullable', 'string', 'max:320'],
             'is_published'     => ['nullable'],
             'sort_order'       => ['nullable', 'integer', 'min:0'],
+            'show_in_menu'     => ['nullable'],
         ]);
 
         $validated['is_published'] = $request->has('is_published');
         $validated['sort_order']   = $validated['sort_order'] ?? 0;
+        $validated['show_in_menu'] = $request->has('show_in_menu');
+
+        //dd($validated);
 
         $pageService->update($page, $validated);
 
         Log::info('[ADMIN WEB - UpdatePage] Admin: ' . Auth::id() . ' updated page ID: ' . $id);
 
         return redirect()->route('admin.web.pages')->with('success', 'Page updated successfully.');
+    }
+
+    public function deletePage(int $id)
+    {
+        Page::where('id', $id)->delete();
+        return redirect()->route('admin.web.pages')->with('success', 'Page deleted.');
     }
 
     // -----------------------------------------------------------------------

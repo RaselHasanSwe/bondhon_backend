@@ -1,6 +1,6 @@
 @extends('admin.layout')
 @section('title', 'Select Options — ' . ($groups[$group] ?? $group))
-@section('page-title', 'Dynamic Select Options')
+@section('page-title', 'Select Options')
 
 @push('styles')
 <style>
@@ -19,8 +19,8 @@
 <div class="table-card p-3 mb-3">
     <div class="row align-items-end g-2">
         <div class="col-12 col-sm-5 col-md-4">
-            <label class="form-label fw-semibold small mb-1">
-                <i class="bi bi-list-ul me-1"></i>Option Group
+            <label class="form-label fw-semibold small mb-2">
+                <i class="bi bi-list-ul me-2"></i>Option Groups
             </label>
             <select class="form-select form-select-sm" onchange="window.location.href=this.value">
                 <option value="{{ route('admin.web.select-options.index', ['group' => 'all']) }}"
@@ -36,20 +36,6 @@
             </select>
         </div>
         <div class="col-12 col-sm-7 col-md-8 d-flex align-items-end gap-2 flex-wrap">
-            <div>
-                <span class="fw-bold" style="color:var(--gold);font-size:1rem">
-                    {{ $group === 'all' ? 'All Groups' : ($groups[$group] ?? $group) }}
-                </span>
-                <span class="text-muted small ms-2">
-                    @if($group !== 'all') key: <code>{{ $group }}</code> @endif
-                    @if($isCrossNested)
-                        &nbsp;·&nbsp;<span class="badge bg-info text-dark">Children of: <strong>{{ $groups[$parentGroupKey] ?? $parentGroupKey }}</strong></span>
-                    @elseif($isSelfNested)
-                        &nbsp;·&nbsp;<span class="badge bg-secondary">Self-nested tree</span>
-                    @endif
-                    &nbsp;·&nbsp; {{ count($options) }} option(s)
-                </span>
-            </div>
             <div class="ms-auto d-flex align-items-center justify-content-between gap-3">
                 @if($group !== 'all')
                     @if(isset($canAdd) && !$canAdd)

@@ -71,6 +71,7 @@
         .badge-gold { background-color: #C9A227; color: #fff; }
         .badge-platinum { background-color: #7c3aed; color: #fff; }
         .badge-free { background-color: #d1d5db; color: #374151; }
+        .sidebar-brand h4{color: rgba(255, 255, 255, .7)}
     </style>
 </head>
 <body>
@@ -139,15 +140,11 @@
         <hr style="border-color:rgba(255,255,255,.1);margin:.5rem 1.25rem;">
         <a href="{{ route('admin.web.pages') }}"
            class="nav-link {{ request()->routeIs('admin.web.pages') || request()->routeIs('admin.web.pages.edit') ? 'active' : '' }}">
-            <i class="bi bi-file-text"></i> Pages
+            <i class="bi bi-file-text"></i> CMS / Pages
         </a>
         <a href="{{ route('admin.web.select-options.index') }}"
            class="nav-link {{ request()->routeIs('admin.web.select-options.*') ? 'active' : '' }}">
             <i class="bi bi-ui-checks-grid"></i> Select Options
-            @php $totalOptions = \App\Models\SelectOption::count(); @endphp
-            @if($totalOptions > 0)
-                <span class="badge bg-secondary ms-auto" style="font-size:10px">{{ $totalOptions }}</span>
-            @endif
         </a>
         <a href="{{ route('admin.web.settings') }}"
            class="nav-link {{ request()->routeIs('admin.web.settings') ? 'active' : '' }}">
