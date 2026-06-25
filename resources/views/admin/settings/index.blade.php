@@ -10,7 +10,7 @@
 
             {{-- Branding --}}
             <div class="table-card p-4 mb-4">
-                <h6 class="fw-bold mb-3" style="color:#C9A227"><i class="bi bi-badge me-2"></i>Branding</h6>
+                <h6 class="fw-bold mb-3" style="color:#C9A227"><i class="bi bi-alipay me-2"></i>Branding</h6>
                 <div class="row g-3">
                     <div class="col-md-6">
                         <label class="form-label fw-semibold small">Site Name</label>
@@ -105,27 +105,45 @@
                 </div>
             </div>
 
+            <div class="table-card p-4 mb-4">
+                <h6 class="fw-bold mb-3" style="color:#C9A227"><i class="bi bi-camera-fill me-2"></i>Image Verification</h6>
+                <div class="d-flex flex-column gap-2">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" role="switch" id="image_verification_enabled" name="image_verification_enabled" value="1" {{ !empty($settings['image_verification_enabled']) && filter_var($settings['image_verification_enabled'], FILTER_VALIDATE_BOOLEAN) ? 'checked' : '' }}>
+                        <label class="form-check-label fw-semibold" for="image_verification_enabled">Require image verification?</label>
+                    </div>
+                    <p class="small text-muted mb-0">When enabled, users can upload photos, which are then reviewed by the Super Admin for approval or rejection before being published.</p>
+                </div>
+            </div>
+
+
             {{-- Social Links --}}
             <div class="table-card p-4 mb-4">
                 <h6 class="fw-bold mb-3" style="color:#C9A227"><i class="bi bi-share me-2"></i>Social Media Links</h6>
                 <div class="row g-3">
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <label class="form-label fw-semibold small"><i class="bi bi-facebook me-1"></i>Facebook URL</label>
                         <input type="url" name="facebook_url" class="form-control @error('facebook_url') is-invalid @enderror"
                                value="{{ old('facebook_url', $settings['facebook_url'] ?? '') }}" placeholder="https://facebook.com/...">
                         @error('facebook_url')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <label class="form-label fw-semibold small"><i class="bi bi-twitter-x me-1"></i>Twitter / X URL</label>
                         <input type="url" name="twitter_url" class="form-control @error('twitter_url') is-invalid @enderror"
                                value="{{ old('twitter_url', $settings['twitter_url'] ?? '') }}" placeholder="https://twitter.com/...">
                         @error('twitter_url')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <label class="form-label fw-semibold small"><i class="bi bi-instagram me-1"></i>Instagram URL</label>
                         <input type="url" name="instagram_url" class="form-control @error('instagram_url') is-invalid @enderror"
                                value="{{ old('instagram_url', $settings['instagram_url'] ?? '') }}" placeholder="https://instagram.com/...">
                         @error('instagram_url')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold small"><i class="bi bi-linkedin me-1"></i>Linkedin URL</label>
+                        <input type="url" name="linkedin_url" class="form-control @error('linkedin_url') is-invalid @enderror"
+                               value="{{ old('linkedin_url', $settings['linkedin_url'] ?? '') }}" placeholder="https://linkedin.com/...">
+                        @error('linkedin_url')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
                 </div>
             </div>

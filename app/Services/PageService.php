@@ -51,5 +51,11 @@ class PageService
 
         return $page->fresh();
     }
+
+
+    public function create(array $data): Page
+    {
+        return Page::create($data);
+    }
 }
 

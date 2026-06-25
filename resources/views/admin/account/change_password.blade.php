@@ -21,7 +21,7 @@
                         id="current_password"
                         name="current_password"
                         class="form-control @error('current_password') is-invalid @enderror"
-                        placeholder="Enter your current password"
+                        placeholder=""
                         autocomplete="current-password"
                         required
                     >
@@ -31,13 +31,13 @@
                 </div>
 
                 <div class="mb-3">
-                    <label for="new_password" class="form-label fw-medium">New Password</label>
+                    <label for="new_password" class="form-label fw-medium">New Password <small class="text-danger">(min:8)</small></label>
                     <input
                         type="password"
                         id="new_password"
                         name="new_password"
                         class="form-control @error('new_password') is-invalid @enderror"
-                        placeholder="At least 8 characters"
+                        placeholder=""
                         autocomplete="new-password"
                         required
                         minlength="8"
@@ -54,7 +54,7 @@
                         id="new_password_confirmation"
                         name="new_password_confirmation"
                         class="form-control"
-                        placeholder="Repeat new password"
+                        placeholder=""
                         autocomplete="new-password"
                         required
                         minlength="8"

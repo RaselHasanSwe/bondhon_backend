@@ -6,7 +6,7 @@
 <div class="table-card">
     <div class="d-flex align-items-center justify-content-between p-3 border-bottom">
         <h6 class="fw-bold mb-0"><i class="bi bi-file-text me-2" style="color:var(--gold)"></i>All Pages</h6>
-        <small class="text-muted">Content managed here is served to the public website</small>
+        <a href="{{ route('admin.web.pages.create') }}"><button class="btn btn-info"><i class="bi bi-plus-lg me-1"></i> Add Page</button> </a>
     </div>
     <div class="table-responsive">
         <table class="table table-hover mb-0 align-middle">
@@ -39,6 +39,10 @@
                     <td>
                         <a href="{{ route('admin.web.pages.edit', $page->id) }}" class="btn btn-sm btn-outline-primary">
                             <i class="bi bi-pencil"></i> Edit
+                        </a>
+
+                        <a href="{{ route('admin.web.pages.delete', $page->id) }}" class="btn btn-sm btn-outline-danger">
+                            <i class="bi bi-trash"></i> Delete
                         </a>
                     </td>
                 </tr>

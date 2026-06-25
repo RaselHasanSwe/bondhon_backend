@@ -238,7 +238,7 @@ When the **Reject** button is clicked, display a popup with the following fields
 
 
 
-## CMS
+## CMS - (DONE)
 
 **URL:** http://127.0.0.1:8000/super-admin/pages
 
@@ -255,7 +255,7 @@ When the **Reject** button is clicked, display a popup with the following fields
 
 4. Add a new checkbox field to both the **Create Page** and **Edit Page** forms:
 
-   * **Show in Footer**
+   * **Show in Header**
    * If enabled, the page should be displayed in the frontend footer navigation.
    * If disabled, the page should not appear in the footer.
 
@@ -270,13 +270,13 @@ When the **Reject** button is clicked, display a popup with the following fields
    * Show in Footer status
 
 
-## Site Settings
+## Site Settings - (DONE)
 
 **URL:** http://127.0.0.1:8000/super-admin/settings
 
 ### Required Changes
 
-#### Email OTP Verification
+#### Email OTP Verification - (DONE)
 
 1. Add a new setting:
 
@@ -296,7 +296,7 @@ When the **Reject** button is clicked, display a popup with the following fields
 
 ---
 
-#### Social Media Links
+#### Social Media Links - (DONE)
 
 1. Add a **LinkedIn** field under the **Social Media Links** section.
 
@@ -307,17 +307,19 @@ When the **Reject** button is clicked, display a popup with the following fields
 
 
 
-## Admin Layout
+## Admin Layout - (DONE)
 
-### Sidebar
+### Sidebar - (DONE)
 
 1. In the sidebar footer section, change the label **"Admin User"** to **"Super Admin"**.
 2. Sidebar toogle options.
 3. Do not show logo on sidebar insted show **Site Name** From Database.
 
+**NOTE: SIDEBAR TOGGLE OPTION LEFT**
+
 ---
 
-### Header
+### Header -  (DONE)
 
 1. In the top-right corner of the header, display the name of the currently logged-in Admin user.
 

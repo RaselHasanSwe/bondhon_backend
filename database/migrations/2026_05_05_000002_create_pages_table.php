@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('meta_title')->nullable();
             $table->string('meta_description')->nullable();
             $table->boolean('is_published')->default(true);
+            $table->boolean('show_in_menu')->default(false);
             $table->integer('sort_order')->default(0);
             $table->timestamps();
         });
