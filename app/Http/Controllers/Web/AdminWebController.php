@@ -375,6 +375,7 @@ class AdminWebController extends Controller
             'facebook_url'     => ['nullable', 'url', 'max:255'],
             'twitter_url'      => ['nullable', 'url', 'max:255'],
             'instagram_url'    => ['nullable', 'url', 'max:255'],
+            'linkedin_url'    => ['nullable', 'url', 'max:255'],
             'meta_title'       => ['nullable', 'string', 'max:160'],
             'meta_description' => ['nullable', 'string', 'max:320'],
             'meta_keywords'    => ['nullable', 'string', 'max:255'],
@@ -408,6 +409,7 @@ class AdminWebController extends Controller
 
         $validated['face_scan_enabled'] = $request->has('face_scan_enabled') ? '1' : '0';
         $validated['email_verification_enabled'] = $request->has('email_verification_enabled') ? '1' : '0';
+        $validated['image_verification_enabled'] = $request->has('image_verification_enabled') ? '1' : '0';
 
         $service->update(array_filter($validated, fn ($v) => $v !== null));
 

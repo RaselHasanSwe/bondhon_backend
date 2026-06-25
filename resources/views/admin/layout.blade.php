@@ -78,10 +78,7 @@
 <!-- Sidebar -->
 <aside class="sidebar">
     <div class="sidebar-brand">
-        {{-- @if($adminSiteLogo)
-            <img src="{{ $adminSiteLogo }}" alt="{{ $adminSiteName }}"
-                 style="height:40px;width:auto;object-fit:contain;display:block;margin-bottom:.5rem;border-radius:6px;">
-        @endif --}}
+        <h4>{{ $adminSiteName ? strtoupper($adminSiteName) : strtoupper('Super Admin') }}</h4>
         <small>Super Admin Panel</small>
     </div>
     <nav class="sidebar-nav">
@@ -178,7 +175,7 @@
         <h5>@yield('page-title', 'Dashboard')</h5>
         <div class="d-flex align-items-center gap-2">
             <span class="badge" style="background:var(--gold);color:#fff;">
-                <i class="bi bi-shield-check me-1"></i>Admin
+                <i class="bi bi-shield-check me-1"></i>{{auth()->user()->name}}
             </span>
         </div>
     </div>
