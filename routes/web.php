@@ -66,6 +66,9 @@ Route::prefix('super-admin')->name('admin.web.')->group(function () {
 
         // Pages (CMS)
         Route::get('/pages', [AdminWebController::class, 'pages'])->name('pages');
+        Route::get('/pages/create', [AdminWebController::class, 'createPage'])->name('pages.create');
+        Route::post('/pages/store', [AdminWebController::class, 'storePage'])->name('pages.store');
+        Route::get('/pages/delete/{id}', [AdminWebController::class, 'deletePage'])->name('pages.delete');
         Route::get('/pages/{id}/edit', [AdminWebController::class, 'editPage'])->name('pages.edit');
         Route::put('/pages/{id}', [AdminWebController::class, 'updatePage'])->name('pages.update');
 

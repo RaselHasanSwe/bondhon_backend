@@ -15,6 +15,7 @@ class Page extends Model
         'meta_description',
         'is_published',
         'sort_order',
+        'show_in_menu',
     ];
 
     protected $casts = [

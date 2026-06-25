@@ -210,7 +210,7 @@ When the **Reject** button is clicked, display a popup with the following fields
 4. Rename and Make action inside status dropdown  **New** to **Unread**
 5. Rename and Card section **New / Unread** to **Unread**
 
-## CMS
+## CMS - (DONE)
 
 **URL:** http://127.0.0.1:8000/super-admin/pages
 
@@ -224,7 +224,7 @@ When the **Reject** button is clicked, display a popup with the following fields
    * Individual website sections (such as home page hero sections) should not be managed through the CMS.
 4. Add a new checkbox field to both the **Create Page** and **Edit Page** forms:
 
-   * **Show in Footer**
+   * **Show in Header**
    * If enabled, the page should be displayed in the frontend footer navigation.
    * If disabled, the page should not appear in the footer.
 5. Add a **Delete Page** option.
@@ -237,13 +237,14 @@ When the **Reject** button is clicked, display a popup with the following fields
    * Delete
    * Show in Footer status
 
-## Site Settings
+
+## Site Settings - (DONE)
 
 **URL:** http://127.0.0.1:8000/super-admin/settings
 
 ### Required Changes
 
-#### Email OTP Verification
+#### Email OTP Verification - (DONE)
 
 1. Add a new setting:
 
@@ -259,7 +260,7 @@ When the **Reject** button is clicked, display a popup with the following fields
 
 ---
 
-#### Social Media Links
+#### Social Media Links - (DONE)
 
 1. Add a **LinkedIn** field under the **Social Media Links** section.
 2. The LinkedIn URL should be:
@@ -267,17 +268,21 @@ When the **Reject** button is clicked, display a popup with the following fields
    * Editable from the Admin panel.
    * Available for display on the frontend along with the existing social media links.
 
-## Admin Layout
 
-### Sidebar
+
+## Admin Layout - (DONE)
+
+### Sidebar - (DONE)
 
 1. In the sidebar footer section, change the label **"Admin User"** to **"Super Admin"**.
 2. Sidebar toogle options.
 3. Do not show logo on sidebar insted show **Site Name** From Database.
 
+**NOTE: SIDEBAR TOGGLE OPTION LEFT**
+
 ---
 
-### Header
+### Header -  (DONE)
 
 1. In the top-right corner of the header, display the name of the currently logged-in Admin user.
 2. The displayed name should be dynamically loaded based on the authenticated Admin account.

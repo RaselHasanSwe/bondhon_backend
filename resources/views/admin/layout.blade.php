@@ -71,6 +71,7 @@
         .badge-gold { background-color: #C9A227; color: #fff; }
         .badge-platinum { background-color: #7c3aed; color: #fff; }
         .badge-free { background-color: #d1d5db; color: #374151; }
+        .sidebar-brand h4{color: rgba(255, 255, 255, .7)}
     </style>
 </head>
 <body>
@@ -78,10 +79,7 @@
 <!-- Sidebar -->
 <aside class="sidebar">
     <div class="sidebar-brand">
-        {{-- @if($adminSiteLogo)
-            <img src="{{ $adminSiteLogo }}" alt="{{ $adminSiteName }}"
-                 style="height:40px;width:auto;object-fit:contain;display:block;margin-bottom:.5rem;border-radius:6px;">
-        @endif --}}
+        <h4>{{ $adminSiteName ? strtoupper($adminSiteName) : strtoupper('Super Admin') }}</h4>
         <small>Super Admin Panel</small>
     </div>
     <nav class="sidebar-nav">
@@ -104,7 +102,7 @@
         <hr style="border-color:rgba(255,255,255,.1);margin:.5rem 1.25rem;">
         <a href="{{ route('admin.web.photos') }}"
            class="nav-link {{ request()->routeIs('admin.web.photos') ? 'active' : '' }}">
-            <i class="bi bi-images"></i> Photo Moderation
+            <i class="bi bi-images"></i> Approvals
             @php $pendingPhotos = \App\Models\ProfilePhoto::where('moderation_status','pending')->count(); @endphp
             @if($pendingPhotos > 0)
                 <span class="badge bg-danger ms-auto">{{ $pendingPhotos }}</span>
@@ -142,15 +140,11 @@
         <hr style="border-color:rgba(255,255,255,.1);margin:.5rem 1.25rem;">
         <a href="{{ route('admin.web.pages') }}"
            class="nav-link {{ request()->routeIs('admin.web.pages') || request()->routeIs('admin.web.pages.edit') ? 'active' : '' }}">
-            <i class="bi bi-file-text"></i> Pages
+            <i class="bi bi-file-text"></i> CMS / Pages
         </a>
         <a href="{{ route('admin.web.select-options.index') }}"
            class="nav-link {{ request()->routeIs('admin.web.select-options.*') ? 'active' : '' }}">
             <i class="bi bi-ui-checks-grid"></i> Select Options
-            @php $totalOptions = \App\Models\SelectOption::count(); @endphp
-            @if($totalOptions > 0)
-                <span class="badge bg-secondary ms-auto" style="font-size:10px">{{ $totalOptions }}</span>
-            @endif
         </a>
         <a href="{{ route('admin.web.settings') }}"
            class="nav-link {{ request()->routeIs('admin.web.settings') ? 'active' : '' }}">
@@ -178,7 +172,7 @@
         <h5>@yield('page-title', 'Dashboard')</h5>
         <div class="d-flex align-items-center gap-2">
             <span class="badge" style="background:var(--gold);color:#fff;">
-                <i class="bi bi-shield-check me-1"></i>Admin
+                <i class="bi bi-shield-check me-1"></i>{{auth()->user()->name}}
             </span>
         </div>
     </div>
