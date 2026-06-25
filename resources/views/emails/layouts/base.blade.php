@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="x-apple-disable-message-reformatting">
-    <title>{{ $emailTitle ?? 'MyBouma' }}</title>
+    <title>{{ $emailTitle ?? 'Enorsia' }}</title>
     <!--[if mso]>
     <noscript>
         <xml>
@@ -283,7 +283,7 @@
                     <p class="brand-tagline">❝ Where Hearts Find Home ❞</p>
                     <div class="brand-logo-wrap">
                         <span class="brand-icon">♡</span>
-                        <span class="brand-name">MyBouma</span>
+                        <span class="brand-name">Enorsia</span>
                         <span class="brand-icon">♡</span>
                     </div>
                     <div class="header-divider">
@@ -308,7 +308,7 @@
             <td class="email-footer">
                 <div class="footer-ornament"></div>
                 <div class="footer-inner">
-                    <p class="footer-brand">MyBouma</p>
+                    <p class="footer-brand">Enorsia</p>
                     <p class="footer-tagline">Bangladesh's Most Trusted Matrimony</p>
                     <div class="footer-links">
                         <a href="{{ config('app.url') }}/privacy">Privacy Policy</a>
@@ -318,8 +318,8 @@
                     </div>
                     <p class="footer-divider-dots">• • • • • • •</p>
                     <p class="footer-address">
-                        MyBouma Matrimony Ltd. &nbsp;|&nbsp; Dhaka, Bangladesh<br>
-                        support@mybouma.com &nbsp;|&nbsp; +880 1700-000000
+                        Enorsia Matrimony Ltd. &nbsp;|&nbsp; Dhaka, Bangladesh<br>
+                        support@Enorsia.com &nbsp;|&nbsp; +880 1700-000000
                     </p>
                     <p class="footer-unsubscribe">
                         Don't want these emails? <a href="{{ $unsubscribeUrl ?? config('app.url').'/unsubscribe' }}">Unsubscribe here</a>
@@ -327,7 +327,7 @@
                 </div>
                 <div class="footer-bottom-bar">
                     <p class="footer-copyright">
-                        &copy; {{ date('Y') }} <span>MyBouma Matrimony Ltd.</span> All rights reserved.
+                        &copy; {{ date('Y') }} <span>Enorsia Matrimony Ltd.</span> All rights reserved.
                     </p>
                 </div>
             </td>

@@ -33,7 +33,7 @@ use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
-| API Routes — MyBouma Matrimony Platform
+| API Routes — Enorsia Matrimony Platform
 | All routes prefixed: /api/v1
 |--------------------------------------------------------------------------
 */

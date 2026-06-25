@@ -1,6 +1,6 @@
 @extends('emails.layouts.base')
 
-@php $emailTitle = 'Verify Your Email – MyBouma'; @endphp
+@php $emailTitle = 'Verify Your Email – Enorsia'; @endphp
 
 @section('content')
     <style>
@@ -218,7 +218,7 @@
     </div>
 
     <p class="verify-body-text">
-        Welcome to <strong>My Bouma</strong> — your journey to finding a meaningful life partner begins here.
+        Welcome to <strong>Enorsia</strong> — your journey to finding a meaningful life partner begins here.
         To activate your account and start exploring, please verify your email address.
     </p>
 
@@ -247,7 +247,7 @@
 
     {{-- Security info --}}
     <div class="info-box">
-        <p>🔒 &nbsp;<strong>Didn't create a My Bouma account?</strong> You can safely ignore this email — no account will be created without verification.</p>
+        <p>🔒 &nbsp;<strong>Didn't create a Enorsia account?</strong> You can safely ignore this email — no account will be created without verification.</p>
         <p>⏰ &nbsp;This verification link will expire in <strong>{{ $linkExpiresIn ?? '60 minutes' }}</strong>.</p>
     </div>
 
@@ -263,7 +263,7 @@
     <div class="closing-text">
         <p>May your search bring you the companionship and joy you truly deserve.</p>
         <p class="closing-signature">Warm regards,</p>
-        <p class="closing-team">The My Bouma Team</p>
+        <p class="closing-team">The Enorsia Team</p>
     </div>
 
 @endsection

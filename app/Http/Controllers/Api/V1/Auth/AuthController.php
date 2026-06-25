@@ -26,8 +26,8 @@ class AuthController extends ApiController
 {
     public function __construct(
         private readonly ProfileCompletionService $completionService,
-        private readonly SubscriptionService $subscriptionService,
-    ) {}
+        private readonly SubscriptionService      $subscriptionService,
+    ){}
 
     #[OA\Post(
         path: '/api/v1/auth/register',
@@ -62,19 +62,19 @@ class AuthController extends ApiController
 
             $result = DB::transaction(function () use ($request, $emailVerificationEnabled) {
                 $user = User::create([
-                    'name'               => $request->name,
-                    'email'              => $request->email,
-                    'password'           => $request->password,
-                    'gender'             => $request->gender,
+                    'name' => $request->name,
+                    'email' => $request->email,
+                    'password' => $request->password,
+                    'gender' => $request->gender,
                     'profile_created_by' => $request->profile_created_by,
-                    'is_active'          => 0,
+                    'is_active' => 0,
                 ]);
 
                 // Auto-generate profile_id (BON-XXXXXX)
                 $profileId = 'BON-' . str_pad($user->id, 6, '0', STR_PAD_LEFT);
 
                 Profile::create([
-                    'user_id'    => $user->id,
+                    'user_id' => $user->id,
                     'profile_id' => $profileId,
                 ]);
 
@@ -106,9 +106,9 @@ class AuthController extends ApiController
                 Log::info('[AUTH - Register] Success. User ID: ' . $user->id . ' | Profile ID: ' . $profileId);
 
                 return [
-                    'token'      => $token,
+                    'token' => $token,
                     'token_type' => 'Bearer',
-                    'user'       => $this->formatUser($user->load(['profile', 'faceScanSession'])),
+                    'user' => $this->formatUser($user->load(['profile', 'faceScanSession'])),
                 ];
             });
 
@@ -152,7 +152,7 @@ class AuthController extends ApiController
         Log::info('[AUTH - Login] Attempt: ' . $request->email);
 
         try {
-            if (! Auth::attempt($request->only('email', 'password'))) {
+            if (!Auth::attempt($request->only('email', 'password'))) {
                 Log::warning('[AUTH - Login] Failed attempt for email: ' . $request->email);
                 return $this->errorResponse('Invalid credentials. Please check your email and password.', null, 401);
             }
@@ -165,16 +165,16 @@ class AuthController extends ApiController
                 Log::warning('[AUTH - Login] Banned user attempted login. User ID: ' . $user->id);
                 return response()->json([
                     'success' => false,
-                    'data'    => [
-                        'status'     => 'banned',
+                    'data' => [
+                        'status' => 'banned',
                         'ban_reason' => $user->ban_reason ?? 'No reason provided. Please contact support.',
                     ],
                     'message' => 'Your account has been banned.',
-                    'errors'  => null,
+                    'errors' => null,
                 ], 403);
             }
 
-            if (! $user->is_active && ! $this->canLoginWhileInactive($user)) {
+            if (!$user->is_active && !$this->canLoginWhileInactive($user)) {
                 Auth::logout();
                 Log::warning('[AUTH - Login] Inactive user attempted login. User ID: ' . $user->id);
                 return $this->errorResponse('Your account is inactive.', null, 403);
@@ -188,9 +188,9 @@ class AuthController extends ApiController
             Log::info('[AUTH - Login] Success. User ID: ' . $user->id);
 
             return $this->successResponse([
-                'token'      => $token,
+                'token' => $token,
                 'token_type' => 'Bearer',
-                'user'       => $this->formatUser($user->load(['profile', 'faceScanSession'])),
+                'user' => $this->formatUser($user->load(['profile', 'faceScanSession'])),
             ], 'Login successful.');
 
         } catch (\Throwable $e) {
@@ -260,20 +260,17 @@ class AuthController extends ApiController
         }
     }
 
-    /**
-     * Change the authenticated user's password.
-     */
     public function changePassword(Request $request): JsonResponse
     {
         $request->validate([
-            'current_password'      => ['required', 'string'],
-            'new_password'          => ['required', 'string', 'min:8', 'confirmed'],
+            'current_password' => ['required', 'string'],
+            'new_password' => ['required', 'string', 'min:8', 'confirmed'],
         ]);
 
         /** @var User $user */
         $user = $request->user();
 
-        if (! Hash::check($request->current_password, $user->password)) {
+        if (!Hash::check($request->current_password, $user->password)) {
             return $this->errorResponse('Current password is incorrect.', null, 422);
         }
 
@@ -284,38 +281,32 @@ class AuthController extends ApiController
         return $this->successResponse(null, 'Password changed successfully.');
     }
 
-    /**
-     * Format user data for API response (never expose password or sensitive fields).
-     */
     private function formatUser(User $user): array
     {
         return [
-            'id'                      => $user->id,
-            'name'                    => $user->name,
-            'email'                   => $user->email,
-            'email_verified_at'       => $user->email_verified_at,
-            'gender'                  => $user->gender,
-            'profile_created_by'      => $user->profile_created_by,
-            'role'                    => $user->role,
-            'is_active'               => $user->is_active,
-            'subscription_plan'       => $user->subscription_plan,
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'email_verified_at' => $user->email_verified_at,
+            'gender' => $user->gender,
+            'profile_created_by' => $user->profile_created_by,
+            'role' => $user->role,
+            'is_active' => $user->is_active,
+            'subscription_plan' => $user->subscription_plan,
             'subscription_expires_at' => $user->subscription_expires_at,
-            'profile'                 => $user->profile,
+            'profile' => $user->profile,
             'email_verification_required' => SiteSetting::booleanValue('email_verification_enabled', true),
-            'face_scan_required'          => SiteSetting::booleanValue('face_scan_enabled', true),
-            'face_scan_status'        => $user->faceScanSession?->status,
-            'face_scan_completed_at'  => $user->faceScanSession?->completed_at,
-            'face_scan_review_note'   => $user->faceScanSession?->review_note,
-            'created_at'              => $user->created_at,
+            'face_scan_required' => SiteSetting::booleanValue('face_scan_enabled', true),
+            'face_scan_status' => $user->faceScanSession?->status,
+            'face_scan_completed_at' => $user->faceScanSession?->completed_at,
+            'face_scan_review_note' => $user->faceScanSession?->review_note,
+            'created_at' => $user->created_at,
         ];
     }
 
-    /**
-     * Allow login for users still in onboarding (face scan not yet approved).
-     */
     private function canLoginWhileInactive(User $user): bool
     {
-        if (! SiteSetting::booleanValue('face_scan_enabled', true)) {
+        if (!SiteSetting::booleanValue('face_scan_enabled', true)) {
             return false;
         }
 

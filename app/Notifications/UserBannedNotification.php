@@ -22,7 +22,7 @@ class UserBannedNotification extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject('Your MyBouma Account Has Been Suspended')
+            ->subject('Your Enorsia Account Has Been Suspended')
             ->view('emails.account-banned', [
                 'user'   => $notifiable,
                 'reason' => $this->reason,

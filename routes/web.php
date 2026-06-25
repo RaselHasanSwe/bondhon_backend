@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
-| Web Routes — MyBouma Matrimony Platform
+| Web Routes — Enorsia Matrimony Platform
 |--------------------------------------------------------------------------
 */
 

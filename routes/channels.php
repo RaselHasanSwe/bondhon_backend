@@ -5,7 +5,7 @@ use Illuminate\Support\Facades\Broadcast;
 
 /*
 |--------------------------------------------------------------------------
-| Broadcast Channels — MyBouma Matrimony Platform
+| Broadcast Channels — Enorsia Matrimony Platform
 |--------------------------------------------------------------------------
 */
 

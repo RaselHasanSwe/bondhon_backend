@@ -35,10 +35,10 @@ class DatabaseSeeder extends Seeder
 
         // Create an admin user (idempotent)
         $admin = User::firstOrCreate(
-            ['email' => 'admin@mybouma.com'],
+            ['email' => 'admin@Enorsia.com'],
             [
                 'name'               => 'Admin User',
-                'email'              => 'admin@mybouma.com',
+                'email'              => 'admin@Enorsia.com',
                 'password'           => bcrypt('password'),
                 'gender'             => 'male',
                 'profile_created_by' => 'self',

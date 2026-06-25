@@ -18,7 +18,7 @@ class CustomResetPassword extends ResetPassword
             . '&email=' . urlencode($notifiable->getEmailForPasswordReset());
 
         return (new MailMessage)
-            ->subject('Reset Your Password – MyBouma')
+            ->subject('Reset Your Password – Enorsia')
             ->view('emails.reset-password', [
                 'url'  => $resetUrl,
                 'user' => $notifiable,

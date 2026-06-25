@@ -26,7 +26,7 @@ class MatchDigestMailable extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: '💍 Your Daily Match Digest — My Bouma',
+            subject: '💍 Your Daily Match Digest — Enorsia',
         );
     }
 

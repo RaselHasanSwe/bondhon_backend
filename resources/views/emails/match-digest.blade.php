@@ -1,6 +1,6 @@
 @extends('emails.layouts.base')
 
-@php $emailTitle = 'Your Daily Match Digest – My Bouma'; @endphp
+@php $emailTitle = 'Your Daily Match Digest – Enorsia'; @endphp
 
 @section('content')
 <style>
@@ -172,7 +172,7 @@
 <div class="closing-text">
     <p>May you find the companionship and joy you truly deserve.</p>
     <p class="closing-signature">Warm regards,</p>
-    <p class="closing-team">The My Bouma Team</p>
+    <p class="closing-team">The Enorsia Team</p>
 </div>
 
 @endsection

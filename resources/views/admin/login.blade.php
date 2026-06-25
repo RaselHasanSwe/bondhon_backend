@@ -48,7 +48,7 @@
         <div class="mb-3">
             <label class="form-label fw-semibold small">Email Address</label>
             <input type="email" name="email" class="form-control"
-                   value="{{ old('email') }}" placeholder="admin@mybouma.com" required autofocus>
+                   value="{{ old('email') }}" placeholder="admin@Enorsia.com" required autofocus>
         </div>
         <div class="mb-4">
             <label class="form-label fw-semibold small">Password</label>
