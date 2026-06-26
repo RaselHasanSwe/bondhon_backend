@@ -1,6 +1,6 @@
 @extends('emails.layouts.base')
 
-@php $emailTitle = 'Account Suspended – Enorsia'; @endphp
+@php $emailTitle = 'Account Suspended – ' . $siteName; @endphp
 
 @section('content')
     <style>
@@ -77,7 +77,7 @@
     </h1>
 
     <p class="ban-body-text">
-        We are writing to inform you that your Enorsia account has been suspended and you will no longer be able to sign in or use the platform.
+        We are writing to inform you that your {{ $siteName }} account has been suspended and you will no longer be able to sign in or use the platform.
     </p>
 
     <div class="reason-box">
@@ -86,6 +86,6 @@
     </div>
 
     <div class="info-box">
-        <p>If you believe this action was taken in error, please contact our support team at <strong>support@Enorsia.com</strong> with your registered email address.</p>
+        <p>If you believe this action was taken in error, please contact our support team at <strong>{{ $contactEmail }}</strong> with your registered email address.</p>
     </div>
 @endsection

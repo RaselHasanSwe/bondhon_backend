@@ -2,6 +2,7 @@
 
 namespace App\Notifications;
 
+use App\Services\SiteSettingService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -23,12 +24,14 @@ class AdminBroadcastNotification extends Notification implements ShouldQueue
 
     public function toMail(object $notifiable): MailMessage
     {
+        $siteName = app(SiteSettingService::class)->get('site_name', config('app.name', 'Bondhon'));
+
         return (new MailMessage)
             ->subject($this->title)
             ->greeting('Hello ' . ($notifiable->name ?? 'there') . '!')
             ->line($this->message)
-            ->line('This message was sent by the Enorsia admin team.')
-            ->salutation('Best regards, Enorsia Team');
+            ->line('This message was sent by the ' . $siteName . ' admin team.')
+            ->salutation('Best regards, ' . $siteName . ' Team');
     }
 
     public function toArray(object $notifiable): array
@@ -39,4 +42,3 @@ class AdminBroadcastNotification extends Notification implements ShouldQueue
         ];
     }
 }
-

@@ -1,6 +1,6 @@
 @extends('emails.layouts.base')
 
-@php $emailTitle = 'Face Verification Requires Resubmission – Enorsia'; @endphp
+@php $emailTitle = 'Face Verification Requires Resubmission – ' . $siteName; @endphp
 
 @section('content')
     <style>

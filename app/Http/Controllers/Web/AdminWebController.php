@@ -9,13 +9,11 @@ use App\Models\Page;
 use App\Models\ProfilePhoto;
 use App\Models\Report;
 use App\Models\SelectOption;
-use App\Models\SiteSetting;
 use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
 use App\Models\SubscriptionType;
 use App\Models\User;
 use App\Services\BroadcastNotificationService;
-use App\Services\CloudflareImageService;
 use App\Services\NotificationService;
 use App\Services\PageService;
 use App\Services\ProfileCompletionService;
@@ -38,6 +36,10 @@ use Carbon\Carbon;
  */
 class AdminWebController extends Controller
 {
+    public function __construct(
+        private readonly SiteSettingService $siteSettingService,
+    ) {}
+
     // -----------------------------------------------------------------------
     // Auth
     // -----------------------------------------------------------------------
@@ -353,9 +355,7 @@ class AdminWebController extends Controller
 
     public function settings(Request $request): View
     {
-        $service  = new SiteSettingService();
-        $settings = $service->all();
-
+        $settings = $this->siteSettingService->all();
         $defs     = SiteSettingService::definitions();
 
         return view('admin.settings.index', compact('settings', 'defs'));
@@ -384,22 +384,11 @@ class AdminWebController extends Controller
             'site_favicon'     => ['nullable', 'image', 'max:512'],
         ]);
 
-        $service = new SiteSettingService();
-        $cloudflare = new CloudflareImageService();
         foreach (['site_logo', 'site_favicon'] as $imageKey) {
             if ($request->hasFile($imageKey)) {
+                $result = $this->siteSettingService->updateImage($imageKey, $request->file($imageKey));
 
-                $oldCfId = SiteSetting::getValue($imageKey);
-                if ($oldCfId) {
-                    $cloudflare->delete($oldCfId);
-                }
-
-                $imageId = $imageKey.'/'.time().'.'. $request->file($imageKey)->getClientOriginalExtension();
-                $result = $cloudflare->upload($request->file($imageKey), $imageId);
-
-                if ($result['success']) {
-                    SiteSetting::setValue($imageKey, $imageId);
-                } else {
+                if (! $result['success']) {
                     return back()->withErrors([$imageKey => 'Image upload failed: ' . $result['error']]);
                 }
             }
@@ -407,12 +396,11 @@ class AdminWebController extends Controller
             unset($validated[$imageKey]);
         }
 
-
         $validated['face_scan_enabled'] = $request->has('face_scan_enabled') ? '1' : '0';
         $validated['email_verification_enabled'] = $request->has('email_verification_enabled') ? '1' : '0';
         $validated['image_verification_enabled'] = $request->has('image_verification_enabled') ? '1' : '0';
 
-        $service->update(array_filter($validated, fn ($v) => $v !== null));
+        $this->siteSettingService->update(array_filter($validated, fn ($v) => $v !== null));
 
         Log::info('[ADMIN WEB - UpdateSettings] Admin: ' . Auth::id() . ' updated site settings.');
 

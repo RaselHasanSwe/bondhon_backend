@@ -1,6 +1,6 @@
 @extends('emails.layouts.base')
 
-@php $emailTitle = 'Reset Your Password – Enorsia'; @endphp
+@php $emailTitle = 'Reset Your Password – ' . $siteName; @endphp
 
 @section('content')
     <style>
@@ -164,7 +164,7 @@
     </div>
 
     <p class="reset-body-text">
-        We received a request to reset the password for your <strong>Enorsia</strong> account.
+        We received a request to reset the password for your <strong>{{ $siteName }}</strong> account.
         Click the button below to choose a new password.
     </p>
 
@@ -176,7 +176,7 @@
 
     <div class="info-box">
         <p>🔒 &nbsp;<strong>Didn't request a password reset?</strong> You can safely ignore this email — your password will not be changed.</p>
-        <p>⏰ &nbsp;This link will expire in <strong>60 minutes</strong>.</p>
+        <p>⏰ &nbsp;This link will expire in <strong>{{ config('auth.passwords.users.expire', 60) }} minutes</strong>.</p>
     </div>
 
     <div class="url-fallback">
@@ -189,7 +189,7 @@
     <div class="closing-text">
         <p>Your privacy and security are our highest priority.</p>
         <p class="closing-signature">Warm regards,</p>
-        <p class="closing-team">The Enorsia Team</p>
+        <p class="closing-team">The {{ $siteName }} Team</p>
     </div>
 
 @endsection

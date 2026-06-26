@@ -1,6 +1,6 @@
 @extends('emails.layouts.base')
 
-@php $emailTitle = 'Face Verification Approved – Enorsia'; @endphp
+@php $emailTitle = 'Face Verification Approved – ' . $siteName; @endphp
 
 @section('content')
     <style>
@@ -50,7 +50,7 @@
     </h1>
 
     <p class="body-text">
-        Great news! Your face scan verification has been reviewed and approved. Your account is now fully active and you can access all features of Enorsia.
+        Great news! Your face scan verification has been reviewed and approved. Your account is now fully active and you can access all features of {{ $siteName }}.
     </p>
 
     <div class="info-box">

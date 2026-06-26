@@ -2,6 +2,7 @@
 
 namespace App\Notifications;
 
+use App\Services\SiteSettingService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
@@ -21,8 +22,10 @@ class UserBannedNotification extends Notification
 
     public function toMail(object $notifiable): MailMessage
     {
+        $siteName = app(SiteSettingService::class)->get('site_name', config('app.name', 'Bondhon'));
+
         return (new MailMessage)
-            ->subject('Your Enorsia Account Has Been Suspended')
+            ->subject($siteName . ' - Your account has been suspended')
             ->view('emails.account-banned', [
                 'user'   => $notifiable,
                 'reason' => $this->reason,

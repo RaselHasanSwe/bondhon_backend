@@ -7,10 +7,10 @@ use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Models\Profile;
 use App\Models\FaceScanSession;
-use App\Models\SiteSetting;
 use App\Models\SubscriptionPlan;
 use App\Models\User;
 use App\Services\ProfileCompletionService;
+use App\Services\SiteSettingService;
 use App\Services\SubscriptionService;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\JsonResponse;
@@ -27,6 +27,7 @@ class AuthController extends ApiController
     public function __construct(
         private readonly ProfileCompletionService $completionService,
         private readonly SubscriptionService      $subscriptionService,
+        private readonly SiteSettingService       $siteSettingService,
     ){}
 
     #[OA\Post(
@@ -58,7 +59,7 @@ class AuthController extends ApiController
         Log::info('[AUTH - Register] Registering new user: ' . $request->email);
 
         try {
-            $emailVerificationEnabled = SiteSetting::booleanValue('email_verification_enabled', true);
+            $emailVerificationEnabled = $this->siteSettingService->boolean('email_verification_enabled', true);
 
             $result = DB::transaction(function () use ($request, $emailVerificationEnabled) {
                 $user = User::create([
@@ -85,7 +86,7 @@ class AuthController extends ApiController
                 // Calculate initial completion percentage
                 $this->completionService->recalculateAndSave($user->fresh());
 
-                if (SiteSetting::booleanValue('face_scan_enabled', true)) {
+                if ($this->siteSettingService->boolean('face_scan_enabled', true)) {
                     FaceScanSession::firstOrCreate(
                         ['user_id' => $user->id],
                         ['status' => 'pending']
@@ -295,8 +296,8 @@ class AuthController extends ApiController
             'subscription_plan' => $user->subscription_plan,
             'subscription_expires_at' => $user->subscription_expires_at,
             'profile' => $user->profile,
-            'email_verification_required' => SiteSetting::booleanValue('email_verification_enabled', true),
-            'face_scan_required' => SiteSetting::booleanValue('face_scan_enabled', true),
+            'email_verification_required' => $this->siteSettingService->boolean('email_verification_enabled', true),
+            'face_scan_required' => $this->siteSettingService->boolean('face_scan_enabled', true),
             'face_scan_status' => $user->faceScanSession?->status,
             'face_scan_completed_at' => $user->faceScanSession?->completed_at,
             'face_scan_review_note' => $user->faceScanSession?->review_note,
@@ -306,7 +307,7 @@ class AuthController extends ApiController
 
     private function canLoginWhileInactive(User $user): bool
     {
-        if (!SiteSetting::booleanValue('face_scan_enabled', true)) {
+        if (! $this->siteSettingService->boolean('face_scan_enabled', true)) {
             return false;
         }
 

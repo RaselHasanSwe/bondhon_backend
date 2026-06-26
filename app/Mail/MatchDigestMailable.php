@@ -4,6 +4,7 @@ namespace App\Mail;
 
 use App\Models\MatchScore;
 use App\Models\User;
+use App\Services\SiteSettingService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
@@ -25,8 +26,10 @@ class MatchDigestMailable extends Mailable
 
     public function envelope(): Envelope
     {
+        $siteName = app(SiteSettingService::class)->get('site_name', config('app.name', 'Bondhon'));
+
         return new Envelope(
-            subject: '💍 Your Daily Match Digest — Enorsia',
+            subject: 'Your Daily Match Digest — ' . $siteName,
         );
     }
 
@@ -49,4 +52,3 @@ class MatchDigestMailable extends Mailable
         );
     }
 }
-

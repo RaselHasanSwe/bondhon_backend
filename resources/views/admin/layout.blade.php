@@ -1,16 +1,11 @@
-@php
-    $adminSiteName = \App\Models\SiteSetting::getValue('site_name', 'Enorsia');
-    $adminSiteFavicon = \App\Models\SiteSetting::getValue('site_favicon', null);
-    $adminSiteLogo = \App\Models\SiteSetting::getValue('site_logo', null);
-@endphp
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', 'Dashboard') — {{ $adminSiteName }}</title>
-    @if($adminSiteFavicon)
-        <link rel="icon" href="{{ $adminSiteFavicon }}">
+    <title>@yield('title', 'Dashboard') — {{ $siteName }}</title>
+    @if($siteFavicon)
+        <link rel="icon" href="{{ cfImage($siteFavicon) }}">
     @endif
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
@@ -79,7 +74,7 @@
 <!-- Sidebar -->
 <aside class="sidebar">
     <div class="sidebar-brand">
-        <h4>{{ $adminSiteName ? strtoupper($adminSiteName) : strtoupper('Super Admin') }}</h4>
+        <h4>{{ $siteName ? strtoupper($siteName) : strtoupper('Super Admin') }}</h4>
         <small>Super Admin Panel</small>
     </div>
     <nav class="sidebar-nav">

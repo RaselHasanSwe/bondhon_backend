@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Api\V1\Auth;
 use App\Http\Controllers\Api\V1\ApiController;
 use App\Models\FaceScanCapture;
 use App\Models\FaceScanSession;
-use App\Models\SiteSetting;
+use App\Services\SiteSettingService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -16,6 +16,10 @@ use OpenApi\Attributes as OA;
 #[OA\Tag(name: 'Authentication', description: 'User registration, login, and session management')]
 class FaceScanController extends ApiController
 {
+    public function __construct(
+        private readonly SiteSettingService $siteSettingService,
+    ) {}
+
     #[OA\Get(
         path: '/api/v1/auth/face-scan/status',
         summary: 'Get the authenticated user face scan status',
@@ -44,7 +48,7 @@ class FaceScanController extends ApiController
         }
 
         return $this->successResponse([
-            'face_scan_required' => SiteSetting::booleanValue('face_scan_enabled', true),
+            'face_scan_required' => $this->siteSettingService->boolean('face_scan_enabled', true),
             'session' => $this->formatSession($session),
         ], 'Face scan status retrieved successfully.');
     }
