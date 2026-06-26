@@ -18,6 +18,26 @@
                                value="{{ old('site_name', $settings['site_name'] ?? '') }}" placeholder="Enorsia">
                         @error('site_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold small">Site Logo</label>
+                        @if(!empty($settings['site_logo']))
+                            <div class="mb-2">
+                                <img src="{{ cfImage($settings['site_logo']) }}" alt="Logo" style="max-height:60px;border-radius:8px;border:1px solid #e5e7eb;">
+                            </div>
+                        @endif
+                        <input type="file" name="site_logo" class="form-control @error('site_logo') is-invalid @enderror" accept="image/*">
+                        <small class="text-muted">PNG/SVG recommended. Max 2MB.</small>
+                        @error('site_logo')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+
+                    <div class="col-md-12">
+                        <label class="form-label fw-semibold small">Site Slogan</label>
+                        <input type="text" name="site_slogan" class="form-control @error('site_slogan') is-invalid @enderror"
+                               value="{{ old('site_slogan', $settings['site_slogan'] ?? '') }}" placeholder="Your trusted matrimony platform">
+                        @error('site_slogan')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+
                     <div class="col-md-3">
                         <label class="form-label fw-semibold small">Currency Code</label>
                         <input type="text" name="currency" class="form-control @error('currency') is-invalid @enderror"
@@ -31,17 +51,6 @@
                         @error('currency_symbol')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
 
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold small">Site Logo</label>
-                        @if(!empty($settings['site_logo']))
-                            <div class="mb-2">
-                                <img src="{{ cfImage($settings['site_logo']) }}" alt="Logo" style="max-height:60px;border-radius:8px;border:1px solid #e5e7eb;">
-                            </div>
-                        @endif
-                        <input type="file" name="site_logo" class="form-control @error('site_logo') is-invalid @enderror" accept="image/*">
-                        <small class="text-muted">PNG/SVG recommended. Max 2MB.</small>
-                        @error('site_logo')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                    </div>
                     <div class="col-md-6">
                         <label class="form-label fw-semibold small">Site Favicon</label>
                         @if(!empty($settings['site_favicon']))

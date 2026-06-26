@@ -365,6 +365,7 @@ class AdminWebController extends Controller
     {
         $validated = $request->validate([
             'site_name'        => ['nullable', 'string', 'max:100'],
+            'site_slogan'      => ['nullable', 'string', 'max:350'],
             'currency'         => ['nullable', 'string', 'max:20'],
             'currency_symbol'  => ['nullable', 'string', 'max:10'],
             'contact_email'    => ['nullable', 'email', 'max:150'],

@@ -18,6 +18,7 @@ class SiteSettingService
     {
         return [
             'site_name'        => ['type' => 'text',  'label' => 'Site Name'],
+            'site_slogan'      => ['type' => 'text',  'label' => 'Site Slogan'],
             'site_logo'        => ['type' => 'image', 'label' => 'Site Logo'],
             'site_favicon'     => ['type' => 'image', 'label' => 'Site Favicon'],
             'currency'         => ['type' => 'text',  'label' => 'Currency Code (e.g. BDT)'],

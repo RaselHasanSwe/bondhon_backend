@@ -11,6 +11,7 @@ class SiteSettingSeeder extends Seeder
     {
         $defaults = [
             'site_name'          => 'Enorsia',
+            'site_slogan'        => "Bangladesh's Most Trusted Matrimony Platform",
             'site_logo'          => null,
             'site_favicon'       => null,
             'currency'           => 'BDT',
