@@ -115,13 +115,13 @@
             </div>
 
             <div class="table-card p-4 mb-4">
-                <h6 class="fw-bold mb-3" style="color:#C9A227"><i class="bi bi-camera-fill me-2"></i>Image Verification</h6>
+                <h6 class="fw-bold mb-3" style="color:#C9A227"><i class="bi bi-camera-fill me-2"></i>Photo Auto Approval</h6>
                 <div class="d-flex flex-column gap-2">
                     <div class="form-check form-switch">
-                        <input class="form-check-input" type="checkbox" role="switch" id="image_verification_enabled" name="image_verification_enabled" value="1" {{ !empty($settings['image_verification_enabled']) && filter_var($settings['image_verification_enabled'], FILTER_VALIDATE_BOOLEAN) ? 'checked' : '' }}>
-                        <label class="form-check-label fw-semibold" for="image_verification_enabled">Require image verification?</label>
+                        <input class="form-check-input" type="checkbox" role="switch" id="photo_auto_approval_enabled" name="photo_auto_approval_enabled" value="1" {{ !empty($settings['photo_auto_approval_enabled']) && filter_var($settings['photo_auto_approval_enabled'], FILTER_VALIDATE_BOOLEAN) ? 'checked' : '' }}>
+                        <label class="form-check-label fw-semibold" for="photo_auto_approval_enabled">Photo Auto Approval</label>
                     </div>
-                    <p class="small text-muted mb-0">When enabled, users can upload photos, which are then reviewed by the Super Admin for approval or rejection before being published.</p>
+                    <p class="small text-muted mb-0">When enabled, profile photos uploaded by users are approved automatically and become visible immediately. When disabled, uploads stay pending until a super-admin approves or rejects them.</p>
                 </div>
             </div>
 

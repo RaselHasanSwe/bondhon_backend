@@ -27,13 +27,13 @@ class CallLogResource extends JsonResource
             'caller' => $caller ? [
                 'id'         => $caller->id,
                 'name'       => $caller->name,
-                'avatar'     => $callerPhoto?->file_path,
+                'avatar'     => profilePhotoUrl($callerPhoto?->file_path),
                 'profile_id' => $caller->profile?->profile_id,
             ] : null,
             'receiver' => $receiver ? [
                 'id'         => $receiver->id,
                 'name'       => $receiver->name,
-                'avatar'     => $receiverPhoto?->file_path,
+                'avatar'     => profilePhotoUrl($receiverPhoto?->file_path),
                 'profile_id' => $receiver->profile?->profile_id,
             ] : null,
         ];

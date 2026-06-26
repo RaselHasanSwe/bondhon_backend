@@ -568,7 +568,7 @@
                     <div class="row g-3 photo-grid">
                         @foreach($user->photos as $photo)
                             <div class="col-6 col-sm-4 col-md-3">
-                                <img src="{{ asset('storage/' . $photo->file_path) }}" alt="Photo">
+                                <img src="{{ profilePhotoUrl($photo->file_path) }}" alt="Photo">
                             </div>
                         @endforeach
                     </div>

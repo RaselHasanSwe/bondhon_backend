@@ -4,7 +4,6 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Illuminate\Support\Facades\Storage;
 
 /**
  * Lightweight profile card resource shared across features.
@@ -41,7 +40,7 @@ class ProfileCardResource extends JsonResource
             'education'       => $this->educationCareer?->highest_education,
             'profession'      => $this->educationCareer?->profession,
             'diet'            => $this->lifestyle?->diet,
-            'primary_photo'   => $primaryPhoto ? Storage::url($primaryPhoto->file_path) : null,
+            'primary_photo'   => $primaryPhoto ? profilePhotoUrl($primaryPhoto->file_path) : null,
         ];
     }
 }

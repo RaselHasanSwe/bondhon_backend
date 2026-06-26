@@ -37,6 +37,7 @@ class SiteSettingService
             'contact_address'  => ['type' => 'text',  'label' => 'Contact Address'],
             'face_scan_enabled' => ['type' => 'boolean', 'label' => 'Enable Face Scan Verification'],
             'email_verification_enabled' => ['type' => 'boolean', 'label' => 'Enable Email Verification'],
+            'photo_auto_approval_enabled' => ['type' => 'boolean', 'label' => 'Photo Auto Approval'],
             'facebook_url'     => ['type' => 'url',   'label' => 'Facebook URL'],
             'twitter_url'      => ['type' => 'url',   'label' => 'Twitter / X URL'],
             'instagram_url'    => ['type' => 'url',   'label' => 'Instagram URL'],

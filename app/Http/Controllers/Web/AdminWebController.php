@@ -398,7 +398,7 @@ class AdminWebController extends Controller
 
         $validated['face_scan_enabled'] = $request->has('face_scan_enabled') ? '1' : '0';
         $validated['email_verification_enabled'] = $request->has('email_verification_enabled') ? '1' : '0';
-        $validated['image_verification_enabled'] = $request->has('image_verification_enabled') ? '1' : '0';
+        $validated['photo_auto_approval_enabled'] = $request->has('photo_auto_approval_enabled') ? '1' : '0';
 
         $this->siteSettingService->update(array_filter($validated, fn ($v) => $v !== null));
 

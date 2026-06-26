@@ -40,3 +40,12 @@ function cfImage(string $imageId, string $varient = 'public')
     $clouflareImageService = app(CloudflareImageService::class);
     return $clouflareImageService->deliveryUrl($imageId, $varient);
 }
+
+function profilePhotoUrl(?string $filePath): ?string
+{
+    if (! $filePath) {
+        return null;
+    }
+
+    return app(\App\Services\ProfilePhotoStorageService::class)->url($filePath);
+}

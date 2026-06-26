@@ -28,6 +28,7 @@ class SiteSettingSeeder extends Seeder
             'meta_keywords'      => 'matrimony, marriage, bride, groom, matchmaking, Bangladesh',
             'face_scan_enabled'  => true,
             'email_verification_enabled' => true,
+            'photo_auto_approval_enabled' => false,
         ];
 
         foreach ($defaults as $key => $value) {

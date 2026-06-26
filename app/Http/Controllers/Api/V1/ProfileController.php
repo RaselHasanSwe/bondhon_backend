@@ -10,18 +10,25 @@ use App\Models\ProfileView;
 use App\Models\Interest;
 use App\Models\User;
 use App\Services\ProfileCompletionService;
+use App\Services\ProfilePhotoStorageService;
+use App\Services\NotificationService;
+use App\Services\SiteSettingService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
 use Intervention\Image\Laravel\Facades\Image;
 use OpenApi\Attributes as OA;
 
 #[OA\Tag(name: 'Profile', description: 'Profile management endpoints')]
 class ProfileController extends ApiController
 {
-    public function __construct(private readonly ProfileCompletionService $completionService) {}
+    public function __construct(
+        private readonly ProfileCompletionService $completionService,
+        private readonly ProfilePhotoStorageService $photoStorage,
+        private readonly SiteSettingService $siteSettings,
+        private readonly NotificationService $notificationService,
+    ) {}
 
     #[OA\Get(
         path: '/api/v1/profile',
@@ -323,24 +330,33 @@ class ProfileController extends ApiController
         try {
             $image    = Image::read($request->file('photo'));
             $image->scaleDown(width: 1200);
-
-            $filename = 'photos/' . $user->id . '/' . uniqid('photo_', true) . '.jpg';
             $encoded  = $image->toJpeg(85);
 
-            Storage::disk('public')->put($filename, $encoded);
+            $stored = $this->photoStorage->store((string) $encoded, $user->id);
+
+            $autoApprove = $this->siteSettings->boolean('photo_auto_approval_enabled', false);
 
             $photo = ProfilePhoto::create([
                 'user_id'           => $user->id,
-                'file_path'         => $filename,
+                'file_path'         => $stored['path'],
                 'is_primary'        => false,
-                'is_approved'       => false,
+                'is_approved'       => $autoApprove,
                 'is_private'        => (bool) $request->boolean('is_private', false),
-                'moderation_status' => 'pending',
+                'moderation_status' => $autoApprove ? 'approved' : 'pending',
             ]);
 
-            Log::info('[PROFILE PHOTO - Upload] Success. Photo ID: ' . $photo->id . ' | File: ' . $filename . ' | User ID: ' . $user->id);
+            if ($autoApprove) {
+                $this->completionService->recalculateAndSave($user->fresh());
+                $this->notificationService->notifyPhotoApproved($user);
+            }
 
-            return $this->successResponse($photo, 'Photo uploaded successfully. It will be visible after admin approval.', 201);
+            Log::info('[PROFILE PHOTO - Upload] Success. Photo ID: ' . $photo->id . ' | File: ' . $stored['path'] . ' | User ID: ' . $user->id);
+
+            $message = $autoApprove
+                ? 'Photo uploaded and approved successfully.'
+                : 'Photo uploaded successfully. It will be visible after admin approval.';
+
+            return $this->successResponse($photo->fresh(), $message, 201);
 
         } catch (\Throwable $e) {
             Log::error('[PROFILE PHOTO - Upload] Failed for User ID: ' . $user->id . ' | Error: ' . $e->getMessage(), [
@@ -371,7 +387,7 @@ class ProfileController extends ApiController
             $photo = ProfilePhoto::where('id', $photoId)->where('user_id', $user->id)->firstOrFail();
 
             DB::transaction(function () use ($photo, $user, $photoId) {
-                Storage::disk('public')->delete($photo->file_path);
+                $this->photoStorage->delete($photo->file_path);
                 $photo->delete();
                 $this->completionService->recalculateAndSave($user->fresh());
             });
