@@ -18,6 +18,12 @@ class PublicSettingController extends Controller
     {
         $settings = $this->settingService->all();
 
+        foreach (['site_logo', 'site_favicon'] as $imageKey) {
+            if (! empty($settings[$imageKey])) {
+                $settings[$imageKey] = $this->settingService->imageUrl($settings[$imageKey]);
+            }
+        }
+
         return response()->json([
             'success' => true,
             'data'    => $settings,

@@ -4,10 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Login — {{ $siteName }}</title>
-    @if($siteLogo)
-        <link rel="icon" href="{{ cfImage($siteLogo) }}">
-    @elseif($siteFavicon)
-        <link rel="icon" href="{{ cfImage($siteFavicon) }}">
+    @if($siteFavicon)
+        <link rel="icon" href="{{ profilePhotoUrl($siteFavicon) }}">
+    @elseif($siteLogo)
+        <link rel="icon" href="{{ profilePhotoUrl($siteLogo) }}">
     @endif
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>

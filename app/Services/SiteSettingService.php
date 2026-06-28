@@ -7,6 +7,7 @@ use App\Services\EmailVerificationOtpService;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class SiteSettingService
 {
@@ -121,20 +122,81 @@ class SiteSettingService
         Log::info('[SITE SETTINGS - Update] Settings updated.');
     }
 
+    public function usesCloudflare(): bool
+    {
+        return (bool) config('cloudflare.profile_photos_enabled');
+    }
+
     /**
-     * Upload a logo or favicon to Cloudflare and persist the image ID.
+     * Upload a logo or favicon (Cloudflare or local, per CLOUDFLARE_PROFILE_PHOTOS).
      *
      * @return array{success: bool, error: string|null}
      */
     public function updateImage(string $key, UploadedFile $file): array
     {
-        $oldCfId = $this->get($key);
-        if ($oldCfId) {
-            $this->cloudflare->delete($oldCfId);
+        $oldPath = $this->get($key);
+        if ($oldPath) {
+            $this->deleteImage($oldPath);
         }
 
+        if ($this->usesCloudflare()) {
+            return $this->storeImageOnCloudflare($key, $file);
+        }
+
+        return $this->storeImageLocally($key, $file);
+    }
+
+    public function imageUrl(?string $filePath): ?string
+    {
+        if (! $filePath) {
+            return null;
+        }
+
+        if (str_starts_with($filePath, 'http')) {
+            return $filePath;
+        }
+
+        if (Storage::disk('public')->exists($filePath)) {
+            return Storage::disk('public')->url($filePath);
+        }
+
+        return $this->cloudflare->deliveryUrl($filePath);
+    }
+
+    private function deleteImage(string $filePath): void
+    {
+        if (Storage::disk('public')->exists($filePath)) {
+            Storage::disk('public')->delete($filePath);
+
+            return;
+        }
+
+        $this->cloudflare->delete($filePath);
+    }
+
+    /**
+     * @return array{success: bool, error: string|null}
+     */
+    private function storeImageLocally(string $key, UploadedFile $file): array
+    {
+        $filename = time() . '.' . $file->getClientOriginalExtension();
+        $path     = $file->storeAs('settings/' . $key, $filename, 'public');
+
+        SiteSetting::setValue($key, $path);
+        $this->forgetCache();
+
+        Log::info('[SITE SETTINGS - UpdateImage] Key: ' . $key . ' stored locally as: ' . $path);
+
+        return ['success' => true, 'error' => null];
+    }
+
+    /**
+     * @return array{success: bool, error: string|null}
+     */
+    private function storeImageOnCloudflare(string $key, UploadedFile $file): array
+    {
         $imageId = $key . '/' . time() . '.' . $file->getClientOriginalExtension();
-        $result = $this->cloudflare->upload($file, $imageId);
+        $result  = $this->cloudflare->upload($file, $imageId);
 
         if (! $result['success']) {
             return [
@@ -146,7 +208,7 @@ class SiteSettingService
         SiteSetting::setValue($key, $imageId);
         $this->forgetCache();
 
-        Log::info('[SITE SETTINGS - UpdateImage] Key: ' . $key . ' stored as: ' . $imageId);
+        Log::info('[SITE SETTINGS - UpdateImage] Key: ' . $key . ' stored on Cloudflare as: ' . $imageId);
 
         return ['success' => true, 'error' => null];
     }
