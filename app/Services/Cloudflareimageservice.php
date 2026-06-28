@@ -76,18 +76,16 @@ class CloudflareImageService
                 ];
             }
 
-            $cfImageId   = $body['result']['id'];
-            $deliveryUrl = "{$this->deliveryUrl}/{$this->accountHash}/{$cfImageId}/public";
+            $cfImageId = $body['result']['id'];
 
             Log::info('CloudflareImageService::upload success', [
-                'image_id'     => $cfImageId,
-                'delivery_url' => $deliveryUrl,
+                'image_id' => $cfImageId,
             ]);
 
             return [
                 'success'      => true,
                 'image_id'     => $cfImageId,
-                'delivery_url' => $deliveryUrl,
+                'delivery_url' => null,
                 'error'        => null,
             ];
 
@@ -163,11 +161,18 @@ class CloudflareImageService
     }
 
     /**
-     * Build a delivery URL for a given variant (default: "public").
-     * Use this when you already have the image ID stored and just need the URL.
+     * Base delivery URL without a variant (for storage / API responses).
+     */
+    public function baseDeliveryUrl(string $imageId): string
+    {
+        return "{$this->deliveryUrl}/{$this->accountHash}/{$imageId}";
+    }
+
+    /**
+     * Build a delivery URL with a variant (default: public).
      */
     public function deliveryUrl(string $imageId, string $variant = 'public'): string
     {
-        return "{$this->deliveryUrl}/{$this->accountHash}/{$imageId}/{$variant}";
+        return $this->baseDeliveryUrl($imageId) . '/' . $variant;
     }
 }

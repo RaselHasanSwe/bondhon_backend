@@ -307,7 +307,7 @@ class AdminUserController extends ApiController
                 'captures' => $session->captures->map(fn ($capture) => [
                     'id' => $capture->id,
                     'capture_key' => $capture->capture_key,
-                    'image_url' => asset('storage/' . $capture->image_path),
+                    'image_path' => $capture->image_path,
                     'metadata' => $capture->metadata,
                     'captured_at' => $capture->captured_at,
                 ])->values(),

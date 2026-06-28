@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'Dashboard') — {{ $siteName }}</title>
     @if($siteFavicon)
-        <link rel="icon" href="{{ profilePhotoUrl($siteFavicon) }}">
+        <link rel="icon" href="{{ cfImage($siteFavicon) }}">
     @endif
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">

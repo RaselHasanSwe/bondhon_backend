@@ -42,6 +42,6 @@ class ProfilePhoto extends Model
 
     public function getUrlAttribute(): ?string
     {
-        return profilePhotoUrl($this->file_path);
+        return $this->file_path;
     }
 }

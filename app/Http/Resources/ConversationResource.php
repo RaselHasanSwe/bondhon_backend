@@ -32,7 +32,7 @@ class ConversationResource extends JsonResource
 
         $avatarUrl = null;
         if ($showPhotoTo === 'all' && $primaryPhoto) {
-            $avatarUrl = profilePhotoUrl($primaryPhoto->file_path);
+            $avatarUrl = $primaryPhoto->file_path;
         }
 
         return [

@@ -4,7 +4,7 @@ namespace App\Services;
 
 use Illuminate\Http\UploadedFile;
 
-class ProfilePhotoStorageService
+class FaceScanStorageService
 {
     public function __construct(
         private readonly CloudflareImageService $cloudflare,
@@ -13,10 +13,10 @@ class ProfilePhotoStorageService
     /**
      * @return array{path: string}
      */
-    public function store(string $jpegContents, int $userId): array
+    public function store(string $jpegContents, int $userId, int $sessionId, string $captureKey): array
     {
-        $imageId  = 'photos/' . $userId . '/' . uniqid('photo_', true);
-        $tempPath = tempnam(sys_get_temp_dir(), 'photo_');
+        $imageId  = sprintf('face-scans/%d/%d/%s_%s', $userId, $sessionId, $captureKey, uniqid());
+        $tempPath = tempnam(sys_get_temp_dir(), 'face_scan_');
 
         try {
             file_put_contents($tempPath, $jpegContents);
@@ -34,12 +34,12 @@ class ProfilePhotoStorageService
         }
     }
 
-    public function delete(?string $filePath): void
+    public function delete(?string $imageId): void
     {
-        if (! $filePath) {
+        if (! $imageId) {
             return;
         }
 
-        $this->cloudflare->delete($filePath);
+        $this->cloudflare->delete($imageId);
     }
 }

@@ -35,10 +35,9 @@ function humanize($value)
 }
 
 
-function cfImage(string $imageId, string $varient = 'public')
+function cfImage(string $imageId): string
 {
-    $clouflareImageService = app(CloudflareImageService::class);
-    return $clouflareImageService->deliveryUrl($imageId, $varient);
+    return app(CloudflareImageService::class)->deliveryUrl($imageId, 'public');
 }
 
 function profilePhotoUrl(?string $filePath): ?string
@@ -47,5 +46,5 @@ function profilePhotoUrl(?string $filePath): ?string
         return null;
     }
 
-    return app(\App\Services\ProfilePhotoStorageService::class)->url($filePath);
+    return app(CloudflareImageService::class)->deliveryUrl($filePath, 'public');
 }

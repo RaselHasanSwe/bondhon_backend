@@ -81,7 +81,7 @@ class FaceScanReviewService
 
     /**
      * Archive capture records into session metadata and remove DB rows.
-     * Image files on disk are kept for admin review history.
+     * Cloudflare image IDs are kept in metadata for admin review history.
      */
     private function archiveCurrentCaptures(
         FaceScanSession $session,

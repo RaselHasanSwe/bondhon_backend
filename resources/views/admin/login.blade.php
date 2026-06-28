@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Login — {{ $siteName }}</title>
     @if($siteFavicon)
-        <link rel="icon" href="{{ profilePhotoUrl($siteFavicon) }}">
+        <link rel="icon" href="{{ cfImage($siteFavicon) }}">
     @elseif($siteLogo)
-        <link rel="icon" href="{{ profilePhotoUrl($siteLogo) }}">
+        <link rel="icon" href="{{ cfImage($siteLogo) }}">
     @endif
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>

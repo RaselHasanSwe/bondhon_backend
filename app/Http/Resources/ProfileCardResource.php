@@ -40,7 +40,7 @@ class ProfileCardResource extends JsonResource
             'education'       => $this->educationCareer?->highest_education,
             'profession'      => $this->educationCareer?->profession,
             'diet'            => $this->lifestyle?->diet,
-            'primary_photo'   => $primaryPhoto ? profilePhotoUrl($primaryPhoto->file_path) : null,
+            'primary_photo'   => $primaryPhoto?->file_path,
             'face_scan_status' => $this->faceScanSession?->status,
         ];
     }

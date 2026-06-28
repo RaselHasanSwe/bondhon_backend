@@ -5,11 +5,11 @@ namespace App\Http\Controllers\Api\V1\Auth;
 use App\Http\Controllers\Api\V1\ApiController;
 use App\Models\FaceScanCapture;
 use App\Models\FaceScanSession;
+use App\Services\FaceScanStorageService;
 use App\Services\SiteSettingService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
 use Intervention\Image\Laravel\Facades\Image;
 use OpenApi\Attributes as OA;
 
@@ -18,6 +18,7 @@ class FaceScanController extends ApiController
 {
     public function __construct(
         private readonly SiteSettingService $siteSettingService,
+        private readonly FaceScanStorageService $faceScanStorage,
     ) {}
 
     #[OA\Get(
@@ -123,8 +124,21 @@ class FaceScanController extends ApiController
             $image->scaleDown(width: 1200);
 
             $captureKey = $request->string('capture_key')->toString();
-            $filename = sprintf('face-scans/%d/%d/%s_%s.jpg', $user->id, $session->id, $captureKey, uniqid());
-            Storage::disk('public')->put($filename, $image->toJpeg(88));
+
+            $existing = FaceScanCapture::where('face_scan_session_id', $session->id)
+                ->where('capture_key', $captureKey)
+                ->first();
+
+            if ($existing?->image_path) {
+                $this->faceScanStorage->delete($existing->image_path);
+            }
+
+            $stored = $this->faceScanStorage->store(
+                (string) $image->toJpeg(88),
+                $user->id,
+                $session->id,
+                $captureKey,
+            );
 
             FaceScanCapture::updateOrCreate(
                 [
@@ -133,7 +147,7 @@ class FaceScanController extends ApiController
                 ],
                 [
                     'user_id' => $user->id,
-                    'image_path' => $filename,
+                    'image_path' => $stored['path'],
                     'metadata' => [
                         'capture_type' => $request->input('capture_type'),
                         'has_glasses' => $request->boolean('has_glasses', false),
@@ -148,7 +162,7 @@ class FaceScanController extends ApiController
             $session->refresh();
             $this->autoSubmitIfReady($session);
 
-            Log::info('[FACE SCAN - Capture] Stored capture for User ID: ' . $user->id . ' | Session ID: ' . $session->id . ' | Key: ' . $captureKey);
+            Log::info('[FACE SCAN - Capture] Stored capture for User ID: ' . $user->id . ' | Session ID: ' . $session->id . ' | Key: ' . $captureKey . ' | Cloudflare ID: ' . $stored['path']);
 
             return $this->successResponse([
                 'session' => $this->formatSession($session->fresh(['captures', 'latestCapture'])),
@@ -196,18 +210,17 @@ class FaceScanController extends ApiController
             'captures' => $session->captures->map(fn (FaceScanCapture $capture) => [
                 'id' => $capture->id,
                 'capture_key' => $capture->capture_key,
-                'image_url' => Storage::disk('public')->url($capture->image_path),
+                'image_path' => $capture->image_path,
                 'metadata' => $capture->metadata,
                 'captured_at' => $capture->captured_at,
             ])->values(),
             'latest_capture' => $session->latestCapture ? [
                 'id' => $session->latestCapture->id,
                 'capture_key' => $session->latestCapture->capture_key,
-                'image_url' => Storage::disk('public')->url($session->latestCapture->image_path),
+                'image_path' => $session->latestCapture->image_path,
                 'metadata' => $session->latestCapture->metadata,
                 'captured_at' => $session->latestCapture->captured_at,
             ] : null,
         ];
     }
 }
-

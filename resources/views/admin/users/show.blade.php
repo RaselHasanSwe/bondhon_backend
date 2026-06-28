@@ -207,7 +207,7 @@
                         @forelse($faceSession->captures as $capture)
                             <div class="col-4 col-sm-3 col-md-2">
                                 <div class="face-img-wrap">
-                                    <img src="{{ asset('storage/' . $capture->image_path) }}"
+                                    <img src="{{ cfImage($capture->image_path) }}"
                                          alt="{{ $capture->capture_key }}">
                                     <div class="cap-label">{{ str_replace('-', ' ', ucfirst($capture->capture_key)) }}</div>
                                     <div class="cap-time">{{ $capture->captured_at?->format('h:i A') }}</div>
@@ -266,7 +266,7 @@
                                             @foreach($submission['captures'] as $capture)
                                                 <div class="col-4 col-sm-3 col-md-2">
                                                     <div class="face-img-wrap">
-                                                        <img src="{{ asset('storage/' . $capture['image_path']) }}"
+                                                        <img src="{{ cfImage($capture['image_path']) }}"
                                                              alt="{{ $capture['capture_key'] ?? 'capture' }}">
                                                         <div class="cap-label">{{ str_replace('-', ' ', ucfirst($capture['capture_key'] ?? '')) }}</div>
                                                     </div>
