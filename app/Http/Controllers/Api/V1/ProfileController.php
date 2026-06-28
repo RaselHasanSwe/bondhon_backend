@@ -518,6 +518,9 @@ class ProfileController extends ApiController
 
     private function formatProfile(User $user): array
     {
+        $photos = $user->photos;
+        $primaryPhoto = $photos->firstWhere('is_primary', true) ?? $photos->first();
+
         return [
             'id'                 => $user->id,
             'name'               => $user->name,
@@ -534,7 +537,8 @@ class ProfileController extends ApiController
             'lifestyle'          => $user->lifestyle,
             'horoscope_detail'   => $user->horoscopeDetail,
             'partner_preference' => $user->partnerPreference,
-            'photos'             => $user->photos,
+            'primary_photo'      => $primaryPhoto?->file_path,
+            'photos'             => $photos,
         ];
     }
 
@@ -574,6 +578,9 @@ class ProfileController extends ApiController
             $photosQuery->whereRaw('0=1');
         }
 
+        $photos = $photosQuery->get();
+        $primaryPhoto = $photos->firstWhere('is_primary', true) ?? $photos->first();
+
         return [
             'id'             => $user->id,
             'name'           => $user->name,
@@ -600,7 +607,8 @@ class ProfileController extends ApiController
             'family_detail'     => $user->familyDetail ? ['family_type' => $user->familyDetail->family_type, 'family_status' => $user->familyDetail->family_status] : null,
             'education_career'  => $user->educationCareer ? ['highest_education' => $user->educationCareer->highest_education, 'profession' => $user->educationCareer->profession, 'employed_in' => $user->educationCareer->employed_in] : null,
             'lifestyle'         => $user->lifestyle ? ['diet' => $user->lifestyle->diet, 'smoking' => $user->lifestyle->smoking, 'drinking' => $user->lifestyle->drinking, 'hobbies' => $user->lifestyle->hobbies] : null,
-            'photos'            => $photosQuery->get(),
+            'primary_photo'     => $primaryPhoto?->file_path,
+            'photos'            => $photos,
             'is_connection'     => $isMutualConnection,
         ];
     }
