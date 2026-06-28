@@ -113,6 +113,7 @@ class InterestController extends ApiController
                 'sender.profile',
                 'sender.religiousDetail',
                 'sender.educationCareer',
+                'sender.faceScanSession',
                 'sender.photos' => fn ($q) => $q->where('is_approved', true)->where('is_primary', true),
             ])
             ->where('receiver_id', $user->id)
@@ -139,6 +140,7 @@ class InterestController extends ApiController
                 'receiver.profile',
                 'receiver.religiousDetail',
                 'receiver.educationCareer',
+                'receiver.faceScanSession',
                 'receiver.photos' => fn ($q) => $q->where('is_approved', true)->where('is_primary', true),
             ])
             ->where('sender_id', $user->id)

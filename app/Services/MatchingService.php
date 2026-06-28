@@ -187,6 +187,7 @@ class MatchingService
                 'candidate.profile',
                 'candidate.religiousDetail',
                 'candidate.educationCareer',
+                'candidate.faceScanSession',
                 'candidate.photos' => fn ($q) => $q->where('is_approved', true)->where('is_private', false)->where('is_primary', true),
             ])
             ->where('user_id', $user->id)

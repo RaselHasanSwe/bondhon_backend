@@ -23,7 +23,7 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // ── Subscription Plans (must run before subscriptions are created) ──
-//        $this->call(SubscriptionPlanSeeder::class);
+        $this->call(SubscriptionPlanSeeder::class);
 
         // ── Site Settings & Pages ──
         $this->call(SiteSettingSeeder::class);

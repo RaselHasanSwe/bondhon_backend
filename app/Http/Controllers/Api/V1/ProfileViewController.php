@@ -36,6 +36,7 @@ class ProfileViewController extends ApiController
                 'viewer.profile',
                 'viewer.religiousDetail',
                 'viewer.educationCareer',
+                'viewer.faceScanSession',
                 'viewer.photos' => fn ($q) => $q->where('is_approved', true)->where('is_primary', true),
             ])
             ->where('viewed_id', $user->id)

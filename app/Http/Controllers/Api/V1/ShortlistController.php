@@ -67,6 +67,7 @@ class ShortlistController extends ApiController
                 'shortlistedUser.profile',
                 'shortlistedUser.religiousDetail',
                 'shortlistedUser.educationCareer',
+                'shortlistedUser.faceScanSession',
                 'shortlistedUser.photos' => fn ($q) => $q->where('is_approved', true)->where('is_primary', true),
             ])
             ->where('user_id', $user->id)

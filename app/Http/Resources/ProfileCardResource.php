@@ -31,7 +31,7 @@ class ProfileCardResource extends JsonResource
                 'city'           => $this->profile->city,
                 'state'          => $this->profile->state,
                 'country'        => $this->profile->country,
-                'is_verified'    => $this->profile->is_verified,
+                'is_verified'    => $this->faceScanSession?->status === 'approved',
                 'last_seen_at'   => $this->profile->last_seen_at,
                 'profile_completion_percentage' => $this->profile->profile_completion_percentage,
             ] : null,
@@ -41,6 +41,7 @@ class ProfileCardResource extends JsonResource
             'profession'      => $this->educationCareer?->profession,
             'diet'            => $this->lifestyle?->diet,
             'primary_photo'   => $primaryPhoto ? profilePhotoUrl($primaryPhoto->file_path) : null,
+            'face_scan_status' => $this->faceScanSession?->status,
         ];
     }
 }

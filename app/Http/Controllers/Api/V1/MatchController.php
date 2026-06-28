@@ -107,6 +107,7 @@ class MatchController extends ApiController
                     'religiousDetail',
                     'educationCareer',
                     'lifestyle',
+                    'faceScanSession',
                     'photos' => fn ($q) => $q->where('is_approved', true)->where('is_private', false)->where('is_primary', true),
                 ])
                 ->where('id', $profile->user_id)
@@ -135,6 +136,7 @@ class MatchController extends ApiController
                 'religiousDetail',
                 'educationCareer',
                 'lifestyle',
+                'faceScanSession',
                 'photos' => fn ($q) => $q->where('is_approved', true)->where('is_private', false)->where('is_primary', true),
             ])
             ->join('profiles', 'profiles.user_id', '=', 'users.id')

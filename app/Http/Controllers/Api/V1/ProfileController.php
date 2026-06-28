@@ -88,6 +88,7 @@ class ProfileController extends ApiController
                 'familyDetail',
                 'educationCareer',
                 'lifestyle',
+                'faceScanSession',
                 'photos' => fn ($q) => $q->where('is_approved', true)->where('is_private', false),
             ])->first();
 
@@ -532,10 +533,11 @@ class ProfileController extends ApiController
                 'state'                         => $user->profile->state,
                 'city'                          => $user->profile->city,
                 'about_me'                      => $user->profile->about_me,
-                'is_verified'                   => $user->profile->is_verified,
+                'is_verified'                   => $user->faceScanSession?->status === 'approved',
                 'profile_completion_percentage' => $user->profile->profile_completion_percentage,
                 'last_seen_at'                  => ($privacySettings['show_online_status'] ?? true) ? $user->profile->last_seen_at : null,
             ] : null,
+            'face_scan_status'  => $user->faceScanSession?->status,
             'religious_detail'  => $user->religiousDetail ? ['religion' => $user->religiousDetail->religion, 'caste' => $user->religiousDetail->caste] : null,
             'family_detail'     => $user->familyDetail ? ['family_type' => $user->familyDetail->family_type, 'family_status' => $user->familyDetail->family_status] : null,
             'education_career'  => $user->educationCareer ? ['highest_education' => $user->educationCareer->highest_education, 'profession' => $user->educationCareer->profession, 'employed_in' => $user->educationCareer->employed_in] : null,
