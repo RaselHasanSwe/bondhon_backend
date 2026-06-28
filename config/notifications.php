@@ -28,6 +28,31 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Account Disable Request Email Delay
+    |--------------------------------------------------------------------------
+    |
+    | Seconds to wait before sending account-disable-request emails (submission
+    | confirmation and admin review outcomes). Adjust via
+    | ACCOUNT_DISABLE_REQUEST_EMAIL_DELAY_SECONDS.
+    |
+    */
+
+    'account_disable_request_email_delay_seconds' => (int) env('ACCOUNT_DISABLE_REQUEST_EMAIL_DELAY_SECONDS', 60),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Admin Account Action Email Delay
+    |--------------------------------------------------------------------------
+    |
+    | Seconds to wait before sending admin-initiated disable/ban/reactivate emails.
+    | Adjust via ADMIN_ACCOUNT_ACTION_EMAIL_DELAY_SECONDS.
+    |
+    */
+
+    'admin_account_action_email_delay_seconds' => (int) env('ADMIN_ACCOUNT_ACTION_EMAIL_DELAY_SECONDS', 60),
+
+    /*
+    |--------------------------------------------------------------------------
     | Max Interest Resend Attempts Per User Pair
     |--------------------------------------------------------------------------
     |

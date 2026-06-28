@@ -178,7 +178,15 @@ class AuthController extends ApiController
             if (!$user->is_active && !$this->canLoginWhileInactive($user)) {
                 Auth::logout();
                 Log::warning('[AUTH - Login] Inactive user attempted login. User ID: ' . $user->id);
-                return $this->errorResponse('Your account is inactive.', null, 403);
+                return response()->json([
+                    'success' => false,
+                    'data' => [
+                        'status' => 'inactive',
+                        'disable_reason' => $user->disable_reason ?? 'Your account has been disabled. Please contact support.',
+                    ],
+                    'message' => 'Your account is inactive.',
+                    'errors' => null,
+                ], 403);
             }
 
             $token = $user->createToken('auth_token')->plainTextToken;

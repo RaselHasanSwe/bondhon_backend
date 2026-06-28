@@ -37,6 +37,8 @@ class User extends Authenticatable implements MustVerifyEmail
         'is_banned',
         'ban_reason',
         'banned_at',
+        'disable_reason',
+        'disabled_at',
         'subscription_plan',
         'subscription_expires_at',
         'active_subscription_id',
@@ -75,6 +77,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'password' => 'hashed',
             'subscription_expires_at' => 'datetime',
             'banned_at' => 'datetime',
+            'disabled_at' => 'datetime',
             'is_active' => 'boolean',
             'is_banned' => 'boolean',
         ];
@@ -179,6 +182,11 @@ class User extends Authenticatable implements MustVerifyEmail
     public function reports(): HasMany
     {
         return $this->hasMany(Report::class, 'reporter_id');
+    }
+
+    public function accountDisableRequests(): HasMany
+    {
+        return $this->hasMany(AccountDisableRequest::class);
     }
 
     public function reportedBy(): HasMany

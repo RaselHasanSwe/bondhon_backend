@@ -28,6 +28,14 @@ class NotificationService
     public const TYPE_INTEREST_EXPIRED    = 'interest_expired';
     public const TYPE_SYSTEM              = 'system';
     public const TYPE_BROADCAST_MESSAGE   = 'broadcast_message';
+    public const TYPE_ACCOUNT_DISABLE_REQUEST_SUBMITTED = 'account_disable_request_submitted';
+    public const TYPE_ACCOUNT_DISABLE_REQUEST_DISABLED  = 'account_disable_request_disabled';
+    public const TYPE_ACCOUNT_DISABLE_REQUEST_BANNED    = 'account_disable_request_banned';
+    public const TYPE_ACCOUNT_DISABLE_REQUEST_DISMISSED = 'account_disable_request_dismissed';
+    public const TYPE_ACCOUNT_DISABLE_REQUEST_REACTIVATED = 'account_disable_request_reactivated';
+    public const TYPE_ADMIN_ACCOUNT_DISABLED  = 'admin_account_disabled';
+    public const TYPE_ADMIN_ACCOUNT_BANNED    = 'admin_account_banned';
+    public const TYPE_ADMIN_ACCOUNT_REACTIVATED = 'admin_account_reactivated';
 
     /**
      * Send a notification to a user (stores in DB + broadcasts via WebSocket).
@@ -217,6 +225,101 @@ class NotificationService
             'title'   => $title,
             'message' => $message,
             'icon'    => 'megaphone',
+        ]);
+    }
+
+    public function notifyAccountDisableRequestSubmitted(User $user, string $requestTypeLabel): void
+    {
+        $this->send($user, self::TYPE_ACCOUNT_DISABLE_REQUEST_SUBMITTED, [
+            'title'              => 'Disable Request Received',
+            'message'            => 'We received your account disable request (' . $requestTypeLabel . '). Our team will review it shortly.',
+            'request_type_label' => $requestTypeLabel,
+            'icon'               => 'clock',
+        ]);
+    }
+
+    public function notifyAccountDisableRequestDisabled(User $user, string $adminMessage): void
+    {
+        $this->send($user, self::TYPE_ACCOUNT_DISABLE_REQUEST_DISABLED, [
+            'title'         => 'Account Disabled',
+            'message'       => 'Your account disable request has been approved. Your account is now disabled. Reason: ' . $adminMessage,
+            'admin_message' => $adminMessage,
+            'icon'          => 'x',
+        ]);
+    }
+
+    public function notifyAccountDisableRequestBanned(User $user, string $adminMessage): void
+    {
+        $this->send($user, self::TYPE_ACCOUNT_DISABLE_REQUEST_BANNED, [
+            'title'         => 'Account Suspended',
+            'message'       => 'Your account has been suspended following review of your disable request. Reason: ' . $adminMessage,
+            'admin_message' => $adminMessage,
+            'icon'          => 'x',
+        ]);
+    }
+
+    public function notifyAccountDisableRequestDismissed(User $user, ?string $adminMessage = null): void
+    {
+        $message = 'Your account disable request was reviewed and not approved. Your account remains active.';
+        if ($adminMessage) {
+            $message .= ' Reason: ' . $adminMessage;
+        }
+
+        $this->send($user, self::TYPE_ACCOUNT_DISABLE_REQUEST_DISMISSED, [
+            'title'         => 'Disable Request Declined',
+            'message'       => $message,
+            'admin_message' => $adminMessage,
+            'icon'          => 'megaphone',
+        ]);
+    }
+
+    public function notifyAccountDisableRequestReactivated(User $user, ?string $adminMessage = null): void
+    {
+        $message = 'Your account has been reactivated. You can sign in and use the platform again.';
+        if ($adminMessage) {
+            $message .= ' Reason: ' . $adminMessage;
+        }
+
+        $this->send($user, self::TYPE_ACCOUNT_DISABLE_REQUEST_REACTIVATED, [
+            'title'         => 'Account Reactivated',
+            'message'       => $message,
+            'admin_message' => $adminMessage,
+            'icon'          => 'check',
+        ]);
+    }
+
+    public function notifyAdminAccountDisabled(User $user, string $adminMessage): void
+    {
+        $this->send($user, self::TYPE_ADMIN_ACCOUNT_DISABLED, [
+            'title'         => 'Account Disabled',
+            'message'       => 'Your account has been disabled by an administrator. Reason: ' . $adminMessage,
+            'admin_message' => $adminMessage,
+            'icon'          => 'x',
+        ]);
+    }
+
+    public function notifyAdminAccountBanned(User $user, string $adminMessage): void
+    {
+        $this->send($user, self::TYPE_ADMIN_ACCOUNT_BANNED, [
+            'title'         => 'Account Suspended',
+            'message'       => 'Your account has been suspended by an administrator. Reason: ' . $adminMessage,
+            'admin_message' => $adminMessage,
+            'icon'          => 'x',
+        ]);
+    }
+
+    public function notifyAdminAccountReactivated(User $user, ?string $adminMessage = null): void
+    {
+        $message = 'Your account has been reactivated. You can sign in and use the platform again.';
+        if ($adminMessage) {
+            $message .= ' Reason: ' . $adminMessage;
+        }
+
+        $this->send($user, self::TYPE_ADMIN_ACCOUNT_REACTIVATED, [
+            'title'         => 'Account Reactivated',
+            'message'       => $message,
+            'admin_message' => $adminMessage,
+            'icon'          => 'check',
         ]);
     }
 

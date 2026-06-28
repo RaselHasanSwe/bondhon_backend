@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\V1\ApiController;
 use App\Models\User;
 use App\Services\FaceScanReviewService;
 use App\Services\UserBanService;
+use App\Services\UserAccountStatusService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -123,12 +124,11 @@ class AdminUserController extends ApiController
             new OA\Response(response: 500, description: 'Server error'),
         ]
     )]
-    public function ban(Request $request, int $id, UserBanService $banService): JsonResponse
+    public function ban(Request $request, int $id, UserAccountStatusService $statusService): JsonResponse
     {
         $request->validate([
-            'is_banned'               => ['required', 'boolean'],
-            'reason'                  => ['required_if:is_banned,true', 'nullable', 'string', 'min:10', 'max:2000'],
-            'send_email_notification' => ['nullable', 'boolean'],
+            'is_banned' => ['required', 'boolean'],
+            'reason'    => ['required_if:is_banned,true', 'nullable', 'string', 'min:10', 'max:2000'],
         ]);
 
         Log::info('[ADMIN USER - Ban] Admin ID: ' . $request->user()->id . ' | Target User ID: ' . $id . ' | is_banned: ' . ($request->is_banned ? 'true' : 'false'));
@@ -136,27 +136,27 @@ class AdminUserController extends ApiController
         try {
             $user = User::withTrashed()->findOrFail($id);
 
-            if ($request->user()->id === $user->id) {
-                return $this->errorResponse('You cannot ban yourself.', null, 422);
+            if ($request->boolean('is_banned')) {
+                $statusService->banByAdmin(
+                    $user,
+                    $request->input('reason', 'Violation of terms of service.'),
+                    $request->user(),
+                );
+            } else {
+                $statusService->reactivateByAdmin(
+                    $user,
+                    $request->input('reason'),
+                    $request->user(),
+                );
             }
-
-            DB::transaction(function () use ($user, $request, $banService) {
-                if ($request->boolean('is_banned')) {
-                    $banService->ban(
-                        $user,
-                        $request->input('reason', 'Violation of terms of service.'),
-                        $request->boolean('send_email_notification'),
-                    );
-                } else {
-                    $banService->reactivate($user);
-                }
-            });
 
             $action = $request->boolean('is_banned') ? 'banned' : 'reactivated';
             Log::info('[ADMIN USER - ' . strtoupper($action) . '] Admin: ' . $request->user()->id . ' | User: ' . $id);
 
             return $this->successResponse($user->fresh(), 'User has been ' . $action . '.');
 
+        } catch (\RuntimeException $e) {
+            return $this->errorResponse($e->getMessage(), null, 422);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             Log::warning('[ADMIN USER - Ban] User not found. User ID: ' . $id);
             return $this->errorResponse('User not found.', null, 404);

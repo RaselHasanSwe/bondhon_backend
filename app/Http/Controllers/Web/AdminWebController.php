@@ -8,6 +8,7 @@ use App\Models\OptionGroupConfig;
 use App\Models\Page;
 use App\Models\ProfilePhoto;
 use App\Models\Report;
+use App\Models\AccountDisableRequest;
 use App\Models\SelectOption;
 use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
@@ -21,6 +22,10 @@ use App\Services\SiteSettingService;
 use App\Services\SubscriptionFeatureService;
 use App\Services\FaceScanReviewService;
 use App\Services\UserBanService;
+use App\Services\UserAccountStatusService;
+use App\Services\AccountDisableRequestService;
+use App\Http\Requests\Account\ReviewAccountDisableRequestRequest;
+use App\Http\Requests\Account\DismissAccountDisableRequestRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -184,32 +189,75 @@ class AdminWebController extends Controller
         return view('admin.users.show', compact('user'));
     }
 
-    public function toggleUserBan(Request $request, int $userId, UserBanService $banService): RedirectResponse
+    public function disableUserAccount(Request $request, int $userId, UserAccountStatusService $statusService): RedirectResponse
     {
         $user = User::withTrashed()->findOrFail($userId);
 
-        if ($user->id === auth()->id()) {
-            return back()->with('error', 'You cannot ban yourself.');
-        }
-
-        if ($user->is_banned) {
-            $banService->reactivate($user);
-
-            return back()->with('success', 'User account reactivated successfully.');
-        }
-
         $validated = $request->validate([
-            'ban_reason'               => ['required', 'string', 'min:10', 'max:2000'],
-            'send_email_notification'  => ['nullable', 'boolean'],
+            'admin_message' => ['required', 'string', 'min:10', 'max:2000'],
         ]);
 
-        $banService->ban(
-            $user,
-            $validated['ban_reason'],
-            $request->boolean('send_email_notification'),
-        );
+        try {
+            $statusService->disableByAdmin($user, $validated['admin_message'], Auth::user());
+        } catch (\RuntimeException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return back()->with('success', 'User account disabled successfully.');
+    }
+
+    public function banUserAccount(Request $request, int $userId, UserAccountStatusService $statusService): RedirectResponse
+    {
+        $user = User::withTrashed()->findOrFail($userId);
+
+        $validated = $request->validate([
+            'admin_message' => ['required', 'string', 'min:10', 'max:2000'],
+        ]);
+
+        try {
+            $statusService->banByAdmin($user, $validated['admin_message'], Auth::user());
+        } catch (\RuntimeException $e) {
+            return back()->with('error', $e->getMessage());
+        }
 
         return back()->with('success', 'User banned successfully.');
+    }
+
+    public function reactivateUserAccount(Request $request, int $userId, UserAccountStatusService $statusService): RedirectResponse
+    {
+        $user = User::withTrashed()->findOrFail($userId);
+
+        $validated = $request->validate([
+            'admin_message' => ['nullable', 'string', 'max:2000'],
+        ]);
+
+        try {
+            $statusService->reactivateByAdmin(
+                $user,
+                $validated['admin_message'] ?? null,
+                Auth::user(),
+            );
+        } catch (\RuntimeException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return back()->with('success', 'User account reactivated successfully.');
+    }
+
+    /** @deprecated Use banUserAccount / reactivateUserAccount instead */
+    public function toggleUserBan(Request $request, int $userId, UserAccountStatusService $statusService): RedirectResponse
+    {
+        $user = User::withTrashed()->findOrFail($userId);
+
+        if ($user->is_banned || ! $user->is_active) {
+            return $this->reactivateUserAccount($request, $userId, $statusService);
+        }
+
+        $request->merge([
+            'admin_message' => $request->input('ban_reason', $request->input('admin_message')),
+        ]);
+
+        return $this->banUserAccount($request, $userId, $statusService);
     }
 
     public function reviewUserFaceScan(Request $request, int $userId, FaceScanReviewService $reviewService): RedirectResponse
@@ -593,6 +641,122 @@ class AdminWebController extends Controller
         Log::info('[ADMIN WEB - BanFromReport] Admin: ' . Auth::id() . ' banned user: ' . $report->reported_id . ' via report ID: ' . $id);
 
         return redirect()->route('admin.web.reports')->with('success', 'User banned and report marked as action taken.');
+    }
+
+    // -----------------------------------------------------------------------
+    // Account Disable Requests
+    // -----------------------------------------------------------------------
+
+    public function accountDisableRequests(Request $request): View
+    {
+        $query = AccountDisableRequest::with([
+            'user:id,name,email,is_active,is_banned',
+            'reviewer:id,name',
+        ])->latest();
+
+        $status = $request->input('status', 'pending');
+        if (in_array($status, ['pending', 'action_taken', 'dismissed'], true)) {
+            $query->where('status', $status);
+        } else {
+            $query->where('status', 'pending');
+            $status = 'pending';
+        }
+
+        $requests = $query->paginate(20)->withQueryString();
+
+        return view('admin.account-disable-requests.index', compact('requests', 'status'));
+    }
+
+    public function disableAccountFromRequest(
+        ReviewAccountDisableRequestRequest $request,
+        int $id,
+        AccountDisableRequestService $service,
+    ): RedirectResponse {
+        $disableRequest = AccountDisableRequest::with('user')->findOrFail($id);
+
+        try {
+            $service->disableAccount(
+                $disableRequest,
+                Auth::user(),
+                $request->validated('admin_message'),
+            );
+        } catch (\RuntimeException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return redirect()->route('admin.web.account-disable-requests', ['status' => 'action_taken'])
+            ->with('success', 'User account disabled successfully.');
+    }
+
+    public function banAccountFromRequest(
+        ReviewAccountDisableRequestRequest $request,
+        int $id,
+        AccountDisableRequestService $service,
+    ): RedirectResponse {
+        $disableRequest = AccountDisableRequest::with('user')->findOrFail($id);
+
+        if ($disableRequest->user_id === Auth::id()) {
+            return back()->with('error', 'You cannot ban your own account.');
+        }
+
+        try {
+            $service->banAccount(
+                $disableRequest,
+                Auth::user(),
+                $request->validated('admin_message'),
+            );
+        } catch (\RuntimeException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return redirect()->route('admin.web.account-disable-requests', ['status' => 'action_taken'])
+            ->with('success', 'User account banned successfully.');
+    }
+
+    public function dismissAccountDisableRequest(
+        DismissAccountDisableRequestRequest $request,
+        int $id,
+        AccountDisableRequestService $service,
+    ): RedirectResponse {
+        $disableRequest = AccountDisableRequest::findOrFail($id);
+
+        try {
+            $service->dismiss(
+                $disableRequest,
+                Auth::user(),
+                $request->validated('admin_message'),
+            );
+        } catch (\RuntimeException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return redirect()->route('admin.web.account-disable-requests')
+            ->with('success', 'Request dismissed.');
+    }
+
+    public function reactivateAccountFromRequest(
+        DismissAccountDisableRequestRequest $request,
+        int $id,
+        AccountDisableRequestService $service,
+    ): RedirectResponse {
+        $disableRequest = AccountDisableRequest::with('user')->findOrFail($id);
+
+        if ($disableRequest->user_id === Auth::id()) {
+            return back()->with('error', 'You cannot reactivate your own account.');
+        }
+
+        try {
+            $service->reactivateAccount(
+                $disableRequest,
+                Auth::user(),
+                $request->validated('admin_message'),
+            );
+        } catch (\RuntimeException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return redirect()->route('admin.web.account-disable-requests', ['status' => 'action_taken'])
+            ->with('success', 'User account reactivated successfully.');
     }
 
     // -----------------------------------------------------------------------

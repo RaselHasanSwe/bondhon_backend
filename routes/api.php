@@ -29,6 +29,7 @@ use App\Http\Controllers\Api\V1\CallController;
 use App\Http\Controllers\Api\V1\ShortlistController;
 use App\Http\Controllers\Api\V1\SubscriptionController;
 use App\Http\Controllers\Api\V1\ContactMessageController;
+use App\Http\Controllers\Api\V1\AccountDisableRequestController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -159,6 +160,10 @@ Route::prefix('v1')->group(function () {
 
         // Report
         Route::post('/report', [ReportController::class, 'report']);
+
+        // Account Disable Request
+        Route::post('/account-disable-requests', [AccountDisableRequestController::class, 'store'])
+            ->middleware('throttle:5,1');
 
         // Profile Views — requires see_who_viewed_profile
         Route::get('/profile-views', [ProfileViewController::class, 'myViewers']);
