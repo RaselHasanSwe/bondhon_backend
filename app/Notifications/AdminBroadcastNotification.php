@@ -27,7 +27,7 @@ class AdminBroadcastNotification extends Notification implements ShouldQueue
         $siteName = app(SiteSettingService::class)->get('site_name', config('app.name', 'Bondhon'));
 
         return (new MailMessage)
-            ->subject($this->title)
+            ->subject($siteName . ' - ' . $this->title)
             ->greeting('Hello ' . ($notifiable->name ?? 'there') . '!')
             ->line($this->message)
             ->line('This message was sent by the ' . $siteName . ' admin team.')

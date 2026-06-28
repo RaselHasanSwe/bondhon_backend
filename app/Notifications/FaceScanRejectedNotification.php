@@ -21,8 +21,11 @@ class FaceScanRejectedNotification extends Notification
 
     public function toMail(object $notifiable): MailMessage
     {
+        $settings = app(SiteSettingService::class);
+        $siteName = $settings->get('site_name', config('app.name', 'Bondhon'));
+
         return (new MailMessage)
-            ->subject('Face Verification Requires Resubmission')
+            ->subject($siteName. ' - Face Verification Requires Resubmission')
             ->view('emails.face-scan-rejected', [
                 'user'   => $notifiable,
                 'reason' => $this->reason,

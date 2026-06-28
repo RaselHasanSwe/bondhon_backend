@@ -29,7 +29,7 @@ class MatchDigestMailable extends Mailable
         $siteName = app(SiteSettingService::class)->get('site_name', config('app.name', 'Bondhon'));
 
         return new Envelope(
-            subject: 'Your Daily Match Digest — ' . $siteName,
+            subject: $siteName . ' - Your Daily Match Digest',
         );
     }
 

@@ -3,7 +3,7 @@
 namespace App\Listeners;
 
 use App\Events\InterestReceived;
-use App\Jobs\SendEmailNotification;
+use App\Jobs\SendInterestReceivedEmail;
 use App\Services\NotificationService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\Cache;
@@ -60,15 +60,8 @@ class SendInterestNotification implements ShouldQueue
             // Send in-app notification via NotificationService
             $this->notificationService->notifyInterestReceived($receiver, $sender);
 
-            // Dispatch email notification job (queued)
-            SendEmailNotification::dispatch(
-                $receiver,
-                'interest_received',
-                [
-                    'sender_name'    => $sender->name,
-                    'sender_profile' => $sender->profile?->profile_id,
-                ]
-            );
+            // Dispatch delayed interest-received email (see config/notifications.php)
+            SendInterestReceivedEmail::dispatch($interest->id);
 
             Log::info('[INTEREST NOTIFICATION - Created] Successfully created notification for Interest ID: ' . $interest->id);
         } finally {
