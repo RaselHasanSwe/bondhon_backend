@@ -111,6 +111,7 @@ class MatchController extends ApiController
                     'photos' => fn ($q) => $q->where('is_approved', true)->where('is_private', false)->where('is_primary', true),
                 ])
                 ->where('id', $profile->user_id)
+                ->where('role', 'user')
                 ->where('is_active', true)
                 ->where('is_banned', false)
                 ->whereNotNull('email_verified_at')
@@ -146,6 +147,7 @@ class MatchController extends ApiController
             ->leftJoin('family_details', 'family_details.user_id', '=', 'users.id')
             ->select('users.*')
             ->where('users.gender', $gender)
+            ->where('users.role', 'user')
             ->where('users.is_active', true)
             ->where('users.is_banned', false)
             ->whereNotNull('users.email_verified_at')

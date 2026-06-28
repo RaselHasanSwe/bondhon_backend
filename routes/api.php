@@ -142,6 +142,7 @@ Route::prefix('v1')->group(function () {
             Route::post('/', [InterestController::class, 'send']);
             Route::get('/received', [InterestController::class, 'received']);
             Route::get('/sent', [InterestController::class, 'sent']);
+            Route::get('/contacts', [InterestController::class, 'contacts']);
             Route::get('/status/{userId}', [InterestController::class, 'checkStatus']);
             Route::put('/{id}/accept', [InterestController::class, 'accept']);
             Route::put('/{id}/decline', [InterestController::class, 'decline']);

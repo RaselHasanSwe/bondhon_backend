@@ -6,6 +6,7 @@ use App\Events\InterestReceived;
 use App\Http\Requests\Interest\SendInterestRequest;
 use App\Http\Resources\InterestResource;
 use App\Models\Block;
+use App\Models\Conversation;
 use App\Models\Interest;
 use App\Models\User;
 use App\Services\NotificationService;
@@ -108,7 +109,7 @@ class InterestController extends ApiController
         $user = $request->user();
         Log::info('[INTEREST - Received] User ID: ' . $user->id);
 
-        $interests = Interest::with([
+        $query = Interest::with([
                 'sender',
                 'sender.profile',
                 'sender.religiousDetail',
@@ -116,9 +117,13 @@ class InterestController extends ApiController
                 'sender.faceScanSession',
                 'sender.photos' => fn ($q) => $q->where('is_approved', true)->where('is_primary', true),
             ])
-            ->where('receiver_id', $user->id)
-            ->orderByDesc('created_at')
-            ->paginate(20);
+            ->where('receiver_id', $user->id);
+
+        $this->applyUserSearch($query, $request->input('search'), 'sender');
+
+        $interests = $query->orderByDesc('created_at')->paginate(20);
+
+        $this->attachConversationMeta($interests->getCollection(), $user);
 
         return $this->successResponse(
             InterestResource::collection($interests)->response()->getData(true),
@@ -135,7 +140,7 @@ class InterestController extends ApiController
         $user = $request->user();
         Log::info('[INTEREST - Sent] User ID: ' . $user->id);
 
-        $interests = Interest::with([
+        $query = Interest::with([
                 'receiver',
                 'receiver.profile',
                 'receiver.religiousDetail',
@@ -143,13 +148,58 @@ class InterestController extends ApiController
                 'receiver.faceScanSession',
                 'receiver.photos' => fn ($q) => $q->where('is_approved', true)->where('is_primary', true),
             ])
-            ->where('sender_id', $user->id)
-            ->orderByDesc('created_at')
-            ->paginate(20);
+            ->where('sender_id', $user->id);
+
+        $this->applyUserSearch($query, $request->input('search'), 'receiver');
+
+        $interests = $query->orderByDesc('created_at')->paginate(20);
+
+        $this->attachConversationMeta($interests->getCollection(), $user);
 
         return $this->successResponse(
             InterestResource::collection($interests)->response()->getData(true),
             'Sent interests retrieved.'
+        );
+    }
+
+    /**
+     * GET /api/v1/interests/contacts
+     * List accepted connections for the authenticated user.
+     */
+    public function contacts(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        Log::info('[INTEREST - Contacts] User ID: ' . $user->id);
+
+        $query = Interest::with([
+                'sender',
+                'sender.profile',
+                'sender.religiousDetail',
+                'sender.educationCareer',
+                'sender.faceScanSession',
+                'sender.photos' => fn ($q) => $q->where('is_approved', true)->where('is_primary', true),
+                'receiver',
+                'receiver.profile',
+                'receiver.religiousDetail',
+                'receiver.educationCareer',
+                'receiver.faceScanSession',
+                'receiver.photos' => fn ($q) => $q->where('is_approved', true)->where('is_primary', true),
+            ])
+            ->where('status', 'accepted')
+            ->where(function ($q) use ($user) {
+                $q->where('sender_id', $user->id)
+                    ->orWhere('receiver_id', $user->id);
+            });
+
+        $this->applyContactSearch($query, $user, $request->input('search'));
+
+        $interests = $query->orderByDesc('updated_at')->paginate(20);
+
+        $this->attachConversationMeta($interests->getCollection(), $user);
+
+        return $this->successResponse(
+            InterestResource::collection($interests)->response()->getData(true),
+            'Contacts retrieved.'
         );
     }
 
@@ -215,6 +265,98 @@ class InterestController extends ApiController
     // -----------------------------------------------------------------------
     // Private helpers
     // -----------------------------------------------------------------------
+
+    private function applyUserSearch($query, ?string $search, string $relation): void
+    {
+        $search = trim((string) $search);
+        if ($search === '') {
+            return;
+        }
+
+        $query->whereHas($relation, function ($userQuery) use ($search) {
+            $this->applyProfileKeywordSearch($userQuery, $search);
+        });
+    }
+
+    private function applyContactSearch($query, User $user, ?string $search): void
+    {
+        $search = trim((string) $search);
+        if ($search === '') {
+            return;
+        }
+
+        $query->where(function ($interestQuery) use ($user, $search) {
+            $interestQuery
+                ->where(function ($q) use ($user, $search) {
+                    $q->where('sender_id', $user->id)
+                        ->whereHas('receiver', fn ($userQuery) => $this->applyProfileKeywordSearch($userQuery, $search));
+                })
+                ->orWhere(function ($q) use ($user, $search) {
+                    $q->where('receiver_id', $user->id)
+                        ->whereHas('sender', fn ($userQuery) => $this->applyProfileKeywordSearch($userQuery, $search));
+                });
+        });
+    }
+
+    private function applyProfileKeywordSearch($userQuery, string $search): void
+    {
+        $userQuery->where(function ($q) use ($search) {
+            $q->where('name', 'like', '%' . $search . '%')
+                ->orWhereHas('profile', function ($profileQuery) use ($search) {
+                    $profileQuery->where('profile_id', 'like', '%' . $search . '%')
+                        ->orWhere('city', 'like', '%' . $search . '%')
+                        ->orWhere('state', 'like', '%' . $search . '%')
+                        ->orWhere('country', 'like', '%' . $search . '%');
+                })
+                ->orWhereHas('religiousDetail', function ($religionQuery) use ($search) {
+                    $religionQuery->where('religion', 'like', '%' . $search . '%');
+                })
+                ->orWhereHas('educationCareer', function ($careerQuery) use ($search) {
+                    $careerQuery->where('profession', 'like', '%' . $search . '%')
+                        ->orWhere('highest_education', 'like', '%' . $search . '%');
+                });
+        });
+    }
+
+    private function attachConversationMeta($interests, User $user): void
+    {
+        if ($interests->isEmpty()) {
+            return;
+        }
+
+        $otherUserIds = $interests->map(function (Interest $interest) use ($user) {
+            return $interest->sender_id === $user->id ? $interest->receiver_id : $interest->sender_id;
+        })->unique()->values();
+
+        $conversationMap = Conversation::query()
+            ->where(function ($q) use ($user, $otherUserIds) {
+                foreach ($otherUserIds as $otherId) {
+                    [$userOneId, $userTwoId] = $user->id < $otherId
+                        ? [$user->id, $otherId]
+                        : [$otherId, $user->id];
+
+                    $q->orWhere(function ($pair) use ($userOneId, $userTwoId) {
+                        $pair->where('user_one_id', $userOneId)
+                            ->where('user_two_id', $userTwoId);
+                    });
+                }
+            })
+            ->get()
+            ->keyBy(function (Conversation $conversation) use ($user) {
+                return $conversation->user_one_id === $user->id
+                    ? $conversation->user_two_id
+                    : $conversation->user_one_id;
+            });
+
+        $interests->each(function (Interest $interest) use ($user, $conversationMap) {
+            $otherUserId = $interest->sender_id === $user->id ? $interest->receiver_id : $interest->sender_id;
+            $interest->setAttribute('can_message', $interest->status === 'accepted');
+            $interest->setAttribute(
+                'conversation_id',
+                $conversationMap->get($otherUserId)?->id
+            );
+        });
+    }
 
     private function updateStatus(User $user, int $interestId, string $newStatus, string $message): JsonResponse
     {
