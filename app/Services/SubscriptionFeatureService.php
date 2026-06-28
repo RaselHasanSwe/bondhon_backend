@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
 use App\Models\User;
 use Illuminate\Support\Facades\Cache;
@@ -267,6 +268,40 @@ class SubscriptionFeatureService
         }
 
         return $usedThisMonth < $limit;
+    }
+
+    /**
+     * Get the user's currently active subscription record, if any.
+     */
+    public function getActiveSubscription(User $user): ?Subscription
+    {
+        if ($user->active_subscription_id) {
+            $sub = Subscription::where('id', $user->active_subscription_id)
+                ->where('user_id', $user->id)
+                ->where('status', 'active')
+                ->where(fn ($q) => $q->whereNull('expires_at')->orWhere('expires_at', '>', now()))
+                ->first();
+
+            if ($sub) {
+                return $sub;
+            }
+        }
+
+        return Subscription::where('user_id', $user->id)
+            ->where('status', 'active')
+            ->where(fn ($q) => $q->whereNull('expires_at')->orWhere('expires_at', '>', now()))
+            ->latest('expires_at')
+            ->first();
+    }
+
+    /**
+     * Whether the user has an active paid (non-free) subscription.
+     */
+    public function hasPaidSubscription(User $user): bool
+    {
+        $sub = $this->getActiveSubscription($user);
+
+        return $sub !== null && (float) $sub->amount_bdt > 0;
     }
 
     /**

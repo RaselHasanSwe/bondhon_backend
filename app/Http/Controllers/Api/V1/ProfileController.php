@@ -13,6 +13,7 @@ use App\Services\ProfileCompletionService;
 use App\Services\ProfilePhotoStorageService;
 use App\Services\NotificationService;
 use App\Services\SiteSettingService;
+use App\Services\SubscriptionFeatureService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -28,6 +29,7 @@ class ProfileController extends ApiController
         private readonly ProfilePhotoStorageService $photoStorage,
         private readonly SiteSettingService $siteSettings,
         private readonly NotificationService $notificationService,
+        private readonly SubscriptionFeatureService $featureService,
     ) {}
 
     #[OA\Get(
@@ -100,11 +102,49 @@ class ProfileController extends ApiController
                 return $this->errorResponse('This profile is not available.', null, 403);
             }
 
+            $hasPaidPlan = $this->featureService->hasPaidSubscription($currentUser);
+
+            if (! $hasPaidPlan) {
+                Log::warning('[PROFILE - ShowById] Free plan profile access denied. Viewer: ' . $currentUser->id);
+
+                return $this->errorResponse(
+                    'Upgrade your plan to view full profiles.',
+                    ['feature' => 'full_profile_access'],
+                    403
+                );
+            }
+
+            $viewsToday = ProfileView::where('viewer_id', $currentUser->id)
+                ->whereDate('viewed_at', today())
+                ->count();
+
+            $alreadyViewedToday = ProfileView::where('viewer_id', $currentUser->id)
+                ->where('viewed_id', $targetUser->id)
+                ->whereDate('viewed_at', today())
+                ->exists();
+
+            if (! $alreadyViewedToday && ! $this->featureService->withinDailyLimit($currentUser, 'profile_views_per_day', $viewsToday)) {
+                $limit = (int) $this->featureService->value($currentUser, 'profile_views_per_day');
+                Log::warning('[PROFILE - ShowById] Daily view limit reached. Viewer: ' . $currentUser->id);
+
+                return $this->errorResponse(
+                    "You have reached your daily profile view limit ({$limit}/day). Upgrade your plan to view more profiles.",
+                    ['feature' => 'profile_views_per_day', 'limit' => $limit, 'used' => $viewsToday],
+                    403
+                );
+            }
+
             $this->recordProfileView($currentUser, $targetUser);
+
+            $viewsTodayAfter = $alreadyViewedToday ? $viewsToday : $viewsToday + 1;
+            $accessMeta      = $this->buildProfileAccessMeta($currentUser, $viewsTodayAfter, true);
+
+            $profileData           = $this->formatPublicProfile($targetUser, $currentUser);
+            $profileData['access'] = $accessMeta;
 
             Log::info('[PROFILE - ShowById] Success. Viewer: ' . $currentUser->id . ' | Viewed: ' . $targetUser->id);
 
-            return $this->successResponse($this->formatPublicProfile($targetUser, $currentUser), 'Profile retrieved successfully.');
+            return $this->successResponse($profileData, 'Profile retrieved successfully.');
 
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             Log::warning('[PROFILE - ShowById] Profile not found: ' . $profileId);
@@ -495,6 +535,24 @@ class ProfileController extends ApiController
             'horoscope_detail'   => $user->horoscopeDetail,
             'partner_preference' => $user->partnerPreference,
             'photos'             => $user->photos,
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function buildProfileAccessMeta(User $viewer, int $viewsToday, bool $hasPaidPlan): array
+    {
+        $limit = (int) $this->featureService->value($viewer, 'profile_views_per_day');
+
+        return [
+            'full_profile'          => $hasPaidPlan,
+            'profile_views_per_day' => [
+                'limit'     => $limit,
+                'used'      => $viewsToday,
+                'unlimited' => $limit < 0,
+                'remaining' => $limit < 0 ? null : max(0, $limit - $viewsToday),
+            ],
         ];
     }
 

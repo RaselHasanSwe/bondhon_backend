@@ -175,8 +175,17 @@ test('user can get profile completion status', function () {
 // ─── View Another Profile (GET /api/v1/profile/{profileId}) ──────────────────
 
 test('user can view another user profile by profile id', function () {
-    $viewer = User::factory()->create();
+    $viewer = User::factory()->create(['subscription_plan' => 'silver']);
     Profile::factory()->create(['user_id' => $viewer->id]);
+    $subscription = \App\Models\Subscription::factory()->active()->create([
+        'user_id'    => $viewer->id,
+        'plan'       => 'silver',
+        'amount_bdt' => 499,
+    ]);
+    $viewer->update([
+        'active_subscription_id'  => $subscription->id,
+        'subscription_expires_at' => $subscription->expires_at,
+    ]);
 
     $other = User::factory()->create();
     Profile::factory()->create(['user_id' => $other->id, 'profile_id' => 'BON-999999']);
@@ -186,9 +195,92 @@ test('user can view another user profile by profile id', function () {
     $response->assertStatus(200)->assertJson(['success' => true]);
 });
 
-test('view profile records profile view', function () {
-    $viewer = User::factory()->create();
+test('free user cannot view another users profile', function () {
+    $viewer = User::factory()->create(['subscription_plan' => 'free']);
     Profile::factory()->create(['user_id' => $viewer->id]);
+
+    $other = User::factory()->create();
+    Profile::factory()->create(['user_id' => $other->id, 'profile_id' => 'BON-999999']);
+
+    $response = $this->actingAs($viewer)->getJson('/api/v1/profile/BON-999999');
+
+    $response->assertStatus(403)
+        ->assertJsonPath('errors.feature', 'full_profile_access');
+});
+
+test('paid user receives full profile access', function () {
+    $viewer = User::factory()->create(['subscription_plan' => 'silver']);
+    Profile::factory()->create(['user_id' => $viewer->id]);
+
+    $subscription = \App\Models\Subscription::factory()->active()->create([
+        'user_id'    => $viewer->id,
+        'plan'       => 'silver',
+        'amount_bdt' => 499,
+    ]);
+    $viewer->update([
+        'active_subscription_id'  => $subscription->id,
+        'subscription_expires_at' => $subscription->expires_at,
+    ]);
+
+    $other = User::factory()->create();
+    Profile::factory()->create(['user_id' => $other->id, 'profile_id' => 'BON-888888']);
+
+    $response = $this->actingAs($viewer)->getJson('/api/v1/profile/BON-888888');
+
+    $response->assertStatus(200)
+        ->assertJsonPath('data.access.full_profile', true)
+        ->assertJsonStructure([
+            'data' => [
+                'access' => ['full_profile', 'profile_views_per_day' => ['limit', 'used', 'unlimited', 'remaining']],
+            ],
+        ]);
+});
+
+test('paid user cannot exceed daily profile view limit', function () {
+    $viewer = User::factory()->create(['subscription_plan' => 'silver']);
+    Profile::factory()->create(['user_id' => $viewer->id]);
+
+    $subscription = \App\Models\Subscription::factory()->active()->create([
+        'user_id'    => $viewer->id,
+        'plan'       => 'silver',
+        'amount_bdt' => 499,
+    ]);
+    $viewer->update([
+        'active_subscription_id'  => $subscription->id,
+        'subscription_expires_at' => $subscription->expires_at,
+    ]);
+
+    for ($i = 0; $i < 10; $i++) {
+        $other = User::factory()->create();
+        Profile::factory()->create(['user_id' => $other->id, 'profile_id' => 'BON-LIM' . str_pad((string) $i, 3, '0', STR_PAD_LEFT)]);
+        \App\Models\ProfileView::create([
+            'viewer_id' => $viewer->id,
+            'viewed_id' => $other->id,
+            'viewed_at' => now(),
+        ]);
+    }
+
+    $blocked = User::factory()->create();
+    Profile::factory()->create(['user_id' => $blocked->id, 'profile_id' => 'BON-LIMITED']);
+
+    $response = $this->actingAs($viewer)->getJson('/api/v1/profile/BON-LIMITED');
+
+    $response->assertStatus(403)
+        ->assertJsonPath('errors.feature', 'profile_views_per_day');
+});
+
+test('view profile records profile view', function () {
+    $viewer = User::factory()->create(['subscription_plan' => 'silver']);
+    Profile::factory()->create(['user_id' => $viewer->id]);
+    $subscription = \App\Models\Subscription::factory()->active()->create([
+        'user_id'    => $viewer->id,
+        'plan'       => 'silver',
+        'amount_bdt' => 499,
+    ]);
+    $viewer->update([
+        'active_subscription_id'  => $subscription->id,
+        'subscription_expires_at' => $subscription->expires_at,
+    ]);
 
     $other = User::factory()->create();
     Profile::factory()->create(['user_id' => $other->id, 'profile_id' => 'BON-888888']);
