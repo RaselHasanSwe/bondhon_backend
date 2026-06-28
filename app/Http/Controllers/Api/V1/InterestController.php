@@ -9,6 +9,7 @@ use App\Models\Block;
 use App\Models\Conversation;
 use App\Models\Interest;
 use App\Models\User;
+use App\Services\InterestService;
 use App\Services\NotificationService;
 use App\Services\SubscriptionFeatureService;
 use Illuminate\Http\JsonResponse;
@@ -21,6 +22,7 @@ class InterestController extends ApiController
     public function __construct(
         private readonly NotificationService $notificationService,
         private readonly SubscriptionFeatureService $featureService,
+        private readonly InterestService $interestService,
     ) {}
     /**
      * POST /api/v1/interests
@@ -62,11 +64,12 @@ class InterestController extends ApiController
 
         // Check for existing pending or accepted interest between this pair
         $existing = Interest::where(function ($q) use ($sender, $receiverId) {
+            $q->where(function ($q) use ($sender, $receiverId) {
                 $q->where('sender_id', $sender->id)->where('receiver_id', $receiverId);
-            })
-            ->orWhere(function ($q) use ($sender, $receiverId) {
+            })->orWhere(function ($q) use ($sender, $receiverId) {
                 $q->where('sender_id', $receiverId)->where('receiver_id', $sender->id);
-            })
+            });
+        })
             ->whereIn('status', ['pending', 'accepted'])
             ->first();
 
@@ -77,11 +80,55 @@ class InterestController extends ApiController
             return $this->errorResponse($msg, null, 422);
         }
 
+        $inactiveOutgoing = Interest::where('sender_id', $sender->id)
+            ->where('receiver_id', $receiverId)
+            ->whereIn('status', ['declined', 'ignored', 'expired'])
+            ->first();
+
+        if ($inactiveOutgoing) {
+            if (! $this->interestService->canSenderResend($inactiveOutgoing)) {
+                return $this->errorResponse(
+                    'You have reached the maximum number of interest attempts with this user.',
+                    [
+                        'max_attempts' => $this->interestService->maxSendAttempts(),
+                        'max_resends'  => $this->interestService->maxResendAttempts(),
+                    ],
+                    422
+                );
+            }
+
+            $interest = DB::transaction(function () use ($inactiveOutgoing) {
+                $inactiveOutgoing->update([
+                    'status'     => 'pending',
+                    'expires_at' => now()->addDays(30),
+                    'send_count' => $this->interestService->sendCount($inactiveOutgoing) + 1,
+                ]);
+
+                return $inactiveOutgoing->fresh();
+            });
+
+            $interest->load(['sender', 'receiver']);
+            event(new InterestReceived($interest));
+
+            Log::info('[INTEREST - Resend] Reactivated. Interest ID: ' . $interest->id
+                . ' | Send count: ' . $interest->send_count
+                . ' | Sender: ' . $sender->id . ' | Receiver: ' . $receiverId);
+
+            $interest->load(['sender.profile', 'sender.photos', 'receiver.profile', 'receiver.photos']);
+
+            return $this->successResponse(
+                InterestResource::make($interest),
+                'Interest sent successfully.',
+                201
+            );
+        }
+
         $interest = DB::transaction(function () use ($sender, $receiverId) {
             return Interest::create([
                 'sender_id'   => $sender->id,
                 'receiver_id' => $receiverId,
                 'status'      => 'pending',
+                'send_count'  => 1,
                 'expires_at'  => now()->addDays(30),
             ]);
         });
@@ -239,27 +286,14 @@ class InterestController extends ApiController
         $currentUser = $request->user();
         Log::info('[INTEREST - CheckStatus] Current User: ' . $currentUser->id . ' | Target User: ' . $userId);
 
-        // Check for existing interest in either direction
-        $interest = Interest::where(function ($q) use ($currentUser, $userId) {
-                $q->where('sender_id', $currentUser->id)->where('receiver_id', $userId);
-            })
-            ->orWhere(function ($q) use ($currentUser, $userId) {
-                $q->where('sender_id', $userId)->where('receiver_id', $currentUser->id);
-            })
-            ->whereIn('status', ['pending', 'accepted'])
-            ->latest()
-            ->first();
+        $payload = $this->interestService->buildStatusPayloadForUser($currentUser, $userId);
 
-        if (!$interest) {
-            return $this->successResponse(['status' => 'none'], 'No interest found.');
-        }
-
-        return $this->successResponse([
-            'status'      => $interest->status,
-            'is_sender'   => $interest->sender_id === $currentUser->id,
-            'created_at'  => $interest->created_at,
-            'expires_at'  => $interest->expires_at,
-        ], 'Interest status retrieved.');
+        return $this->successResponse(
+            $payload,
+            $payload['status'] === 'none' && ! $payload['interest_id']
+                ? 'No interest found.'
+                : 'Interest status retrieved.'
+        );
     }
 
     // -----------------------------------------------------------------------

@@ -9,6 +9,7 @@ use App\Models\ProfilePhoto;
 use App\Models\ProfileView;
 use App\Models\Interest;
 use App\Models\User;
+use App\Jobs\SendProfileViewedEmail;
 use App\Services\ProfileCompletionService;
 use App\Services\ProfilePhotoStorageService;
 use App\Services\NotificationService;
@@ -102,6 +103,8 @@ class ProfileController extends ApiController
                 return $this->errorResponse('This profile is not available.', null, 403);
             }
 
+            $isOwnProfile = $currentUser->id === $targetUser->id;
+
             $hasPaidPlan = $this->featureService->hasPaidSubscription($currentUser);
 
             if (! $hasPaidPlan) {
@@ -115,6 +118,7 @@ class ProfileController extends ApiController
             }
 
             $viewsToday = ProfileView::where('viewer_id', $currentUser->id)
+                ->where('viewed_id', '!=', $currentUser->id)
                 ->whereDate('viewed_at', today())
                 ->count();
 
@@ -123,7 +127,7 @@ class ProfileController extends ApiController
                 ->whereDate('viewed_at', today())
                 ->exists();
 
-            if (! $alreadyViewedToday && ! $this->featureService->withinDailyLimit($currentUser, 'profile_views_per_day', $viewsToday)) {
+            if (! $isOwnProfile && ! $alreadyViewedToday && ! $this->featureService->withinDailyLimit($currentUser, 'profile_views_per_day', $viewsToday)) {
                 $limit = (int) $this->featureService->value($currentUser, 'profile_views_per_day');
                 Log::warning('[PROFILE - ShowById] Daily view limit reached. Viewer: ' . $currentUser->id);
 
@@ -134,9 +138,11 @@ class ProfileController extends ApiController
                 );
             }
 
-            $this->recordProfileView($currentUser, $targetUser);
+            if (! $isOwnProfile) {
+                $this->recordProfileView($currentUser, $targetUser);
+            }
 
-            $viewsTodayAfter = $alreadyViewedToday ? $viewsToday : $viewsToday + 1;
+            $viewsTodayAfter = $isOwnProfile || $alreadyViewedToday ? $viewsToday : $viewsToday + 1;
             $accessMeta      = $this->buildProfileAccessMeta($currentUser, $viewsTodayAfter, true);
 
             $profileData           = $this->formatPublicProfile($targetUser, $currentUser);
@@ -496,6 +502,10 @@ class ProfileController extends ApiController
 
     private function recordProfileView(User $viewer, User $viewed): void
     {
+        if ($viewer->id === $viewed->id) {
+            return;
+        }
+
         try {
             $exists = ProfileView::where('viewer_id', $viewer->id)
                 ->where('viewed_id', $viewed->id)
@@ -509,6 +519,11 @@ class ProfileController extends ApiController
                     'viewed_at' => now(),
                 ]);
                 Log::info('[PROFILE VIEW - Record] Viewer: ' . $viewer->id . ' | Viewed: ' . $viewed->id);
+
+                if ($this->featureService->hasPaidSubscription($viewed)) {
+                    $this->notificationService->notifyProfileViewed($viewed, $viewer);
+                    SendProfileViewedEmail::dispatch($viewer->id, $viewed->id);
+                }
             }
         } catch (\Throwable $e) {
             // Non-critical — log but do not fail the request

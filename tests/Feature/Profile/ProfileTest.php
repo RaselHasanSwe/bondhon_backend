@@ -293,6 +293,101 @@ test('view profile records profile view', function () {
     ]);
 });
 
+test('viewing own profile does not record a profile view', function () {
+    \Illuminate\Support\Facades\Queue::fake();
+
+    $user = User::factory()->create(['subscription_plan' => 'silver']);
+    Profile::factory()->create(['user_id' => $user->id, 'profile_id' => 'BON-SELFV']);
+    $subscription = \App\Models\Subscription::factory()->active()->create([
+        'user_id'    => $user->id,
+        'plan'       => 'silver',
+        'amount_bdt' => 499,
+    ]);
+    $user->update([
+        'active_subscription_id'  => $subscription->id,
+        'subscription_expires_at' => $subscription->expires_at,
+    ]);
+
+    $response = $this->actingAs($user)->getJson('/api/v1/profile/BON-SELFV');
+
+    $response->assertStatus(200);
+
+    $this->assertDatabaseMissing('profile_views', [
+        'viewer_id' => $user->id,
+        'viewed_id' => $user->id,
+    ]);
+
+    \Illuminate\Support\Facades\Queue::assertNotPushed(\App\Jobs\SendProfileViewedEmail::class);
+});
+
+test('view profile notifies paid profile owner with in-app and email', function () {
+    \Illuminate\Support\Facades\Queue::fake();
+
+    $viewer = User::factory()->create(['subscription_plan' => 'silver']);
+    Profile::factory()->create(['user_id' => $viewer->id]);
+    $viewerSubscription = \App\Models\Subscription::factory()->active()->create([
+        'user_id'    => $viewer->id,
+        'plan'       => 'silver',
+        'amount_bdt' => 499,
+    ]);
+    $viewer->update([
+        'active_subscription_id'  => $viewerSubscription->id,
+        'subscription_expires_at' => $viewerSubscription->expires_at,
+    ]);
+
+    $viewed = User::factory()->create(['subscription_plan' => 'gold']);
+    Profile::factory()->create(['user_id' => $viewed->id, 'profile_id' => 'BON-NOTIFY']);
+    $viewedSubscription = \App\Models\Subscription::factory()->active()->create([
+        'user_id'    => $viewed->id,
+        'plan'       => 'gold',
+        'amount_bdt' => 699,
+    ]);
+    $viewed->update([
+        'active_subscription_id'  => $viewedSubscription->id,
+        'subscription_expires_at' => $viewedSubscription->expires_at,
+    ]);
+
+    $this->actingAs($viewer)->getJson('/api/v1/profile/BON-NOTIFY');
+
+    $this->assertDatabaseHas('notifications', [
+        'notifiable_id'   => $viewed->id,
+        'notifiable_type' => User::class,
+        'type'            => 'profile_viewed',
+    ]);
+
+    \Illuminate\Support\Facades\Queue::assertPushed(\App\Jobs\SendProfileViewedEmail::class, function ($job) use ($viewer, $viewed) {
+        return $job->viewerId === $viewer->id && $job->viewedId === $viewed->id;
+    });
+});
+
+test('view profile does not notify free profile owner', function () {
+    \Illuminate\Support\Facades\Queue::fake();
+
+    $viewer = User::factory()->create(['subscription_plan' => 'silver']);
+    Profile::factory()->create(['user_id' => $viewer->id]);
+    $viewerSubscription = \App\Models\Subscription::factory()->active()->create([
+        'user_id'    => $viewer->id,
+        'plan'       => 'silver',
+        'amount_bdt' => 499,
+    ]);
+    $viewer->update([
+        'active_subscription_id'  => $viewerSubscription->id,
+        'subscription_expires_at' => $viewerSubscription->expires_at,
+    ]);
+
+    $viewed = User::factory()->create(['subscription_plan' => 'free']);
+    Profile::factory()->create(['user_id' => $viewed->id, 'profile_id' => 'BON-FREENOTIFY']);
+
+    $this->actingAs($viewer)->getJson('/api/v1/profile/BON-FREENOTIFY');
+
+    $this->assertDatabaseMissing('notifications', [
+        'notifiable_id' => $viewed->id,
+        'type'          => 'profile_viewed',
+    ]);
+
+    \Illuminate\Support\Facades\Queue::assertNotPushed(\App\Jobs\SendProfileViewedEmail::class);
+});
+
 test('blocked user cannot view profile', function () {
     $viewer = User::factory()->create();
     Profile::factory()->create(['user_id' => $viewer->id]);

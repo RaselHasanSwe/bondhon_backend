@@ -23,6 +23,7 @@ class SendInterestReceivedEmail implements ShouldQueue, ShouldBeUnique
 
     public function __construct(
         public readonly int $interestId,
+        public readonly int $sendCount = 1,
     ) {
         $this->delay(
             now()->addSeconds(config('notifications.interest_received_email_delay_seconds', 60))
@@ -31,7 +32,7 @@ class SendInterestReceivedEmail implements ShouldQueue, ShouldBeUnique
 
     public function uniqueId(): string
     {
-        return 'interest-received-email-' . $this->interestId;
+        return 'interest-received-email-' . $this->interestId . '-' . $this->sendCount;
     }
 
     public function handle(): void
@@ -60,6 +61,12 @@ class SendInterestReceivedEmail implements ShouldQueue, ShouldBeUnique
             return;
         }
 
+        if ((int) $interest->send_count !== $this->sendCount) {
+            Log::info('[INTEREST EMAIL] Skipped — send count mismatch. ID: ' . $this->interestId);
+
+            return;
+        }
+
         $receiver = $interest->receiver;
         $sender   = $interest->sender;
 
@@ -76,6 +83,7 @@ class SendInterestReceivedEmail implements ShouldQueue, ShouldBeUnique
         }
 
         Log::info('[INTEREST EMAIL] Sending. Interest ID: ' . $this->interestId
+            . ' | Send count: ' . $this->sendCount
             . ' | Sender: ' . $sender->id . ' → Receiver: ' . $receiver->id);
 
         Mail::to($receiver->email)->send(new InterestReceivedMailable($receiver, $sender));

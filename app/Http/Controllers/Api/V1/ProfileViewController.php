@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Resources\ProfileViewResource;
 use App\Models\ProfileView;
+use App\Services\InterestService;
 use App\Services\SubscriptionFeatureService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -11,7 +12,10 @@ use Illuminate\Support\Facades\Log;
 
 class ProfileViewController extends ApiController
 {
-    public function __construct(private readonly SubscriptionFeatureService $featureService) {}
+    public function __construct(
+        private readonly SubscriptionFeatureService $featureService,
+        private readonly InterestService $interestService,
+    ) {}
 
     /**
      * GET /api/v1/profile-views
@@ -22,7 +26,6 @@ class ProfileViewController extends ApiController
         $user = $request->user();
         Log::info('[PROFILE VIEW - MyViewers] User ID: ' . $user->id);
 
-        // Feature check: see_who_viewed_profile
         if (! $this->featureService->can($user, 'see_who_viewed_profile')) {
             return $this->errorResponse(
                 'Viewing your profile visitors requires an upgraded subscription plan.',
@@ -31,7 +34,7 @@ class ProfileViewController extends ApiController
             );
         }
 
-        $views = ProfileView::with([
+        $query = ProfileView::with([
                 'viewer',
                 'viewer.profile',
                 'viewer.religiousDetail',
@@ -40,13 +43,53 @@ class ProfileViewController extends ApiController
                 'viewer.photos' => fn ($q) => $q->where('is_approved', true)->where('is_primary', true),
             ])
             ->where('viewed_id', $user->id)
-            ->orderByDesc('viewed_at')
-            ->paginate(20);
+            ->where('viewer_id', '!=', $user->id);
+
+        $this->applyViewerSearch($query, $request->input('search'));
+
+        $views = $query->orderByDesc('viewed_at')->paginate(20);
+
+        $this->interestService->attachConnectionMetaToItems(
+            $user,
+            $views->getCollection(),
+            fn (ProfileView $view) => $view->viewer_id
+        );
 
         return $this->successResponse(
             ProfileViewResource::collection($views)->response()->getData(true),
             'Profile viewers retrieved.'
         );
     }
-}
 
+    private function applyViewerSearch($query, ?string $search): void
+    {
+        $search = trim((string) $search);
+        if ($search === '') {
+            return;
+        }
+
+        $query->whereHas('viewer', function ($userQuery) use ($search) {
+            $this->applyProfileKeywordSearch($userQuery, $search);
+        });
+    }
+
+    private function applyProfileKeywordSearch($userQuery, string $search): void
+    {
+        $userQuery->where(function ($q) use ($search) {
+            $q->where('name', 'like', '%' . $search . '%')
+                ->orWhereHas('profile', function ($profileQuery) use ($search) {
+                    $profileQuery->where('profile_id', 'like', '%' . $search . '%')
+                        ->orWhere('city', 'like', '%' . $search . '%')
+                        ->orWhere('state', 'like', '%' . $search . '%')
+                        ->orWhere('country', 'like', '%' . $search . '%');
+                })
+                ->orWhereHas('religiousDetail', function ($religionQuery) use ($search) {
+                    $religionQuery->where('religion', 'like', '%' . $search . '%');
+                })
+                ->orWhereHas('educationCareer', function ($careerQuery) use ($search) {
+                    $careerQuery->where('profession', 'like', '%' . $search . '%')
+                        ->orWhere('highest_education', 'like', '%' . $search . '%');
+                });
+        });
+    }
+}
