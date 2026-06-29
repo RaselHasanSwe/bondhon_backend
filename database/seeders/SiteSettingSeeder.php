@@ -16,8 +16,8 @@ class SiteSettingSeeder extends Seeder
             'site_favicon'       => null,
             'currency'           => 'BDT',
             'currency_symbol'    => '৳',
-            'contact_email'      => 'support@Enorsia.com',
-            'contact_phone'      => '+880 1700-000000',
+            'contact_email'      => 'info@enorsia.com',
+            'contact_phone'      => '+880 1770-744894',
             'contact_address'    => 'Dhaka, Bangladesh',
             'facebook_url'       => 'https://facebook.com/Enorsia',
             'twitter_url'        => 'https://twitter.com/Enorsia',
@@ -26,9 +26,9 @@ class SiteSettingSeeder extends Seeder
             'meta_title'         => 'Enorsia — Premium Matrimony Platform',
             'meta_description'   => 'Find your perfect life partner on Enorsia — Bangladesh\'s most trusted premium matrimony platform.',
             'meta_keywords'      => 'matrimony, marriage, bride, groom, matchmaking, Bangladesh',
-            'face_scan_enabled'  => true,
-            'email_verification_enabled' => true,
-            'photo_auto_approval_enabled' => false,
+            'face_scan_enabled'  => false,
+            'email_verification_enabled' => false,
+            'photo_auto_approval_enabled' => true,
         ];
 
         foreach ($defaults as $key => $value) {

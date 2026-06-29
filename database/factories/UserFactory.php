@@ -12,31 +12,24 @@ use Illuminate\Support\Str;
  */
 class UserFactory extends Factory
 {
-    /**
-     * The current password being used by the factory.
-     */
     protected static ?string $password;
 
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
     public function definition(): array
     {
+        $gender = fake()->randomElement(['male', 'female']);
+
         return [
             'name' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
+            'gender' => $gender,
             'email_verified_at' => now(),
-            'password' => static::$password ??= Hash::make('password'),
-            'gender' => fake()->randomElement(['male', 'female']),
             'profile_created_by' => fake()->randomElement(['self', 'parents', 'siblings']),
+            'password' => static::$password ??= Hash::make('123456789'),
             'role' => 'user',
             'is_active' => true,
             'is_banned' => false,
-            'subscription_plan' => 'free',
+            'subscription_plan' => 'free', // Default free
             'subscription_expires_at' => null,
-            'remember_token' => Str::random(10),
         ];
     }
 
@@ -67,27 +60,6 @@ class UserFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'is_banned' => true,
-        ]);
-    }
-
-    /**
-     * Indicate that the user should be inactive.
-     */
-    public function inactive(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'is_active' => false,
-        ]);
-    }
-
-    /**
-     * Indicate that the user should have a premium subscription.
-     */
-    public function withSubscription(string $plan = 'gold', int $daysFromNow = 30): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'subscription_plan' => $plan,
-            'subscription_expires_at' => now()->addDays($daysFromNow),
         ]);
     }
 }
