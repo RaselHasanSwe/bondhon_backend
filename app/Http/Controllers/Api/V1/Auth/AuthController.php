@@ -71,9 +71,11 @@ class AuthController extends ApiController
                     'gender' => $request->gender,
                     'profile_created_by' => $request->profile_created_by,
                     'is_active' => 0,
+                    'email_verified_at' => $emailVerificationEnabled ? null : now(),
                 ]);
 
-                $this->profileService->createProfile($user->id);
+                $profile = $this->profileService->createProfile($user->id);
+                $profileId = $profile->profile_id;
 
                 if ($emailVerificationEnabled) {
                     event(new Registered($user));
