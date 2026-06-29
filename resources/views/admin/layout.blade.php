@@ -113,7 +113,7 @@
         </a>
         <a href="{{ route('admin.web.account-disable-requests') }}"
            class="nav-link {{ request()->routeIs('admin.web.account-disable-requests') ? 'active' : '' }}">
-            <i class="bi bi-person-x"></i> Account Disable Request
+            <i class="bi bi-person-x"></i> Ac. Disable Request
             @php $pendingDisableRequests = \App\Models\AccountDisableRequest::where('status','pending')->count(); @endphp
             @if($pendingDisableRequests > 0)
                 <span class="badge bg-danger ms-auto">{{ $pendingDisableRequests }}</span>
