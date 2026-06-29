@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Interest;
 use App\Models\Profile;
 use App\Models\ProfilePhoto;
 use App\Models\User;
@@ -234,6 +235,74 @@ test('paid user receives full profile access', function () {
                 'access' => ['full_profile', 'profile_views_per_day' => ['limit', 'used', 'unlimited', 'remaining']],
             ],
         ]);
+});
+
+test('viewing another profile includes viewer context in one response', function () {
+    $viewer = User::factory()->create(['subscription_plan' => 'silver']);
+    Profile::factory()->create(['user_id' => $viewer->id]);
+
+    $subscription = \App\Models\Subscription::factory()->active()->create([
+        'user_id'    => $viewer->id,
+        'plan'       => 'silver',
+        'amount_bdt' => 499,
+    ]);
+    $viewer->update([
+        'active_subscription_id'  => $subscription->id,
+        'subscription_expires_at' => $subscription->expires_at,
+    ]);
+
+    $other = User::factory()->create();
+    Profile::factory()->create(['user_id' => $other->id, 'profile_id' => 'BON-CTX001']);
+
+    \App\Models\Shortlist::create([
+        'user_id'             => $viewer->id,
+        'shortlisted_user_id' => $other->id,
+    ]);
+
+    Interest::factory()->create([
+        'sender_id'   => $viewer->id,
+        'receiver_id' => $other->id,
+        'status'      => 'pending',
+    ]);
+
+    $response = $this->actingAs($viewer)->getJson('/api/v1/profile/BON-CTX001');
+
+    $response->assertStatus(200)
+        ->assertJsonPath('data.connection_status', 'pending')
+        ->assertJsonPath('data.is_interest_sender', true)
+        ->assertJsonPath('data.can_send_interest', false)
+        ->assertJsonPath('data.is_shortlisted', true)
+        ->assertJsonStructure([
+            'data' => [
+                'connection_status',
+                'interest_id',
+                'is_interest_sender',
+                'can_send_interest',
+                'is_shortlisted',
+                'compatibility_score' => ['score', 'score_breakdown', 'calculated_at'],
+            ],
+        ]);
+});
+
+test('viewing own profile does not include viewer context fields', function () {
+    $user = User::factory()->create(['subscription_plan' => 'silver']);
+    Profile::factory()->create(['user_id' => $user->id, 'profile_id' => 'BON-OWNCTX']);
+    $subscription = \App\Models\Subscription::factory()->active()->create([
+        'user_id'    => $user->id,
+        'plan'       => 'silver',
+        'amount_bdt' => 499,
+    ]);
+    $user->update([
+        'active_subscription_id'  => $subscription->id,
+        'subscription_expires_at' => $subscription->expires_at,
+    ]);
+
+    $response = $this->actingAs($user)->getJson('/api/v1/profile/BON-OWNCTX');
+
+    $response->assertStatus(200)
+        ->assertJsonMissingPath('data.connection_status')
+        ->assertJsonMissingPath('data.is_shortlisted')
+        ->assertJsonMissingPath('data.compatibility_score');
 });
 
 test('paid user cannot exceed daily profile view limit', function () {

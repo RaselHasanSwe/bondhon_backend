@@ -4,15 +4,19 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Requests\Profile\UpdatePreferenceRequest;
 use App\Http\Requests\Profile\UpdateProfileRequest;
+use App\Models\MatchScore;
 use App\Models\Profile;
 use App\Models\ProfilePhoto;
 use App\Models\ProfileView;
 use App\Models\Interest;
 use App\Models\User;
 use App\Jobs\SendProfileViewedEmail;
+use App\Services\InterestService;
+use App\Services\MatchingService;
 use App\Services\ProfileCompletionService;
 use App\Services\ProfilePhotoStorageService;
 use App\Services\NotificationService;
+use App\Services\ShortlistService;
 use App\Services\SiteSettingService;
 use App\Services\SubscriptionFeatureService;
 use Illuminate\Http\JsonResponse;
@@ -31,6 +35,9 @@ class ProfileController extends ApiController
         private readonly SiteSettingService $siteSettings,
         private readonly NotificationService $notificationService,
         private readonly SubscriptionFeatureService $featureService,
+        private readonly InterestService $interestService,
+        private readonly ShortlistService $shortlistService,
+        private readonly MatchingService $matchingService,
     ) {}
 
     #[OA\Get(
@@ -147,6 +154,7 @@ class ProfileController extends ApiController
 
             $profileData           = $this->formatPublicProfile($targetUser, $currentUser);
             $profileData['access'] = $accessMeta;
+            $profileData           = $this->attachViewerContext($profileData, $currentUser, $targetUser, $isOwnProfile);
 
             Log::info('[PROFILE - ShowById] Success. Viewer: ' . $currentUser->id . ' | Viewed: ' . $targetUser->id);
 
@@ -573,6 +581,50 @@ class ProfileController extends ApiController
                 'remaining' => $limit < 0 ? null : max(0, $limit - $viewsToday),
             ],
         ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $profileData
+     * @return array<string, mixed>
+     */
+    private function attachViewerContext(array $profileData, User $viewer, User $target, bool $isOwnProfile): array
+    {
+        if ($isOwnProfile) {
+            return $profileData;
+        }
+
+        $interestMeta = $this->interestService->buildStatusPayloadForUser($viewer, $target->id);
+
+        $profileData['connection_status']  = $interestMeta['status'];
+        $profileData['interest_id']        = $interestMeta['interest_id'];
+        $profileData['is_interest_sender'] = $interestMeta['is_sender'];
+        $profileData['can_send_interest']  = $interestMeta['can_send_interest'];
+
+        $this->shortlistService->attachShortlistStatus($viewer, collect([$target]));
+        $profileData['is_shortlisted'] = (bool) $target->getAttribute('is_shortlisted');
+
+        if ($this->featureService->can($viewer, 'compatibility_score_visible')) {
+            $matchScore = MatchScore::where('user_id', $viewer->id)
+                ->where('candidate_id', $target->id)
+                ->first();
+
+            if (! $matchScore) {
+                $this->matchingService->calculateAndStoreScore($viewer, $target);
+                $matchScore = MatchScore::where('user_id', $viewer->id)
+                    ->where('candidate_id', $target->id)
+                    ->first();
+            }
+
+            if ($matchScore) {
+                $profileData['compatibility_score'] = [
+                    'score'           => (float) $matchScore->score,
+                    'score_breakdown' => $matchScore->score_breakdown,
+                    'calculated_at'   => $matchScore->calculated_at,
+                ];
+            }
+        }
+
+        return $profileData;
     }
 
     private function formatPublicProfile(User $user, User $viewer): array
