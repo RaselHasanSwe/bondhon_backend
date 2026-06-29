@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\User;
+use App\Services\ProfileService;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -61,5 +62,12 @@ class UserFactory extends Factory
         return $this->state(fn (array $attributes) => [
             'is_banned' => true,
         ]);
+    }
+
+    public function configure(): static
+    {
+        return $this->afterCreating(function (User $user) {
+            app(ProfileService::class)->createProfile($user->id);
+        });
     }
 }

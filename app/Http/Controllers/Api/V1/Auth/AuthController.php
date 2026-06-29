@@ -10,6 +10,7 @@ use App\Models\FaceScanSession;
 use App\Models\SubscriptionPlan;
 use App\Models\User;
 use App\Services\ProfileCompletionService;
+use App\Services\ProfileService;
 use App\Services\SiteSettingService;
 use App\Services\SubscriptionService;
 use Illuminate\Auth\Events\Registered;
@@ -26,6 +27,7 @@ class AuthController extends ApiController
 {
     public function __construct(
         private readonly ProfileCompletionService $completionService,
+        private readonly ProfileService           $profileService,
         private readonly SubscriptionService      $subscriptionService,
         private readonly SiteSettingService       $siteSettingService,
     ){}
@@ -71,13 +73,7 @@ class AuthController extends ApiController
                     'is_active' => 0,
                 ]);
 
-                // Auto-generate profile_id (BON-XXXXXX)
-                $profileId = 'BON-' . str_pad($user->id, 6, '0', STR_PAD_LEFT);
-
-                Profile::create([
-                    'user_id' => $user->id,
-                    'profile_id' => $profileId,
-                ]);
+                $this->profileService->createProfile($user->id);
 
                 if ($emailVerificationEnabled) {
                     event(new Registered($user));
