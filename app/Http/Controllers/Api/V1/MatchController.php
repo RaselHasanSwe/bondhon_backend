@@ -10,7 +10,9 @@ use App\Models\MatchScore;
 use App\Models\Profile;
 use App\Models\ProfileView;
 use App\Models\User;
+use App\Services\InterestService;
 use App\Services\MatchingService;
+use App\Services\ShortlistService;
 use App\Services\SubscriptionFeatureService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -20,6 +22,8 @@ class MatchController extends ApiController
 {
     public function __construct(
         private readonly MatchingService $matchingService,
+        private readonly InterestService $interestService,
+        private readonly ShortlistService $shortlistService,
         private readonly SubscriptionFeatureService $featureService,
     ) {}
 
@@ -37,6 +41,11 @@ class MatchController extends ApiController
         $perPage    = ($dailyLimit > 0) ? min(20, $dailyLimit) : 20;
 
         $paginator = $this->matchingService->getSuggestions($user, $perPage);
+
+        $this->attachViewerMeta(
+            $user,
+            $paginator->getCollection()->pluck('candidate')->filter()
+        );
 
         return $this->successResponse(
             MatchResource::collection($paginator)->response()->getData(true),
@@ -120,6 +129,8 @@ class MatchController extends ApiController
             if (! $targetUser) {
                 return $this->successResponse(['data' => [], 'total' => 0], 'No profile found.');
             }
+
+            $this->attachViewerMeta($user, collect([$targetUser]));
 
             return $this->successResponse([
                 'data'      => [ProfileCardResource::make($targetUser)],
@@ -280,6 +291,8 @@ class MatchController extends ApiController
 
         $paginator = $query->paginate(20);
 
+        $this->attachViewerMeta($user, $paginator->getCollection());
+
         return $this->successResponse(
             ProfileCardResource::collection($paginator)->response()->getData(true),
             'Search results retrieved.'
@@ -335,6 +348,26 @@ class MatchController extends ApiController
             'score_breakdown' => $matchScore->score_breakdown,
             'calculated_at'  => $matchScore->calculated_at,
         ], 'Compatibility score retrieved.');
+    }
+
+    /**
+     * Attach shortlist + interest connection metadata for the authenticated viewer.
+     *
+     * @param  iterable<User>  $users
+     */
+    private function attachViewerMeta(User $viewer, iterable $users): void
+    {
+        $collection = collect($users);
+        if ($collection->isEmpty()) {
+            return;
+        }
+
+        $this->shortlistService->attachShortlistStatus($viewer, $collection);
+        $this->interestService->attachConnectionMetaToItems(
+            $viewer,
+            $collection,
+            fn (User $user) => $user->id
+        );
     }
 }
 

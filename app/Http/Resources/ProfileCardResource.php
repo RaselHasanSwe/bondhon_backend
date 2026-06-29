@@ -41,6 +41,22 @@ class ProfileCardResource extends JsonResource
             'diet'            => $this->lifestyle?->diet,
             'primary_photo'   => $primaryPhoto?->file_path,
             'face_scan_status' => $this->faceScanSession?->status,
+            'is_shortlisted'  => $this->when(
+                $this->offsetExists('is_shortlisted'),
+                (bool) $this->is_shortlisted
+            ),
+            'connection_status' => $this->when(
+                $this->offsetExists('connection_status'),
+                $this->connection_status
+            ),
+            'is_interest_sender' => $this->when(
+                $this->offsetExists('is_interest_sender'),
+                (bool) $this->is_interest_sender
+            ),
+            'can_send_interest' => $this->when(
+                $this->offsetExists('can_send_interest'),
+                (bool) $this->can_send_interest
+            ),
         ];
     }
 }
