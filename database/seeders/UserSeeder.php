@@ -19,7 +19,9 @@ class UserSeeder extends Seeder
         $this->command->info("📊 Target: {$this->userCount} users");
 
         // Create users
-        User::factory($this->userCount)->create();
+        User::factory($this->userCount)
+            ->withCompleteProfile()
+            ->create();
 
         $this->command->info("✅ Successfully created {$this->userCount} users with email verified!");
         $this->command->info("   All users have 'free' subscription plan (no active subscription)");

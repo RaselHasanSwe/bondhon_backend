@@ -3,10 +3,11 @@
 namespace Database\Factories;
 
 use App\Models\User;
+use App\Models\SelectOption;
+use App\Services\ProfileCompletionService;
 use App\Services\ProfileService;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 
 /**
  * @extends Factory<User>
@@ -19,12 +20,17 @@ class UserFactory extends Factory
     {
         $gender = fake()->randomElement(['male', 'female']);
 
+        $profileCreatedBy = SelectOption::where('group_key', 'profile_created_by')
+            ->where('is_active', true)
+            ->inRandomOrder()
+            ->first()?->value ?? 'self';
+
         return [
             'name' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
             'gender' => $gender,
             'email_verified_at' => now(),
-            'profile_created_by' => fake()->randomElement(['self', 'parents', 'siblings']),
+            'profile_created_by' => $profileCreatedBy,
             'password' => static::$password ??= Hash::make('123456789'),
             'role' => 'user',
             'is_active' => true,
@@ -68,6 +74,22 @@ class UserFactory extends Factory
     {
         return $this->afterCreating(function (User $user) {
             app(ProfileService::class)->createProfile($user->id);
+        });
+    }
+
+    public function withCompleteProfile(): static
+    {
+        return $this->afterCreating(function (User $user) {
+            ProfileFactory::new()->completeForUser($user);
+
+            app(ProfileCompletionService::class)->recalculateAndSave($user->fresh());
+        });
+    }
+
+    public function withBasicProfile(): static
+    {
+        return $this->afterCreating(function (User $user) {
+            ProfileFactory::new()->seedForUser($user);
         });
     }
 }

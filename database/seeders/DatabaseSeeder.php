@@ -24,18 +24,17 @@ class DatabaseSeeder extends Seeder
     {
         $this->call(SubscriptionTypeSeeder::class);
         $this->call(SubscriptionPlanSeeder::class);
+
+        // Select options must exist before user/profile factories run
+        $this->call(SelectOptionSeeder::class);
+        $this->call(OptionGroupConfigSeeder::class);
+
         $this->call(UserSeeder::class);
         $this->call(UserSubscriptionSeeder::class);
-
-
 
         // ── Site Settings & Pages ──
         $this->call(SiteSettingSeeder::class);
         $this->call(PageSeeder::class);
-
-        // ── Dynamic Select Options ──
-        $this->call(SelectOptionSeeder::class);
-        $this->call(OptionGroupConfigSeeder::class);
 
         // Create an admin user (idempotent)
         User::firstOrCreate(

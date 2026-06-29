@@ -47,7 +47,7 @@ Route::prefix('v1')->group(function () {
     |----------------------------------------------------------------------
     */
     // Dynamic select options (public, cached)
-    Route::get('/options/{group}', [SelectOptionController::class, 'index'])->middleware('throttle:120,1');
+    Route::get('/options/{group}', [SelectOptionController::class, 'index'])->middleware('throttle:12000,1');
     Route::get('/option-groups',    [OptionGroupController::class,  'index'])->middleware('throttle:60,1');
 
     Route::get('/settings', [PublicSettingController::class, 'index'])->middleware('throttle:60,1');
