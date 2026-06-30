@@ -26,6 +26,7 @@ class PageSeeder extends Seeder
                 'meta_title'       => 'About Us — Enorsia Matrimony',
                 'meta_description' => 'Learn about Enorsia — our mission, values, and commitment to helping you find the perfect life partner.',
                 'is_published'     => true,
+                'show_in_menu'     => true,
                 'sort_order'       => 2,
             ],
             [
@@ -35,6 +36,7 @@ class PageSeeder extends Seeder
                 'meta_title'       => 'FAQ — Enorsia Matrimony',
                 'meta_description' => 'Frequently asked questions about Enorsia matrimony platform — how it works, privacy, subscriptions, and more.',
                 'is_published'     => true,
+                'show_in_menu'     => true,
                 'sort_order'       => 3,
             ],
             [
@@ -62,6 +64,7 @@ class PageSeeder extends Seeder
                 'meta_title'       => 'Contact Us — Enorsia Matrimony',
                 'meta_description' => 'Get in touch with Enorsia support. We are here to help you find your perfect match.',
                 'is_published'     => true,
+                'show_in_menu'     => true,
                 'sort_order'       => 6,
             ],
         ];

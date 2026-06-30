@@ -540,7 +540,10 @@ class AdminWebController extends Controller
 
     public function deletePage(int $id)
     {
-        Page::where('id', $id)->delete();
+        $pageService = new PageService();
+        $page        = $pageService->findById($id);
+        $pageService->delete($page);
+
         return redirect()->route('admin.web.pages')->with('success', 'Page deleted.');
     }
 

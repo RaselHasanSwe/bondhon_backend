@@ -4,10 +4,16 @@ namespace App\Services;
 
 use App\Models\Page;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Cache;
 
 class PageService
 {
+    public const CACHE_KEY_PUBLISHED = 'pages:published';
+
+    public const CACHE_KEY_MENU = 'pages:menu';
+
+    public const CACHE_TTL = 3600;
+
     /**
      * All pages (admin view — includes unpublished).
      */
@@ -21,15 +27,34 @@ class PageService
      */
     public function publishedList(): Collection
     {
-        return Page::published()->orderBy('sort_order')->get(['id', 'title', 'slug', 'sort_order']);
+        return Cache::remember(self::CACHE_KEY_PUBLISHED, self::CACHE_TTL, function () {
+            return Page::published()->orderBy('sort_order')->get([
+                'id', 'title', 'slug', 'sort_order', 'show_in_menu',
+            ]);
+        });
     }
 
     /**
-     * Find a published page by slug (throws 404 if not found/not published).
+     * Published pages flagged for the public website menu.
+     */
+    public function menuList(): Collection
+    {
+        return Cache::remember(self::CACHE_KEY_MENU, self::CACHE_TTL, function () {
+            return Page::published()
+                ->where('show_in_menu', true)
+                ->orderBy('sort_order')
+                ->get(['id', 'title', 'slug', 'sort_order', 'show_in_menu']);
+        });
+    }
+
+    /**
+     * Find a published page by slug.
      */
     public function findBySlug(string $slug): ?Page
     {
-        return Page::published()->where('slug', $slug)->first();
+        return Cache::remember($this->slugCacheKey($slug), self::CACHE_TTL, function () use ($slug) {
+            return Page::published()->where('slug', $slug)->first();
+        });
     }
 
     /**
@@ -41,21 +66,47 @@ class PageService
     }
 
     /**
-     * Update a page.
-     *
+     * @param array<string, mixed> $data
+     */
+    public function create(array $data): Page
+    {
+        $page = Page::create($data);
+        $this->forgetCache();
+
+        return $page;
+    }
+
+    /**
      * @param array<string, mixed> $data
      */
     public function update(Page $page, array $data): Page
     {
+        $slug = $page->slug;
         $page->update($data);
+        $this->forgetCache($slug);
 
         return $page->fresh();
     }
 
-
-    public function create(array $data): Page
+    public function delete(Page $page): void
     {
-        return Page::create($data);
+        $slug = $page->slug;
+        $page->delete();
+        $this->forgetCache($slug);
+    }
+
+    public function forgetCache(?string $slug = null): void
+    {
+        Cache::forget(self::CACHE_KEY_PUBLISHED);
+        Cache::forget(self::CACHE_KEY_MENU);
+
+        if ($slug !== null) {
+            Cache::forget($this->slugCacheKey($slug));
+        }
+    }
+
+    private function slugCacheKey(string $slug): string
+    {
+        return 'pages:slug:' . $slug;
     }
 }
-

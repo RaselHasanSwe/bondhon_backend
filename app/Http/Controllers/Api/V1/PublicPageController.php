@@ -12,11 +12,13 @@ class PublicPageController extends Controller
 
     /**
      * GET /api/v1/pages
-     * Returns all published pages (id, title, slug, sort_order). No auth required.
+     * Returns all published pages. Pass ?menu=1 for menu-only pages.
      */
     public function index(): JsonResponse
     {
-        $pages = $this->pageService->publishedList();
+        $pages = request()->boolean('menu')
+            ? $this->pageService->menuList()
+            : $this->pageService->publishedList();
 
         return response()->json([
             'success' => true,

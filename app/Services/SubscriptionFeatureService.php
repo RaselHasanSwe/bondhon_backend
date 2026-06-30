@@ -183,6 +183,25 @@ class SubscriptionFeatureService
     }
 
     /**
+     * Feature metadata for public pricing UI (labels + types from admin definitions).
+     *
+     * @return array<string, array{label: string, type: string, period?: string|null}>
+     */
+    public static function publicDefinitions(): array
+    {
+        $out = [];
+        foreach (self::definitions() as $key => $def) {
+            $out[$key] = [
+                'label'  => $def['label'],
+                'type'   => $def['type'],
+                'period' => $def['period'] ?? null,
+            ];
+        }
+
+        return $out;
+    }
+
+    /**
      * Return all feature definitions grouped by 'group'.
      *
      * @return array<string, array<string, array>>
