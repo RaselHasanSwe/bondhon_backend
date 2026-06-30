@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\V1\OptionGroupController;
 use App\Http\Controllers\Api\V1\SelectOptionController;
 use App\Http\Controllers\Api\V1\PublicSettingController;
 use App\Http\Controllers\Api\V1\PublicPageController;
+use App\Http\Controllers\Api\V1\PublicProfileSearchController;
 use App\Http\Controllers\Api\V1\PublicSubscriptionPlanController;
 use App\Http\Controllers\Api\V1\Admin\AdminNotificationController;
 use App\Http\Controllers\Api\V1\Admin\AdminPhotoModerationController;
@@ -58,6 +59,7 @@ Route::prefix('v1')->group(function () {
     Route::get('/pages/{slug}',   [PublicPageController::class, 'show'])->middleware('throttle:60,1');
     Route::get('/subscription-plans', [PublicSubscriptionPlanController::class, 'index'])->middleware('throttle:60,1');
     Route::post('/contact',       [ContactMessageController::class, 'store'])->middleware('throttle:5,1');
+    Route::get('/public/profiles/search', [PublicProfileSearchController::class, 'search'])->middleware('throttle:120,1');
 
     /*
     |----------------------------------------------------------------------
