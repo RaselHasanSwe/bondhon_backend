@@ -332,28 +332,23 @@ class MatchingService
     /**
      * Get paginated match suggestions for a user sorted by compatibility score.
      */
-    public function getSuggestions(User $user, int $perPage = 20): LengthAwarePaginator
-    {
+    public function getSuggestions(
+        User $user,
+        int $perPage = 20,
+        ?string $search = null,
+        ?string $dateFrom = null,
+        ?string $dateTo = null,
+    ): LengthAwarePaginator {
         $blockedIds   = Block::where('blocker_id', $user->id)->pluck('blocked_id');
         $blockedByIds = Block::where('blocked_id', $user->id)->pluck('blocker_id');
         $excludeIds   = $blockedIds->merge($blockedByIds)->push($user->id)->unique()->values();
 
-        $acceptedCandidateIds = Interest::where(function ($q) use ($user) {
-                $q->where('sender_id', $user->id)->orWhere('receiver_id', $user->id);
-            })
-            ->where('status', 'accepted')
-            ->get()
-            ->map(fn ($i) => $i->sender_id === $user->id ? $i->receiver_id : $i->sender_id)
-            ->unique()
-            ->values();
-
-        $excludeIds = $excludeIds->merge($acceptedCandidateIds)->unique()->values();
-
         $oppositeGender = $user->gender === 'male' ? 'female' : 'male';
         $minScore       = $this->siteSettings->minimumMatchScore();
         $userId         = $user->id;
+        $search         = trim((string) $search);
 
-        $paginator = MatchScore::with([
+        $query = MatchScore::with([
                 'user',
                 'user.profile',
                 'user.religiousDetail',
@@ -389,9 +384,28 @@ class MatchingService
                             ->whereNotIn('id', $excludeIds)
                         );
                 });
-            })
-            ->orderByDesc('score')
-            ->paginate($perPage);
+            });
+
+        if ($dateFrom) {
+            $query->whereDate('calculated_at', '>=', $dateFrom);
+        }
+        if ($dateTo) {
+            $query->whereDate('calculated_at', '<=', $dateTo);
+        }
+
+        if ($search !== '') {
+            $query->where(function ($q) use ($userId, $search) {
+                $q->where(function ($inner) use ($userId, $search) {
+                    $inner->where('user_id', $userId)
+                        ->whereHas('candidate', fn ($c) => $this->applyPartnerKeywordSearch($c, $search));
+                })->orWhere(function ($inner) use ($userId, $search) {
+                    $inner->where('candidate_id', $userId)
+                        ->whereHas('user', fn ($c) => $this->applyPartnerKeywordSearch($c, $search));
+                });
+            });
+        }
+
+        $paginator = $query->orderByDesc('score')->paginate($perPage);
 
         $paginator->getCollection()->transform(function (MatchScore $matchScore) use ($userId) {
             $partner = $matchScore->partnerFor($userId);
@@ -403,6 +417,79 @@ class MatchingService
         });
 
         return $paginator;
+    }
+
+    /**
+     * Attach stored compatibility scores to profile users for list views.
+     *
+     * @param  iterable<User>  $users
+     */
+    public function attachCompatibilityScoresToUsers(User $viewer, iterable $users): void
+    {
+        $collection = collect($users)->filter(fn ($user) => $user instanceof User);
+        if ($collection->isEmpty()) {
+            return;
+        }
+
+        $otherIds = $collection->pluck('id')->unique()->values();
+        $viewerId = $viewer->id;
+
+        $scores = MatchScore::query()
+            ->involvingUser($viewerId)
+            ->where(function ($q) use ($viewerId, $otherIds) {
+                $q->where(function ($inner) use ($viewerId, $otherIds) {
+                    $inner->where('user_id', $viewerId)
+                        ->whereIn('candidate_id', $otherIds);
+                })->orWhere(function ($inner) use ($viewerId, $otherIds) {
+                    $inner->where('candidate_id', $viewerId)
+                        ->whereIn('user_id', $otherIds);
+                });
+            })
+            ->get();
+
+        $scoreMap = [];
+        foreach ($scores as $matchScore) {
+            $partnerId = $matchScore->user_id === $viewerId
+                ? $matchScore->candidate_id
+                : $matchScore->user_id;
+            $scoreMap[$partnerId] = $matchScore;
+        }
+
+        $collection->each(function (User $user) use ($scoreMap) {
+            $matchScore = $scoreMap[$user->id] ?? null;
+            if (! $matchScore) {
+                return;
+            }
+
+            $user->setAttribute('compatibility_score', [
+                'score'           => (float) $matchScore->score,
+                'score_breakdown'   => $matchScore->score_breakdown,
+                'calculated_at'     => $matchScore->calculated_at,
+            ]);
+        });
+    }
+
+    /**
+     * @param  \Illuminate\Database\Eloquent\Builder<\App\Models\User>  $userQuery
+     */
+    private function applyPartnerKeywordSearch($userQuery, string $search): void
+    {
+        $userQuery->where(function ($q) use ($search) {
+            $q->where('name', 'like', '%' . $search . '%')
+                ->orWhereHas('profile', function ($profileQuery) use ($search) {
+                    $profileQuery->where('profile_id', 'like', '%' . $search . '%')
+                        ->orWhere('city', 'like', '%' . $search . '%')
+                        ->orWhere('state', 'like', '%' . $search . '%')
+                        ->orWhere('country', 'like', '%' . $search . '%');
+                })
+                ->orWhereHas('religiousDetail', function ($religionQuery) use ($search) {
+                    $religionQuery->where('religion', 'like', '%' . $search . '%');
+                })
+                ->orWhereHas('educationCareer', function ($careerQuery) use ($search) {
+                    $careerQuery->where('profession', 'like', '%' . $search . '%')
+                        ->orWhere('highest_education', 'like', '%' . $search . '%');
+                });
+        });
     }
 
     // -----------------------------------------------------------------------

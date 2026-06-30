@@ -25,6 +25,7 @@ php artisan matches:run-digest --sync --notify --email
 
 # Force another batch of daily match scores (testing)
 php artisan matches:run-digest --sync --no-notify --force
+php artisan matches:run-digest --no-notify --no-email
 **/
 
 class RunMatchDigestCommand extends Command

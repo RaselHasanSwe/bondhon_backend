@@ -16,6 +16,7 @@ use App\Http\Controllers\Api\V1\Auth\FaceScanController;
 use App\Http\Controllers\Api\V1\Auth\EmailVerificationController;
 use App\Http\Controllers\Api\V1\Auth\ForgotPasswordController;
 use App\Http\Controllers\Api\V1\Auth\ResetPasswordController;
+use App\Http\Controllers\Api\V1\DashboardController;
 use App\Http\Controllers\Api\V1\BlockController;
 use App\Http\Controllers\Api\V1\ChatController;
 use App\Http\Controllers\Api\V1\InterestController;
@@ -127,6 +128,9 @@ Route::prefix('v1')->group(function () {
 
         // Partner Preferences
         Route::put('/preferences', [ProfileController::class, 'updatePreferences']);
+
+        // Dashboard (aggregated summary — single request)
+        Route::get('/dashboard', [DashboardController::class, 'index']);
 
         // ---------------------------------------------------------------
         // Phase 2 — Core Features

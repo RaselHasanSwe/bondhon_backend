@@ -57,6 +57,18 @@ class ProfileCardResource extends JsonResource
                 $this->offsetExists('can_send_interest'),
                 (bool) $this->can_send_interest
             ),
+            'interest_id' => $this->when(
+                $this->offsetExists('interest_id'),
+                $this->interest_id
+            ),
+            'conversation_id' => $this->when(
+                $this->offsetExists('conversation_id'),
+                $this->conversation_id
+            ),
+            'compatibility_score' => $this->when(
+                $this->offsetExists('compatibility_score'),
+                $this->compatibility_score
+            ),
         ];
     }
 }

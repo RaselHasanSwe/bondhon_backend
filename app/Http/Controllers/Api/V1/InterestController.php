@@ -10,7 +10,9 @@ use App\Models\Conversation;
 use App\Models\Interest;
 use App\Models\User;
 use App\Services\InterestService;
+use App\Services\MatchingService;
 use App\Services\NotificationService;
+use App\Services\ShortlistService;
 use App\Services\SubscriptionFeatureService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -23,6 +25,8 @@ class InterestController extends ApiController
         private readonly NotificationService $notificationService,
         private readonly SubscriptionFeatureService $featureService,
         private readonly InterestService $interestService,
+        private readonly ShortlistService $shortlistService,
+        private readonly MatchingService $matchingService,
     ) {}
     /**
      * POST /api/v1/interests
@@ -171,6 +175,7 @@ class InterestController extends ApiController
         $interests = $query->orderByDesc('created_at')->paginate(20);
 
         $this->attachConversationMeta($interests->getCollection(), $user);
+        $this->attachProfileListMeta($user, $interests->getCollection(), 'sender');
 
         return $this->successResponse(
             InterestResource::collection($interests)->response()->getData(true),
@@ -202,6 +207,7 @@ class InterestController extends ApiController
         $interests = $query->orderByDesc('created_at')->paginate(20);
 
         $this->attachConversationMeta($interests->getCollection(), $user);
+        $this->attachProfileListMeta($user, $interests->getCollection(), 'receiver');
 
         return $this->successResponse(
             InterestResource::collection($interests)->response()->getData(true),
@@ -243,6 +249,7 @@ class InterestController extends ApiController
         $interests = $query->orderByDesc('updated_at')->paginate(20);
 
         $this->attachConversationMeta($interests->getCollection(), $user);
+        $this->attachContactProfileListMeta($user, $interests->getCollection());
 
         return $this->successResponse(
             InterestResource::collection($interests)->response()->getData(true),
@@ -390,6 +397,26 @@ class InterestController extends ApiController
                 $conversationMap->get($otherUserId)?->id
             );
         });
+    }
+
+    private function attachProfileListMeta(User $user, $interests, string $relation): void
+    {
+        $profiles = $interests
+            ->map(fn (Interest $interest) => $interest->{$relation})
+            ->filter();
+
+        $this->shortlistService->attachShortlistStatus($user, $profiles);
+        $this->matchingService->attachCompatibilityScoresToUsers($user, $profiles);
+    }
+
+    private function attachContactProfileListMeta(User $user, $interests): void
+    {
+        $profiles = $interests->map(function (Interest $interest) use ($user) {
+            return $interest->sender_id === $user->id ? $interest->receiver : $interest->sender;
+        })->filter();
+
+        $this->shortlistService->attachShortlistStatus($user, $profiles);
+        $this->matchingService->attachCompatibilityScoresToUsers($user, $profiles);
     }
 
     private function updateStatus(User $user, int $interestId, string $newStatus, string $message): JsonResponse

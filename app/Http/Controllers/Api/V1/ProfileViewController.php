@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Resources\ProfileViewResource;
 use App\Models\ProfileView;
 use App\Services\InterestService;
+use App\Services\MatchingService;
+use App\Services\ShortlistService;
 use App\Services\SubscriptionFeatureService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -15,6 +17,8 @@ class ProfileViewController extends ApiController
     public function __construct(
         private readonly SubscriptionFeatureService $featureService,
         private readonly InterestService $interestService,
+        private readonly ShortlistService $shortlistService,
+        private readonly MatchingService $matchingService,
     ) {}
 
     /**
@@ -54,6 +58,10 @@ class ProfileViewController extends ApiController
             $views->getCollection(),
             fn (ProfileView $view) => $view->viewer_id
         );
+
+        $viewers = $views->getCollection()->pluck('viewer')->filter();
+        $this->shortlistService->attachShortlistStatus($user, $viewers);
+        $this->matchingService->attachCompatibilityScoresToUsers($user, $viewers);
 
         return $this->successResponse(
             ProfileViewResource::collection($views)->response()->getData(true),

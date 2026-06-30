@@ -7,13 +7,17 @@ use App\Models\Block;
 use App\Models\Shortlist;
 use App\Models\User;
 use App\Services\InterestService;
+use App\Services\MatchingService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
 class ShortlistController extends ApiController
 {
-    public function __construct(private readonly InterestService $interestService) {}
+    public function __construct(
+        private readonly InterestService $interestService,
+        private readonly MatchingService $matchingService,
+    ) {}
 
     /**
      * POST /api/v1/shortlist/{userId}
@@ -85,6 +89,9 @@ class ShortlistController extends ApiController
             $items->getCollection(),
             fn (Shortlist $item) => $item->shortlisted_user_id
         );
+
+        $shortlistedUsers = $items->getCollection()->pluck('shortlistedUser')->filter();
+        $this->matchingService->attachCompatibilityScoresToUsers($user, $shortlistedUsers);
 
         return $this->successResponse(
             ShortlistResource::collection($items)->response()->getData(true),

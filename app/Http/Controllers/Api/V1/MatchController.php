@@ -36,11 +36,24 @@ class MatchController extends ApiController
         $user = $request->user();
         Log::info('[MATCH - Index] User ID: ' . $user->id);
 
+        $validated = $request->validate([
+            'search'    => ['nullable', 'string', 'max:255'],
+            'date_from' => ['nullable', 'date'],
+            'date_to'   => ['nullable', 'date', 'after_or_equal:date_from'],
+            'page'      => ['nullable', 'integer', 'min:1'],
+        ]);
+
         // Enforce daily_matches limit
         $dailyLimit = (int) $this->featureService->value($user, 'daily_matches');
         $perPage    = ($dailyLimit > 0) ? min(20, $dailyLimit) : 20;
 
-        $paginator = $this->matchingService->getSuggestions($user, $perPage);
+        $paginator = $this->matchingService->getSuggestions(
+            $user,
+            $perPage,
+            $validated['search'] ?? null,
+            $validated['date_from'] ?? null,
+            $validated['date_to'] ?? null,
+        );
 
         $this->attachViewerMeta(
             $user,
