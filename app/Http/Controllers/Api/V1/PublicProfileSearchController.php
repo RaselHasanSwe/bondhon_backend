@@ -6,32 +6,56 @@ use App\Http\Requests\Match\PublicSearchRequest;
 use App\Http\Resources\PublicProfileCardResource;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class PublicProfileSearchController extends ApiController
 {
+    /**
+     * GET /api/v1/public/profiles/recent
+     * Lightweight list of newest members for homepage preview.
+     */
+    public function recent(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'limit' => ['nullable', 'integer', 'min:1', 'max:12'],
+        ]);
+
+        $limit = (int) ($validated['limit'] ?? 6);
+
+        $query = $this->eligibleRecentMemberQuery()
+            ->with($this->publicCardRelations())
+            ->join('profiles', 'profiles.user_id', '=', 'users.id')
+            ->select('users.*');
+
+        $this->excludeAuthenticatedUser($query, $request);
+
+        $users = $query
+            ->orderByDesc('users.created_at')
+            ->limit($limit)
+            ->get();
+
+        return $this->successResponse(
+            PublicProfileCardResource::collection($users),
+            'Recent members retrieved.'
+        );
+    }
+
     /**
      * GET /api/v1/public/profiles/search
      * Browse profiles without authentication (limited card fields).
      */
     public function search(PublicSearchRequest $request): JsonResponse
     {
-        $query = User::with([
-                'profile',
-                'religiousDetail',
-                'educationCareer',
-                'lifestyle',
-                'photos' => fn ($q) => $q->where('is_approved', true)->where('is_private', false)->where('is_primary', true),
-            ])
+        $query = $this->eligiblePublicUserQuery()
+            ->with($this->publicCardRelations())
             ->join('profiles', 'profiles.user_id', '=', 'users.id')
             ->leftJoin('religious_details', 'religious_details.user_id', '=', 'users.id')
             ->leftJoin('education_careers', 'education_careers.user_id', '=', 'users.id')
             ->leftJoin('lifestyles', 'lifestyles.user_id', '=', 'users.id')
             ->leftJoin('family_details', 'family_details.user_id', '=', 'users.id')
-            ->select('users.*')
-            ->where('users.role', 'user')
-            ->where('users.is_active', true)
-            ->where('users.is_banned', false)
-            ->whereNotNull('users.email_verified_at');
+            ->select('users.*');
+
+        $this->excludeAuthenticatedUser($query, $request);
 
         if ($request->filled('gender')) {
             $query->where('users.gender', $request->gender);
@@ -152,5 +176,52 @@ class PublicProfileSearchController extends ApiController
             PublicProfileCardResource::collection($paginator)->response()->getData(true),
             'Search results retrieved.'
         );
+    }
+
+    private function eligiblePublicUserQuery()
+    {
+        return User::query()
+            ->where('users.role', 'user')
+            ->where('users.is_active', true)
+            ->where('users.is_banned', false)
+            ->whereNotNull('users.email_verified_at');
+    }
+
+    /**
+     * Newly registered members for homepage preview — less strict than public search.
+     */
+    private function eligibleRecentMemberQuery()
+    {
+        return User::query()
+            ->where('users.role', 'user')
+            ->where('users.is_banned', false);
+    }
+
+    private function excludeAuthenticatedUser($query, Request $request): void
+    {
+        $user = $request->user('sanctum');
+
+        if ($user) {
+            $query->where('users.id', '!=', $user->id);
+        }
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function publicCardRelations(): array
+    {
+        return [
+            'profile',
+            'educationCareer',
+            'faceScanSession',
+            'religiousDetail',
+            'lifestyle',
+            'photos' => fn ($q) => $q
+                ->where('is_approved', true)
+                ->where('is_private', false)
+                ->orderByDesc('is_primary')
+                ->orderBy('id'),
+        ];
     }
 }

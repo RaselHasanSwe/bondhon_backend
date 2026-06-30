@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1\Auth;
 use App\Http\Controllers\Api\V1\ApiController;
 use App\Models\User;
 use App\Services\EmailVerificationOtpService;
+use App\Services\FrontendRevalidationService;
 use App\Services\SiteSettingService;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Http\JsonResponse;
@@ -17,6 +18,7 @@ class EmailVerificationController extends ApiController
 {
     public function __construct(
         private readonly SiteSettingService $siteSettingService,
+        private readonly FrontendRevalidationService $frontendRevalidationService,
     ) {}
 
     #[OA\Get(
@@ -67,6 +69,8 @@ class EmailVerificationController extends ApiController
             // 5. Mark as verified and fire event
             $user->markEmailAsVerified();
             event(new Verified($user));
+
+            $this->frontendRevalidationService->revalidateRecentMembers();
 
             Log::info('[EMAIL VERIFICATION - Verify] Successfully verified. User ID: ' . $id);
             return $this->successResponse(null, 'Email verified successfully.');
@@ -153,6 +157,8 @@ class EmailVerificationController extends ApiController
 
             $user->markEmailAsVerified();
             event(new Verified($user));
+
+            $this->frontendRevalidationService->revalidateRecentMembers();
 
             Log::info('[EMAIL VERIFICATION - VerifyOtp] Successfully verified User ID: ' . $user->id);
 

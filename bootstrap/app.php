@@ -6,6 +6,7 @@ use App\Http\Middleware\CheckSubscription;
 use App\Http\Middleware\EnsureEmailIsVerified;
 use App\Http\Middleware\EnsureProfileIsComplete;
 use App\Http\Middleware\EnsureUserIsAdmin;
+use App\Http\Middleware\OptionalSanctumAuth;
 use App\Http\Middleware\UpdateLastSeen;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -38,6 +39,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'feature'          => CheckFeature::class,
             'admin'            => EnsureUserIsAdmin::class,
             'admin.web'        => AdminWebAuth::class,
+            'auth.optional'    => OptionalSanctumAuth::class,
         ]);
         // Auto-update last_seen_at on every auth API request
         $middleware->appendToGroup('api', UpdateLastSeen::class);

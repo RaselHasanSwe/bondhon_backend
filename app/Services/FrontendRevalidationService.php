@@ -58,4 +58,9 @@ class FrontendRevalidationService
     {
         $this->revalidate(['site-settings'], ['/']);
     }
+
+    public function revalidateRecentMembers(): void
+    {
+        $this->revalidate(['recent-members'], ['/']);
+    }
 }

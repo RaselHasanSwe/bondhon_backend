@@ -58,8 +58,11 @@ Route::prefix('v1')->group(function () {
     Route::get('/pages',          [PublicPageController::class, 'index'])->middleware('throttle:60,1');
     Route::get('/pages/{slug}',   [PublicPageController::class, 'show'])->middleware('throttle:60,1');
     Route::get('/subscription-plans', [PublicSubscriptionPlanController::class, 'index'])->middleware('throttle:60,1');
-    Route::post('/contact',       [ContactMessageController::class, 'store'])->middleware('throttle:5,1');
-    Route::get('/public/profiles/search', [PublicProfileSearchController::class, 'search'])->middleware('throttle:120,1');
+    Route::post('/contact',       [ContactMessageController::class, 'store'])->middleware('throttle:30,1');
+    Route::get('/public/profiles/recent', [PublicProfileSearchController::class, 'recent'])
+        ->middleware(['auth.optional', 'throttle:120,1']);
+    Route::get('/public/profiles/search', [PublicProfileSearchController::class, 'search'])
+        ->middleware(['auth.optional', 'throttle:120,1']);
 
     /*
     |----------------------------------------------------------------------

@@ -13,6 +13,7 @@ use App\Services\ProfileCompletionService;
 use App\Services\ProfileService;
 use App\Services\SiteSettingService;
 use App\Services\SubscriptionService;
+use App\Services\FrontendRevalidationService;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -30,6 +31,7 @@ class AuthController extends ApiController
         private readonly ProfileService           $profileService,
         private readonly SubscriptionService      $subscriptionService,
         private readonly SiteSettingService       $siteSettingService,
+        private readonly FrontendRevalidationService $frontendRevalidationService,
     ){}
 
     #[OA\Post(
@@ -114,6 +116,8 @@ class AuthController extends ApiController
             $message = $emailVerificationEnabled
                 ? 'Registration successful. Please verify your email.'
                 : 'Registration successful.';
+
+            $this->frontendRevalidationService->revalidateRecentMembers();
 
             return $this->successResponse($result, $message, 201);
 
