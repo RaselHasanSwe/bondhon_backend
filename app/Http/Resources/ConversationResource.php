@@ -32,11 +32,7 @@ class ConversationResource extends JsonResource
 
         $avatarUrl = null;
         if ($showPhotoTo === 'all' && $primaryPhoto) {
-            $avatarUrl = $primaryPhoto->file_path
-                ? (str_starts_with($primaryPhoto->file_path, 'http')
-                    ? $primaryPhoto->file_path
-                    : asset('storage/' . $primaryPhoto->file_path))
-                : null;
+            $avatarUrl = $primaryPhoto->file_path;
         }
 
         return [

@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
-| Web Routes — MyBouma Matrimony Platform
+| Web Routes — Enorsia Matrimony Platform
 |--------------------------------------------------------------------------
 */
 
@@ -46,6 +46,9 @@ Route::prefix('super-admin')->name('admin.web.')->group(function () {
         // Users
         Route::get('/users', [AdminWebController::class, 'users'])->name('users');
         Route::get('/users/{userId}', [AdminWebController::class, 'userDetails'])->name('users.show');
+        Route::post('/users/{userId}/disable', [AdminWebController::class, 'disableUserAccount'])->name('users.disable');
+        Route::post('/users/{userId}/ban', [AdminWebController::class, 'banUserAccount'])->name('users.ban');
+        Route::post('/users/{userId}/reactivate', [AdminWebController::class, 'reactivateUserAccount'])->name('users.reactivate');
         Route::post('/users/{userId}/ban-toggle', [AdminWebController::class, 'toggleUserBan'])->name('users.ban-toggle');
         Route::post('/users/{userId}/face-scan-review', [AdminWebController::class, 'reviewUserFaceScan'])->name('users.face-scan-review');
         Route::get('/users/{userId}/notifications', [AdminWebController::class, 'userNotifications'])->name('users.notifications');
@@ -80,6 +83,13 @@ Route::prefix('super-admin')->name('admin.web.')->group(function () {
         Route::get('/reports', [AdminWebController::class, 'reports'])->name('reports');
         Route::post('/reports/{id}/dismiss', [AdminWebController::class, 'dismissReport'])->name('reports.dismiss');
         Route::post('/reports/{id}/ban', [AdminWebController::class, 'banUserFromReport'])->name('reports.ban');
+
+        // Account Disable Requests
+        Route::get('/account-disable-requests', [AdminWebController::class, 'accountDisableRequests'])->name('account-disable-requests');
+        Route::post('/account-disable-requests/{id}/disable', [AdminWebController::class, 'disableAccountFromRequest'])->name('account-disable-requests.disable');
+        Route::post('/account-disable-requests/{id}/ban', [AdminWebController::class, 'banAccountFromRequest'])->name('account-disable-requests.ban');
+        Route::post('/account-disable-requests/{id}/dismiss', [AdminWebController::class, 'dismissAccountDisableRequest'])->name('account-disable-requests.dismiss');
+        Route::post('/account-disable-requests/{id}/reactivate', [AdminWebController::class, 'reactivateAccountFromRequest'])->name('account-disable-requests.reactivate');
 
         // Broadcast Notifications
         Route::get('/notifications/broadcast',  [AdminWebController::class, 'broadcastForm'])->name('broadcast');

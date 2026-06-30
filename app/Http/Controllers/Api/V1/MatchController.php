@@ -10,7 +10,9 @@ use App\Models\MatchScore;
 use App\Models\Profile;
 use App\Models\ProfileView;
 use App\Models\User;
+use App\Services\InterestService;
 use App\Services\MatchingService;
+use App\Services\ShortlistService;
 use App\Services\SubscriptionFeatureService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -20,6 +22,8 @@ class MatchController extends ApiController
 {
     public function __construct(
         private readonly MatchingService $matchingService,
+        private readonly InterestService $interestService,
+        private readonly ShortlistService $shortlistService,
         private readonly SubscriptionFeatureService $featureService,
     ) {}
 
@@ -32,11 +36,29 @@ class MatchController extends ApiController
         $user = $request->user();
         Log::info('[MATCH - Index] User ID: ' . $user->id);
 
+        $validated = $request->validate([
+            'search'    => ['nullable', 'string', 'max:255'],
+            'date_from' => ['nullable', 'date'],
+            'date_to'   => ['nullable', 'date', 'after_or_equal:date_from'],
+            'page'      => ['nullable', 'integer', 'min:1'],
+        ]);
+
         // Enforce daily_matches limit
         $dailyLimit = (int) $this->featureService->value($user, 'daily_matches');
         $perPage    = ($dailyLimit > 0) ? min(20, $dailyLimit) : 20;
 
-        $paginator = $this->matchingService->getSuggestions($user, $perPage);
+        $paginator = $this->matchingService->getSuggestions(
+            $user,
+            $perPage,
+            $validated['search'] ?? null,
+            $validated['date_from'] ?? null,
+            $validated['date_to'] ?? null,
+        );
+
+        $this->attachViewerMeta(
+            $user,
+            $paginator->getCollection()->pluck('candidate')->filter()
+        );
 
         return $this->successResponse(
             MatchResource::collection($paginator)->response()->getData(true),
@@ -107,9 +129,11 @@ class MatchController extends ApiController
                     'religiousDetail',
                     'educationCareer',
                     'lifestyle',
+                    'faceScanSession',
                     'photos' => fn ($q) => $q->where('is_approved', true)->where('is_private', false)->where('is_primary', true),
                 ])
                 ->where('id', $profile->user_id)
+                ->where('role', 'user')
                 ->where('is_active', true)
                 ->where('is_banned', false)
                 ->whereNotNull('email_verified_at')
@@ -118,6 +142,8 @@ class MatchController extends ApiController
             if (! $targetUser) {
                 return $this->successResponse(['data' => [], 'total' => 0], 'No profile found.');
             }
+
+            $this->attachViewerMeta($user, collect([$targetUser]));
 
             return $this->successResponse([
                 'data'      => [ProfileCardResource::make($targetUser)],
@@ -135,6 +161,7 @@ class MatchController extends ApiController
                 'religiousDetail',
                 'educationCareer',
                 'lifestyle',
+                'faceScanSession',
                 'photos' => fn ($q) => $q->where('is_approved', true)->where('is_private', false)->where('is_primary', true),
             ])
             ->join('profiles', 'profiles.user_id', '=', 'users.id')
@@ -144,6 +171,7 @@ class MatchController extends ApiController
             ->leftJoin('family_details', 'family_details.user_id', '=', 'users.id')
             ->select('users.*')
             ->where('users.gender', $gender)
+            ->where('users.role', 'user')
             ->where('users.is_active', true)
             ->where('users.is_banned', false)
             ->whereNotNull('users.email_verified_at')
@@ -276,6 +304,8 @@ class MatchController extends ApiController
 
         $paginator = $query->paginate(20);
 
+        $this->attachViewerMeta($user, $paginator->getCollection());
+
         return $this->successResponse(
             ProfileCardResource::collection($paginator)->response()->getData(true),
             'Search results retrieved.'
@@ -313,17 +343,20 @@ class MatchController extends ApiController
             return $this->errorResponse('Cannot view compatibility score for this user.', null, 403);
         }
 
-        // Try stored score first
-        $matchScore = MatchScore::where('user_id', $user->id)
-            ->where('candidate_id', $userId)
-            ->first();
+        // Try stored pair score first
+        $matchScore = MatchScore::findForPair($user->id, $userId);
 
         // If not stored, calculate on-demand (one-off)
         if (! $matchScore) {
-            $this->matchingService->calculateAndStoreScore($user, $candidate);
-            $matchScore = MatchScore::where('user_id', $user->id)
-                ->where('candidate_id', $userId)
-                ->firstOrFail();
+            $matchScore = $this->matchingService->calculateAndStoreScore($user, $candidate, ignoreMinimum: true);
+        }
+
+        if (! $matchScore) {
+            return $this->errorResponse(
+                'Compatibility score is not available for this profile.',
+                null,
+                404
+            );
         }
 
         return $this->successResponse([
@@ -331,6 +364,26 @@ class MatchController extends ApiController
             'score_breakdown' => $matchScore->score_breakdown,
             'calculated_at'  => $matchScore->calculated_at,
         ], 'Compatibility score retrieved.');
+    }
+
+    /**
+     * Attach shortlist + interest connection metadata for the authenticated viewer.
+     *
+     * @param  iterable<User>  $users
+     */
+    private function attachViewerMeta(User $viewer, iterable $users): void
+    {
+        $collection = collect($users);
+        if ($collection->isEmpty()) {
+            return;
+        }
+
+        $this->shortlistService->attachShortlistStatus($viewer, $collection);
+        $this->interestService->attachConnectionMetaToItems(
+            $viewer,
+            $collection,
+            fn (User $user) => $user->id
+        );
     }
 }
 

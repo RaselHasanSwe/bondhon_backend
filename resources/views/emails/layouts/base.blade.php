@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="x-apple-disable-message-reformatting">
-    <title>{{ $emailTitle ?? 'MyBouma' }}</title>
+    <title>{{ $emailTitle ?? $siteName }}</title>
     <!--[if mso]>
     <noscript>
         <xml>
@@ -232,6 +232,27 @@
             margin-bottom: 4px;
         }
 
+        .footer-social {
+            margin-bottom: 16px;
+        }
+
+        .footer-social a {
+            color: #B8860B;
+            display: inline-block;
+            font-family: Arial, sans-serif;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            margin: 0 8px;
+            text-decoration: none;
+            text-transform: uppercase;
+        }
+
+        .footer-social a:hover {
+            color: #D4A017;
+            text-decoration: underline;
+        }
+
         .footer-unsubscribe {
             color: #C0A870;
             font-family: Arial, sans-serif;
@@ -280,12 +301,12 @@
             <td class="email-header">
                 <div class="header-ornament-top"></div>
                 <div class="header-inner">
-                    <p class="brand-tagline">❝ Where Hearts Find Home ❞</p>
                     <div class="brand-logo-wrap">
                         <span class="brand-icon">♡</span>
-                        <span class="brand-name">MyBouma</span>
+                        <span class="brand-name">{{ $siteName }}</span>
                         <span class="brand-icon">♡</span>
                     </div>
+                    <p class="brand-tagline">{{ $siteSlogan }}</p>
                     <div class="header-divider">
                         <div class="header-divider-line"></div>
                         <span class="header-divider-gem">✦ ✦ ✦</span>
@@ -308,26 +329,40 @@
             <td class="email-footer">
                 <div class="footer-ornament"></div>
                 <div class="footer-inner">
-                    <p class="footer-brand">MyBouma</p>
-                    <p class="footer-tagline">Bangladesh's Most Trusted Matrimony</p>
+                    <p class="footer-brand">{{ $siteName }}</p>
+                    @if($siteSlogan)
+                        <p class="footer-tagline">{{ $siteSlogan }}</p>
+                    @endif
                     <div class="footer-links">
                         <a href="{{ config('app.url') }}/privacy">Privacy Policy</a>
                         <a href="{{ config('app.url') }}/terms">Terms of Service</a>
                         <a href="{{ config('app.url') }}/help">Help Center</a>
                         <a href="{{ config('app.url') }}/contact">Contact Us</a>
                     </div>
+                    @if(!empty($socialLinks))
+                        <div class="footer-social">
+                            @foreach($socialLinks as $link)
+                                <a href="{{ $link['url'] }}" target="_blank" rel="noopener noreferrer">{{ $link['label'] }}</a>
+                            @endforeach
+                        </div>
+                    @endif
                     <p class="footer-divider-dots">• • • • • • •</p>
                     <p class="footer-address">
-                        MyBouma Matrimony Ltd. &nbsp;|&nbsp; Dhaka, Bangladesh<br>
-                        support@mybouma.com &nbsp;|&nbsp; +880 1700-000000
-                    </p>
-                    <p class="footer-unsubscribe">
-                        Don't want these emails? <a href="{{ $unsubscribeUrl ?? config('app.url').'/unsubscribe' }}">Unsubscribe here</a>
+                        {{ $siteName }}
+                        @if($contactAddress)
+                            &nbsp;|&nbsp; {{ $contactAddress }}
+                        @endif
+                        @if($contactEmail || $contactPhone)
+                            <br>
+                            @if($contactEmail){{ $contactEmail }}@endif
+                            @if($contactEmail && $contactPhone) &nbsp;|&nbsp; @endif
+                            @if($contactPhone){{ $contactPhone }}@endif
+                        @endif
                     </p>
                 </div>
                 <div class="footer-bottom-bar">
                     <p class="footer-copyright">
-                        &copy; {{ date('Y') }} <span>MyBouma Matrimony Ltd.</span> All rights reserved.
+                        &copy; {{ date('Y') }} <span>{{ $siteName }}</span>. All rights reserved.
                     </p>
                 </div>
             </td>

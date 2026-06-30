@@ -1,16 +1,11 @@
-@php
-    $adminSiteName = \App\Models\SiteSetting::getValue('site_name', 'My Bouma');
-    $adminSiteFavicon = \App\Models\SiteSetting::getValue('site_favicon', null);
-    $adminSiteLogo = \App\Models\SiteSetting::getValue('site_logo', null);
-@endphp
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', 'Dashboard') — {{ $adminSiteName }}</title>
-    @if($adminSiteFavicon)
-        <link rel="icon" href="{{ $adminSiteFavicon }}">
+    <title>@yield('title', 'Dashboard') — {{ $siteName }}</title>
+    @if($siteFavicon)
+        <link rel="icon" href="{{ cfImage($siteFavicon) }}">
     @endif
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
@@ -79,7 +74,7 @@
 <!-- Sidebar -->
 <aside class="sidebar">
     <div class="sidebar-brand">
-        <h4>{{ $adminSiteName ? strtoupper($adminSiteName) : strtoupper('Super Admin') }}</h4>
+        <h4>{{ $siteName ? strtoupper($siteName) : strtoupper('Super Admin') }}</h4>
         <small>Super Admin Panel</small>
     </div>
     <nav class="sidebar-nav">
@@ -114,6 +109,14 @@
             @php $pendingReports = \App\Models\Report::where('status','pending')->count(); @endphp
             @if($pendingReports > 0)
                 <span class="badge bg-danger ms-auto">{{ $pendingReports }}</span>
+            @endif
+        </a>
+        <a href="{{ route('admin.web.account-disable-requests') }}"
+           class="nav-link {{ request()->routeIs('admin.web.account-disable-requests') ? 'active' : '' }}">
+            <i class="bi bi-person-x"></i> Ac. Disable Request
+            @php $pendingDisableRequests = \App\Models\AccountDisableRequest::where('status','pending')->count(); @endphp
+            @if($pendingDisableRequests > 0)
+                <span class="badge bg-danger ms-auto">{{ $pendingDisableRequests }}</span>
             @endif
         </a>
         <a href="{{ route('admin.web.broadcast') }}"

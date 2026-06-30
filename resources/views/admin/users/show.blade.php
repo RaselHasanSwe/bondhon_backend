@@ -13,8 +13,9 @@
     $horoscope = $user->horoscopeDetail;
     $partner = $user->partnerPreference;
 
-    $statusColor = $user->trashed() ? 'secondary' : ($user->is_banned ? 'danger' : 'success');
-    $statusLabel = $user->trashed() ? 'Deleted' : ($user->is_banned ? 'Banned' : 'Active');
+    $statusColor = $user->trashed() ? 'secondary' : ($user->is_banned ? 'danger' : (! $user->is_active ? 'warning' : 'success'));
+    $statusLabel = $user->trashed() ? 'Deleted' : ($user->is_banned ? 'Banned' : (! $user->is_active ? 'Disabled' : 'Active'));
+    $canManageAccount = ! $user->trashed() && $user->id !== auth()->id();
 
     $initials = collect(explode(' ', $user->name))->map(fn($w) => strtoupper($w[0] ?? ''))->take(2)->implode('');
 @endphp
@@ -116,6 +117,25 @@
                                 <span class="value text-danger">{{ $user->deleted_at->format('d M Y, h:i A') }}</span>
                             </div>
                             @endif
+                            @if($user->is_banned)
+                            <div class="ud-meta-item ud-meta-full">
+                                <span class="label text-danger">Banned At</span>
+                                <span class="value text-danger">{{ $user->banned_at?->format('d M Y, h:i A') ?? '—' }}</span>
+                            </div>
+                            <div class="ud-meta-item ud-meta-full">
+                                <span class="label text-danger">Ban Reason</span>
+                                <span class="value text-danger">{{ $user->ban_reason ?? '—' }}</span>
+                            </div>
+                            @elseif(! $user->is_active)
+                            <div class="ud-meta-item ud-meta-full">
+                                <span class="label text-warning">Disabled At</span>
+                                <span class="value text-warning">{{ $user->disabled_at?->format('d M Y, h:i A') ?? '—' }}</span>
+                            </div>
+                            <div class="ud-meta-item ud-meta-full">
+                                <span class="label text-warning">Disable Reason</span>
+                                <span class="value text-warning">{{ $user->disable_reason ?? '—' }}</span>
+                            </div>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -128,13 +148,28 @@
                     <h6>Quick Actions</h6>
                 </div>
                 <div class="ud-card-body d-grid gap-2">
-                    <form method="POST" action="{{ route('admin.web.users.ban-toggle', $user->id) }}">
-                        @csrf
-                        <button class="btn ud-action-btn w-100 {{ $user->is_banned ? 'btn-success' : 'btn-danger' }}">
-                            <i class="bi bi-{{ $user->is_banned ? 'check-circle' : 'slash-circle' }} me-1"></i>
-                            {{ $user->is_banned ? 'Unban User' : 'Ban User' }}
-                        </button>
-                    </form>
+                    @if($canManageAccount)
+                        @if($user->is_banned || ! $user->is_active)
+                            <button type="button" class="btn ud-action-btn w-100 btn-success" data-bs-toggle="modal" data-bs-target="#reactivateUserModal">
+                                <i class="bi bi-check-circle me-1"></i>
+                                Reactivate Account
+                            </button>
+                        @endif
+                        @if($user->is_active && ! $user->is_banned)
+                            <button type="button" class="btn ud-action-btn w-100 btn-warning text-dark" data-bs-toggle="modal" data-bs-target="#disableUserModal">
+                                <i class="bi bi-slash-circle me-1"></i>
+                                Disable Account
+                            </button>
+                        @endif
+                        @if(! $user->is_banned)
+                            <button type="button" class="btn ud-action-btn w-100 btn-danger" data-bs-toggle="modal" data-bs-target="#banUserModal">
+                                <i class="bi bi-ban me-1"></i>
+                                Ban User
+                            </button>
+                        @endif
+                    @else
+                        <p class="text-muted small mb-0 text-center py-2">Account actions are not available for this user.</p>
+                    @endif
                 </div>
             </div>
 
@@ -169,8 +204,19 @@
 
                     @if($faceSession->review_note)
                         <div class="alert alert-info py-2 px-3 small mb-3 rounded-3">
-                            <i class="bi bi-info-circle me-1"></i>{{ $faceSession->review_note }}
+                            <i class="bi bi-info-circle me-1"></i><strong>Latest note:</strong> {{ $faceSession->review_note }}
                         </div>
+                    @endif
+
+                    @php
+                        $reviewHistory = ($faceSession->metadata['review_history'] ?? []) ?: [];
+                        $archivedSubmissions = ($faceSession->metadata['archived_submissions'] ?? []) ?: [];
+                    @endphp
+
+                    @if($faceSession->status === 'submitted')
+                        <p class="small fw-semibold text-muted mb-2"><i class="bi bi-images me-1"></i>Current Submission (awaiting review)</p>
+                    @elseif($faceSession->captures->isNotEmpty())
+                        <p class="small fw-semibold text-muted mb-2"><i class="bi bi-images me-1"></i>Current Captures</p>
                     @endif
 
                     {{-- Capture images --}}
@@ -178,7 +224,7 @@
                         @forelse($faceSession->captures as $capture)
                             <div class="col-4 col-sm-3 col-md-2">
                                 <div class="face-img-wrap">
-                                    <img src="{{ asset('storage/' . $capture->image_path) }}"
+                                    <img src="{{ cfImage($capture->image_path) }}"
                                          alt="{{ $capture->capture_key }}">
                                     <div class="cap-label">{{ str_replace('-', ' ', ucfirst($capture->capture_key)) }}</div>
                                     <div class="cap-time">{{ $capture->captured_at?->format('h:i A') }}</div>
@@ -191,24 +237,64 @@
                         @endforelse
                     </div>
 
-                    {{-- Face scan action buttons --}}
-                    <div class="d-flex gap-2 mt-3 pt-3 border-top">
-                        <form method="POST" action="{{ route('admin.web.users.face-scan-review', $user->id) }}">
-                            @csrf
-                            <input type="hidden" name="decision" value="approved">
-                            <button class="btn btn-success ud-action-btn"
-                                {{ $faceSession->status === 'approved' ? 'disabled' : '' }}>
-                                <i class="bi bi-check-circle me-1"></i>Approve
-                            </button>
-                        </form>
-                        <form method="POST" action="{{ route('admin.web.users.face-scan-review', $user->id) }}">
-                            @csrf
-                            <input type="hidden" name="decision" value="rejected">
-                            <button class="btn btn-outline-danger ud-action-btn">
+                    {{-- Approve/Reject only for new submissions awaiting review --}}
+                    @if($faceSession->status === 'submitted')
+                        <div class="d-flex gap-2 mt-3 pt-3">
+                            <form method="POST" action="{{ route('admin.web.users.face-scan-review', $user->id) }}">
+                                @csrf
+                                <input type="hidden" name="decision" value="approved">
+                                <button class="btn btn-success ud-action-btn">
+                                    <i class="bi bi-check-circle me-1"></i>Approve
+                                </button>
+                            </form>
+                            <button type="button" class="btn btn-outline-danger ud-action-btn"
+                                    data-bs-toggle="modal" data-bs-target="#rejectFaceScanModal">
                                 <i class="bi bi-x-circle me-1"></i>Reject
                             </button>
-                        </form>
-                    </div>
+                        </div>
+                    @elseif($faceSession->status === 'approved')
+                        <p class="text-muted small mt-3 pt-3 border-top mb-0"><i class="bi bi-check-circle text-success me-1"></i>Face scan approved. No further action needed.</p>
+                    @elseif($faceSession->status === 'rejected')
+                        <p class="text-muted small mt-3 pt-3 border-top mb-0"><i class="bi bi-info-circle me-1"></i>Rejected — waiting for the user to log in and submit a new face scan.</p>
+                    @else
+                        <p class="text-muted small mt-3 pt-3 border-top mb-0"><i class="bi bi-hourglass-split me-1"></i>User has not completed a submission yet.</p>
+                    @endif
+
+                    <hr>
+
+                    @if(count($archivedSubmissions) > 0)
+                        <div class="mb-3 mt-3">
+                            <p class="small fw-semibold text-muted mb-2"><i class="bi bi-archive me-1"></i>Previous Submissions</p>
+                            @foreach(array_reverse($archivedSubmissions) as $index => $submission)
+                                <div class="border rounded-3 p-3 mb-2 bg-light">
+                                    <div class="d-flex flex-wrap gap-2 mb-2 align-items-center">
+                                        <span class="badge {{ ($submission['decision'] ?? '') === 'approved' ? 'bg-success' : 'bg-danger' }}">
+                                            {{ ucfirst($submission['decision'] ?? '—') }}
+                                        </span>
+                                        @if(!empty($submission['reviewed_at']))
+                                            <span class="small text-muted">{{ \Carbon\Carbon::parse($submission['reviewed_at'])->format('d M Y, h:i A') }}</span>
+                                        @endif
+                                    </div>
+                                    @if(!empty($submission['reason']))
+                                        <p class="small mb-2"><strong>Reason:</strong> {{ $submission['reason'] }}</p>
+                                    @endif
+                                    @if(!empty($submission['captures']))
+                                        <div class="row g-2">
+                                            @foreach($submission['captures'] as $capture)
+                                                <div class="col-4 col-sm-3 col-md-2">
+                                                    <div class="face-img-wrap">
+                                                        <img src="{{ cfImage($capture['image_path']) }}"
+                                                             alt="{{ $capture['capture_key'] ?? 'capture' }}">
+                                                        <div class="cap-label">{{ str_replace('-', ' ', ucfirst($capture['capture_key'] ?? '')) }}</div>
+                                                    </div>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    @endif
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
                 @else
                     <p class="text-muted mb-0 small"><i class="bi bi-exclamation-circle me-1"></i>This user has not completed the face-scan step.</p>
                 @endif
@@ -499,7 +585,7 @@
                     <div class="row g-3 photo-grid">
                         @foreach($user->photos as $photo)
                             <div class="col-6 col-sm-4 col-md-3">
-                                <img src="{{ asset('storage/' . $photo->file_path) }}" alt="Photo">
+                                <img src="{{ profilePhotoUrl($photo->file_path) }}" alt="Photo">
                             </div>
                         @endforeach
                     </div>
@@ -511,4 +597,190 @@
 
     </div>{{-- /col right --}}
 </div>
+
+@if(!$user->is_banned)
+<div class="modal fade" id="rejectFaceScanModal" tabindex="-1" aria-labelledby="rejectFaceScanModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="{{ route('admin.web.users.face-scan-review', $user->id) }}">
+                @csrf
+                <input type="hidden" name="decision" value="rejected">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="rejectFaceScanModalLabel">
+                        <i class="bi bi-x-circle text-danger me-2"></i>Reject Face Scan
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted small mb-3">
+                        Rejecting the face scan for <strong>{{ $user->name }}</strong> will require them to submit a new scan. Captured images will be kept for review.
+                    </p>
+                    <div class="mb-3">
+                        <label for="face_scan_reject_reason" class="form-label fw-semibold small">Reason for Rejection <span class="text-danger">*</span></label>
+                        <textarea
+                            id="face_scan_reject_reason"
+                            name="review_note"
+                            rows="4"
+                            class="form-control @error('review_note') is-invalid @enderror"
+                            placeholder="Explain why this face scan was rejected…"
+                            required
+                            maxlength="2000"
+                        >{{ old('review_note') }}</textarea>
+                        @error('review_note')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                        <small class="text-muted">Shown to the user on the face verification page.</small>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="1" id="face_scan_send_email" name="send_email_notification" {{ old('send_email_notification') ? 'checked' : '' }}>
+                        <label class="form-check-label fw-semibold small" for="face_scan_send_email">
+                            Send email notification to user
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-x-circle me-1"></i>Reject Face Scan
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@endif
+
+@if($canManageAccount)
+<div class="modal fade" id="disableUserModal" tabindex="-1" aria-labelledby="disableUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="{{ route('admin.web.users.disable', $user->id) }}">
+                @csrf
+                <div class="modal-header">
+                    <h5 class="modal-title" id="disableUserModalLabel">
+                        <i class="bi bi-slash-circle text-warning me-2"></i>Disable Account
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted small mb-3">
+                        Disabling <strong>{{ $user->name }}</strong> will sign them out and block sign-in until reactivated. This is not a permanent ban.
+                    </p>
+                    <div class="mb-3">
+                        <label for="disable_admin_message" class="form-label fw-semibold small">Reason / Message <span class="text-danger">*</span></label>
+                        <textarea id="disable_admin_message" name="admin_message" rows="4"
+                                  class="form-control @error('admin_message') is-invalid @enderror"
+                                  placeholder="Explain why this account is being disabled…"
+                                  required minlength="10" maxlength="2000">{{ old('admin_message') }}</textarea>
+                        @error('admin_message')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        <small class="text-muted">Sent to the user via in-app notification and email.</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-warning">Disable Account</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="banUserModal" tabindex="-1" aria-labelledby="banUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="{{ route('admin.web.users.ban', $user->id) }}">
+                @csrf
+                <div class="modal-header">
+                    <h5 class="modal-title" id="banUserModalLabel">
+                        <i class="bi bi-ban text-danger me-2"></i>Ban User
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted small mb-3">
+                        Banning <strong>{{ $user->name }}</strong> will immediately revoke their access and sign them out of all devices.
+                    </p>
+                    <div class="mb-3">
+                        <label for="ban_admin_message" class="form-label fw-semibold small">Reason for Ban <span class="text-danger">*</span></label>
+                        <textarea id="ban_admin_message" name="admin_message" rows="4"
+                                  class="form-control @error('admin_message') is-invalid @enderror"
+                                  placeholder="Describe why this account is being suspended…"
+                                  required minlength="10" maxlength="2000">{{ old('admin_message') }}</textarea>
+                        @error('admin_message')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        <small class="text-muted">Shown to the user when they attempt to log in, and sent via notification and email.</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-ban me-1"></i>Confirm Ban
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="reactivateUserModal" tabindex="-1" aria-labelledby="reactivateUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="{{ route('admin.web.users.reactivate', $user->id) }}">
+                @csrf
+                <div class="modal-header">
+                    <h5 class="modal-title" id="reactivateUserModalLabel">
+                        <i class="bi bi-check-circle text-success me-2"></i>Reactivate Account
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted small mb-3">
+                        Reactivate <strong>{{ $user->name }}</strong>'s account so they can sign in and use the platform again.
+                    </p>
+                    <div class="mb-3">
+                        <label for="reactivate_admin_message" class="form-label fw-semibold small">Message to User <span class="text-muted">(optional)</span></label>
+                        <textarea id="reactivate_admin_message" name="admin_message" rows="3"
+                                  class="form-control @error('admin_message') is-invalid @enderror"
+                                  placeholder="Optional note for the user…"
+                                  maxlength="2000">{{ old('admin_message') }}</textarea>
+                        @error('admin_message')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        <small class="text-muted">Sent via in-app notification and email.</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-check-circle me-1"></i>Reactivate Account
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@endif
+
+@if($errors->has('admin_message') && $canManageAccount)
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        @if(old('_token') && request()->routeIs('admin.web.users.disable'))
+            new bootstrap.Modal(document.getElementById('disableUserModal')).show();
+        @elseif(old('_token') && request()->routeIs('admin.web.users.ban'))
+            new bootstrap.Modal(document.getElementById('banUserModal')).show();
+        @elseif(old('_token') && request()->routeIs('admin.web.users.reactivate'))
+            new bootstrap.Modal(document.getElementById('reactivateUserModal')).show();
+        @elseif(! $user->is_banned && $user->is_active)
+            new bootstrap.Modal(document.getElementById('banUserModal')).show();
+        @else
+            new bootstrap.Modal(document.getElementById('reactivateUserModal')).show();
+        @endif
+    });
+</script>
+@endif
+
+@if($errors->has('review_note') && !$user->is_banned)
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        new bootstrap.Modal(document.getElementById('rejectFaceScanModal')).show();
+    });
+</script>
+@endif
 @endsection

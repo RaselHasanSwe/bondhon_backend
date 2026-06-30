@@ -4,7 +4,6 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Illuminate\Support\Facades\Storage;
 
 /**
  * Lightweight profile card resource shared across features.
@@ -15,8 +14,7 @@ class ProfileCardResource extends JsonResource
     public function toArray(Request $request): array
     {
         /** @var \App\Models\User $this */
-        $primaryPhoto = $this->photos?->firstWhere('is_primary', true)
-            ?? $this->photos?->first();
+        $primaryPhoto = $this->photos?->firstWhere('is_primary', true) ?? $this->photos?->first();
 
         return [
             'id'              => $this->id,
@@ -32,7 +30,7 @@ class ProfileCardResource extends JsonResource
                 'city'           => $this->profile->city,
                 'state'          => $this->profile->state,
                 'country'        => $this->profile->country,
-                'is_verified'    => $this->profile->is_verified,
+                'is_verified'    => $this->faceScanSession?->status === 'approved',
                 'last_seen_at'   => $this->profile->last_seen_at,
                 'profile_completion_percentage' => $this->profile->profile_completion_percentage,
             ] : null,
@@ -41,7 +39,36 @@ class ProfileCardResource extends JsonResource
             'education'       => $this->educationCareer?->highest_education,
             'profession'      => $this->educationCareer?->profession,
             'diet'            => $this->lifestyle?->diet,
-            'primary_photo'   => $primaryPhoto ? Storage::url($primaryPhoto->file_path) : null,
+            'primary_photo'   => $primaryPhoto?->file_path,
+            'face_scan_status' => $this->faceScanSession?->status,
+            'is_shortlisted'  => $this->when(
+                $this->offsetExists('is_shortlisted'),
+                (bool) $this->is_shortlisted
+            ),
+            'connection_status' => $this->when(
+                $this->offsetExists('connection_status'),
+                $this->connection_status
+            ),
+            'is_interest_sender' => $this->when(
+                $this->offsetExists('is_interest_sender'),
+                (bool) $this->is_interest_sender
+            ),
+            'can_send_interest' => $this->when(
+                $this->offsetExists('can_send_interest'),
+                (bool) $this->can_send_interest
+            ),
+            'interest_id' => $this->when(
+                $this->offsetExists('interest_id'),
+                $this->interest_id
+            ),
+            'conversation_id' => $this->when(
+                $this->offsetExists('conversation_id'),
+                $this->conversation_id
+            ),
+            'compatibility_score' => $this->when(
+                $this->offsetExists('compatibility_score'),
+                $this->compatibility_score
+            ),
         ];
     }
 }

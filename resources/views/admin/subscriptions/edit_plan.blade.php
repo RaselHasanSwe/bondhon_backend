@@ -1,5 +1,5 @@
 @extends('admin.layout')
-@section('title', 'Edit Plan — {{ $plan->name }}')
+@section('title', 'Edit Plan – ' . $plan->name)
 @section('page-title', 'Edit Subscription Plan')
 
 @section('content')

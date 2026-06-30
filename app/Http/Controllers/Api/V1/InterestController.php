@@ -6,9 +6,13 @@ use App\Events\InterestReceived;
 use App\Http\Requests\Interest\SendInterestRequest;
 use App\Http\Resources\InterestResource;
 use App\Models\Block;
+use App\Models\Conversation;
 use App\Models\Interest;
 use App\Models\User;
+use App\Services\InterestService;
+use App\Services\MatchingService;
 use App\Services\NotificationService;
+use App\Services\ShortlistService;
 use App\Services\SubscriptionFeatureService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -20,6 +24,9 @@ class InterestController extends ApiController
     public function __construct(
         private readonly NotificationService $notificationService,
         private readonly SubscriptionFeatureService $featureService,
+        private readonly InterestService $interestService,
+        private readonly ShortlistService $shortlistService,
+        private readonly MatchingService $matchingService,
     ) {}
     /**
      * POST /api/v1/interests
@@ -61,11 +68,12 @@ class InterestController extends ApiController
 
         // Check for existing pending or accepted interest between this pair
         $existing = Interest::where(function ($q) use ($sender, $receiverId) {
+            $q->where(function ($q) use ($sender, $receiverId) {
                 $q->where('sender_id', $sender->id)->where('receiver_id', $receiverId);
-            })
-            ->orWhere(function ($q) use ($sender, $receiverId) {
+            })->orWhere(function ($q) use ($sender, $receiverId) {
                 $q->where('sender_id', $receiverId)->where('receiver_id', $sender->id);
-            })
+            });
+        })
             ->whereIn('status', ['pending', 'accepted'])
             ->first();
 
@@ -76,11 +84,55 @@ class InterestController extends ApiController
             return $this->errorResponse($msg, null, 422);
         }
 
+        $inactiveOutgoing = Interest::where('sender_id', $sender->id)
+            ->where('receiver_id', $receiverId)
+            ->whereIn('status', ['declined', 'ignored', 'expired'])
+            ->first();
+
+        if ($inactiveOutgoing) {
+            if (! $this->interestService->canSenderResend($inactiveOutgoing)) {
+                return $this->errorResponse(
+                    'You have reached the maximum number of interest attempts with this user.',
+                    [
+                        'max_attempts' => $this->interestService->maxSendAttempts(),
+                        'max_resends'  => $this->interestService->maxResendAttempts(),
+                    ],
+                    422
+                );
+            }
+
+            $interest = DB::transaction(function () use ($inactiveOutgoing) {
+                $inactiveOutgoing->update([
+                    'status'     => 'pending',
+                    'expires_at' => now()->addDays(30),
+                    'send_count' => $this->interestService->sendCount($inactiveOutgoing) + 1,
+                ]);
+
+                return $inactiveOutgoing->fresh();
+            });
+
+            $interest->load(['sender', 'receiver']);
+            event(new InterestReceived($interest));
+
+            Log::info('[INTEREST - Resend] Reactivated. Interest ID: ' . $interest->id
+                . ' | Send count: ' . $interest->send_count
+                . ' | Sender: ' . $sender->id . ' | Receiver: ' . $receiverId);
+
+            $interest->load(['sender.profile', 'sender.photos', 'receiver.profile', 'receiver.photos']);
+
+            return $this->successResponse(
+                InterestResource::make($interest),
+                'Interest sent successfully.',
+                201
+            );
+        }
+
         $interest = DB::transaction(function () use ($sender, $receiverId) {
             return Interest::create([
                 'sender_id'   => $sender->id,
                 'receiver_id' => $receiverId,
                 'status'      => 'pending',
+                'send_count'  => 1,
                 'expires_at'  => now()->addDays(30),
             ]);
         });
@@ -108,16 +160,22 @@ class InterestController extends ApiController
         $user = $request->user();
         Log::info('[INTEREST - Received] User ID: ' . $user->id);
 
-        $interests = Interest::with([
+        $query = Interest::with([
                 'sender',
                 'sender.profile',
                 'sender.religiousDetail',
                 'sender.educationCareer',
+                'sender.faceScanSession',
                 'sender.photos' => fn ($q) => $q->where('is_approved', true)->where('is_primary', true),
             ])
-            ->where('receiver_id', $user->id)
-            ->orderByDesc('created_at')
-            ->paginate(20);
+            ->where('receiver_id', $user->id);
+
+        $this->applyUserSearch($query, $request->input('search'), 'sender');
+
+        $interests = $query->orderByDesc('created_at')->paginate(20);
+
+        $this->attachConversationMeta($interests->getCollection(), $user);
+        $this->attachProfileListMeta($user, $interests->getCollection(), 'sender');
 
         return $this->successResponse(
             InterestResource::collection($interests)->response()->getData(true),
@@ -134,20 +192,68 @@ class InterestController extends ApiController
         $user = $request->user();
         Log::info('[INTEREST - Sent] User ID: ' . $user->id);
 
-        $interests = Interest::with([
+        $query = Interest::with([
                 'receiver',
                 'receiver.profile',
                 'receiver.religiousDetail',
                 'receiver.educationCareer',
+                'receiver.faceScanSession',
                 'receiver.photos' => fn ($q) => $q->where('is_approved', true)->where('is_primary', true),
             ])
-            ->where('sender_id', $user->id)
-            ->orderByDesc('created_at')
-            ->paginate(20);
+            ->where('sender_id', $user->id);
+
+        $this->applyUserSearch($query, $request->input('search'), 'receiver');
+
+        $interests = $query->orderByDesc('created_at')->paginate(20);
+
+        $this->attachConversationMeta($interests->getCollection(), $user);
+        $this->attachProfileListMeta($user, $interests->getCollection(), 'receiver');
 
         return $this->successResponse(
             InterestResource::collection($interests)->response()->getData(true),
             'Sent interests retrieved.'
+        );
+    }
+
+    /**
+     * GET /api/v1/interests/contacts
+     * List accepted connections for the authenticated user.
+     */
+    public function contacts(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        Log::info('[INTEREST - Contacts] User ID: ' . $user->id);
+
+        $query = Interest::with([
+                'sender',
+                'sender.profile',
+                'sender.religiousDetail',
+                'sender.educationCareer',
+                'sender.faceScanSession',
+                'sender.photos' => fn ($q) => $q->where('is_approved', true)->where('is_primary', true),
+                'receiver',
+                'receiver.profile',
+                'receiver.religiousDetail',
+                'receiver.educationCareer',
+                'receiver.faceScanSession',
+                'receiver.photos' => fn ($q) => $q->where('is_approved', true)->where('is_primary', true),
+            ])
+            ->where('status', 'accepted')
+            ->where(function ($q) use ($user) {
+                $q->where('sender_id', $user->id)
+                    ->orWhere('receiver_id', $user->id);
+            });
+
+        $this->applyContactSearch($query, $user, $request->input('search'));
+
+        $interests = $query->orderByDesc('updated_at')->paginate(20);
+
+        $this->attachConversationMeta($interests->getCollection(), $user);
+        $this->attachContactProfileListMeta($user, $interests->getCollection());
+
+        return $this->successResponse(
+            InterestResource::collection($interests)->response()->getData(true),
+            'Contacts retrieved.'
         );
     }
 
@@ -187,32 +293,131 @@ class InterestController extends ApiController
         $currentUser = $request->user();
         Log::info('[INTEREST - CheckStatus] Current User: ' . $currentUser->id . ' | Target User: ' . $userId);
 
-        // Check for existing interest in either direction
-        $interest = Interest::where(function ($q) use ($currentUser, $userId) {
-                $q->where('sender_id', $currentUser->id)->where('receiver_id', $userId);
-            })
-            ->orWhere(function ($q) use ($currentUser, $userId) {
-                $q->where('sender_id', $userId)->where('receiver_id', $currentUser->id);
-            })
-            ->whereIn('status', ['pending', 'accepted'])
-            ->latest()
-            ->first();
+        $payload = $this->interestService->buildStatusPayloadForUser($currentUser, $userId);
 
-        if (!$interest) {
-            return $this->successResponse(['status' => 'none'], 'No interest found.');
-        }
-
-        return $this->successResponse([
-            'status'      => $interest->status,
-            'is_sender'   => $interest->sender_id === $currentUser->id,
-            'created_at'  => $interest->created_at,
-            'expires_at'  => $interest->expires_at,
-        ], 'Interest status retrieved.');
+        return $this->successResponse(
+            $payload,
+            $payload['status'] === 'none' && ! $payload['interest_id']
+                ? 'No interest found.'
+                : 'Interest status retrieved.'
+        );
     }
 
     // -----------------------------------------------------------------------
     // Private helpers
     // -----------------------------------------------------------------------
+
+    private function applyUserSearch($query, ?string $search, string $relation): void
+    {
+        $search = trim((string) $search);
+        if ($search === '') {
+            return;
+        }
+
+        $query->whereHas($relation, function ($userQuery) use ($search) {
+            $this->applyProfileKeywordSearch($userQuery, $search);
+        });
+    }
+
+    private function applyContactSearch($query, User $user, ?string $search): void
+    {
+        $search = trim((string) $search);
+        if ($search === '') {
+            return;
+        }
+
+        $query->where(function ($interestQuery) use ($user, $search) {
+            $interestQuery
+                ->where(function ($q) use ($user, $search) {
+                    $q->where('sender_id', $user->id)
+                        ->whereHas('receiver', fn ($userQuery) => $this->applyProfileKeywordSearch($userQuery, $search));
+                })
+                ->orWhere(function ($q) use ($user, $search) {
+                    $q->where('receiver_id', $user->id)
+                        ->whereHas('sender', fn ($userQuery) => $this->applyProfileKeywordSearch($userQuery, $search));
+                });
+        });
+    }
+
+    private function applyProfileKeywordSearch($userQuery, string $search): void
+    {
+        $userQuery->where(function ($q) use ($search) {
+            $q->where('name', 'like', '%' . $search . '%')
+                ->orWhereHas('profile', function ($profileQuery) use ($search) {
+                    $profileQuery->where('profile_id', 'like', '%' . $search . '%')
+                        ->orWhere('city', 'like', '%' . $search . '%')
+                        ->orWhere('state', 'like', '%' . $search . '%')
+                        ->orWhere('country', 'like', '%' . $search . '%');
+                })
+                ->orWhereHas('religiousDetail', function ($religionQuery) use ($search) {
+                    $religionQuery->where('religion', 'like', '%' . $search . '%');
+                })
+                ->orWhereHas('educationCareer', function ($careerQuery) use ($search) {
+                    $careerQuery->where('profession', 'like', '%' . $search . '%')
+                        ->orWhere('highest_education', 'like', '%' . $search . '%');
+                });
+        });
+    }
+
+    private function attachConversationMeta($interests, User $user): void
+    {
+        if ($interests->isEmpty()) {
+            return;
+        }
+
+        $otherUserIds = $interests->map(function (Interest $interest) use ($user) {
+            return $interest->sender_id === $user->id ? $interest->receiver_id : $interest->sender_id;
+        })->unique()->values();
+
+        $conversationMap = Conversation::query()
+            ->where(function ($q) use ($user, $otherUserIds) {
+                foreach ($otherUserIds as $otherId) {
+                    [$userOneId, $userTwoId] = $user->id < $otherId
+                        ? [$user->id, $otherId]
+                        : [$otherId, $user->id];
+
+                    $q->orWhere(function ($pair) use ($userOneId, $userTwoId) {
+                        $pair->where('user_one_id', $userOneId)
+                            ->where('user_two_id', $userTwoId);
+                    });
+                }
+            })
+            ->get()
+            ->keyBy(function (Conversation $conversation) use ($user) {
+                return $conversation->user_one_id === $user->id
+                    ? $conversation->user_two_id
+                    : $conversation->user_one_id;
+            });
+
+        $interests->each(function (Interest $interest) use ($user, $conversationMap) {
+            $otherUserId = $interest->sender_id === $user->id ? $interest->receiver_id : $interest->sender_id;
+            $interest->setAttribute('can_message', $interest->status === 'accepted');
+            $interest->setAttribute(
+                'conversation_id',
+                $conversationMap->get($otherUserId)?->id
+            );
+        });
+    }
+
+    private function attachProfileListMeta(User $user, $interests, string $relation): void
+    {
+        $profiles = $interests
+            ->map(fn (Interest $interest) => $interest->{$relation})
+            ->filter();
+
+        $this->shortlistService->attachShortlistStatus($user, $profiles);
+        $this->matchingService->attachCompatibilityScoresToUsers($user, $profiles);
+    }
+
+    private function attachContactProfileListMeta(User $user, $interests): void
+    {
+        $profiles = $interests->map(function (Interest $interest) use ($user) {
+            return $interest->sender_id === $user->id ? $interest->receiver : $interest->sender;
+        })->filter();
+
+        $this->shortlistService->attachShortlistStatus($user, $profiles);
+        $this->matchingService->attachCompatibilityScoresToUsers($user, $profiles);
+    }
 
     private function updateStatus(User $user, int $interestId, string $newStatus, string $message): JsonResponse
     {

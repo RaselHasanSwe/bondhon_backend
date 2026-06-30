@@ -8,19 +8,24 @@ use App\Models\OptionGroupConfig;
 use App\Models\Page;
 use App\Models\ProfilePhoto;
 use App\Models\Report;
+use App\Models\AccountDisableRequest;
 use App\Models\SelectOption;
-use App\Models\SiteSetting;
 use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
 use App\Models\SubscriptionType;
 use App\Models\User;
 use App\Services\BroadcastNotificationService;
-use App\Services\CloudflareImageService;
 use App\Services\NotificationService;
 use App\Services\PageService;
 use App\Services\ProfileCompletionService;
 use App\Services\SiteSettingService;
 use App\Services\SubscriptionFeatureService;
+use App\Services\FaceScanReviewService;
+use App\Services\UserBanService;
+use App\Services\UserAccountStatusService;
+use App\Services\AccountDisableRequestService;
+use App\Http\Requests\Account\ReviewAccountDisableRequestRequest;
+use App\Http\Requests\Account\DismissAccountDisableRequestRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -36,6 +41,10 @@ use Carbon\Carbon;
  */
 class AdminWebController extends Controller
 {
+    public function __construct(
+        private readonly SiteSettingService $siteSettingService,
+    ) {}
+
     // -----------------------------------------------------------------------
     // Auth
     // -----------------------------------------------------------------------
@@ -180,29 +189,83 @@ class AdminWebController extends Controller
         return view('admin.users.show', compact('user'));
     }
 
-    public function toggleUserBan(Request $request, int $userId): RedirectResponse
+    public function disableUserAccount(Request $request, int $userId, UserAccountStatusService $statusService): RedirectResponse
     {
         $user = User::withTrashed()->findOrFail($userId);
 
-        if ($user->id === auth()->id()) {
-            return back()->with('error', 'You cannot ban yourself.');
+        $validated = $request->validate([
+            'admin_message' => ['required', 'string', 'min:10', 'max:2000'],
+        ]);
+
+        try {
+            $statusService->disableByAdmin($user, $validated['admin_message'], Auth::user());
+        } catch (\RuntimeException $e) {
+            return back()->with('error', $e->getMessage());
         }
 
-        $user->update(['is_banned' => ! $user->is_banned]);
-        $user->update(['is_active' => ! $user->is_banned]);
-
-        if ($user->is_banned) {
-            $user->tokens()->delete();
-        }
-
-        return back()->with('success', $user->is_banned ? 'User banned successfully.' : 'User unbanned successfully.');
+        return back()->with('success', 'User account disabled successfully.');
     }
 
-    public function reviewUserFaceScan(Request $request, int $userId): RedirectResponse
+    public function banUserAccount(Request $request, int $userId, UserAccountStatusService $statusService): RedirectResponse
+    {
+        $user = User::withTrashed()->findOrFail($userId);
+
+        $validated = $request->validate([
+            'admin_message' => ['required', 'string', 'min:10', 'max:2000'],
+        ]);
+
+        try {
+            $statusService->banByAdmin($user, $validated['admin_message'], Auth::user());
+        } catch (\RuntimeException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return back()->with('success', 'User banned successfully.');
+    }
+
+    public function reactivateUserAccount(Request $request, int $userId, UserAccountStatusService $statusService): RedirectResponse
+    {
+        $user = User::withTrashed()->findOrFail($userId);
+
+        $validated = $request->validate([
+            'admin_message' => ['nullable', 'string', 'max:2000'],
+        ]);
+
+        try {
+            $statusService->reactivateByAdmin(
+                $user,
+                $validated['admin_message'] ?? null,
+                Auth::user(),
+            );
+        } catch (\RuntimeException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return back()->with('success', 'User account reactivated successfully.');
+    }
+
+    /** @deprecated Use banUserAccount / reactivateUserAccount instead */
+    public function toggleUserBan(Request $request, int $userId, UserAccountStatusService $statusService): RedirectResponse
+    {
+        $user = User::withTrashed()->findOrFail($userId);
+
+        if ($user->is_banned || ! $user->is_active) {
+            return $this->reactivateUserAccount($request, $userId, $statusService);
+        }
+
+        $request->merge([
+            'admin_message' => $request->input('ban_reason', $request->input('admin_message')),
+        ]);
+
+        return $this->banUserAccount($request, $userId, $statusService);
+    }
+
+    public function reviewUserFaceScan(Request $request, int $userId, FaceScanReviewService $reviewService): RedirectResponse
     {
         $request->validate([
             'decision' => ['required', 'in:approved,rejected,ban'],
-            'review_note' => ['nullable', 'string', 'max:2000'],
+            'review_note' => ['required_if:decision,rejected', 'nullable', 'string', 'max:2000'],
+            'send_email_notification' => ['nullable', 'boolean'],
         ]);
 
         $user = User::withTrashed()->with('faceScanSession')->findOrFail($userId);
@@ -211,29 +274,16 @@ class AdminWebController extends Controller
             return back()->with('error', 'Face scan session not found.');
         }
 
-        $session = $user->faceScanSession;
-        $status = $request->string('decision')->toString();
+        $decision = $request->string('decision')->toString();
 
-        // also remove faceScanSession captures image if reject face scan
-        if ($status === 'rejected' && $session->captures) {
-            $session->captures->each(function ($capture) {
-                if ($capture->image_path && \Storage::disk('public')->exists($capture->image_path)) {
-                    \Storage::disk('public')->delete($capture->image_path);
-                }
-                $capture->delete();
-            });
-        }
-
-        $session->update([
-            'status' => $status === 'ban' ? 'rejected' : $status,
-            'review_note' => $request->input('review_note'),
-            'reviewed_by' => Auth::id(),
-            'reviewed_at' => now(),
-        ]);
-
-        if ($status === 'ban') {
-            $user->update(['is_banned' => true]);
-        }
+        $reviewService->review(
+            $user,
+            $user->faceScanSession,
+            $decision,
+            $request->input('review_note'),
+            Auth::id(),
+            $request->boolean('send_email_notification'),
+        );
 
         return back()->with('success', 'Face scan review updated successfully.');
     }
@@ -353,9 +403,7 @@ class AdminWebController extends Controller
 
     public function settings(Request $request): View
     {
-        $service  = new SiteSettingService();
-        $settings = $service->all();
-
+        $settings = $this->siteSettingService->all();
         $defs     = SiteSettingService::definitions();
 
         return view('admin.settings.index', compact('settings', 'defs'));
@@ -365,6 +413,7 @@ class AdminWebController extends Controller
     {
         $validated = $request->validate([
             'site_name'        => ['nullable', 'string', 'max:100'],
+            'site_slogan'      => ['nullable', 'string', 'max:350'],
             'currency'         => ['nullable', 'string', 'max:20'],
             'currency_symbol'  => ['nullable', 'string', 'max:10'],
             'contact_email'    => ['nullable', 'email', 'max:150'],
@@ -379,26 +428,16 @@ class AdminWebController extends Controller
             'meta_title'       => ['nullable', 'string', 'max:160'],
             'meta_description' => ['nullable', 'string', 'max:320'],
             'meta_keywords'    => ['nullable', 'string', 'max:255'],
+            'minimum_match_score' => ['nullable', 'integer', 'min:0', 'max:100'],
             'site_logo'        => ['nullable', 'image', 'max:2048'],
             'site_favicon'     => ['nullable', 'image', 'max:512'],
         ]);
 
-        $service = new SiteSettingService();
-        $cloudflare = new CloudflareImageService();
         foreach (['site_logo', 'site_favicon'] as $imageKey) {
             if ($request->hasFile($imageKey)) {
+                $result = $this->siteSettingService->updateImage($imageKey, $request->file($imageKey));
 
-                $oldCfId = SiteSetting::getValue($imageKey);
-                if ($oldCfId) {
-                    $cloudflare->delete($oldCfId);
-                }
-
-                $imageId = $imageKey.'/'.time().'.'. $request->file($imageKey)->getClientOriginalExtension();
-                $result = $cloudflare->upload($request->file($imageKey), $imageId);
-
-                if ($result['success']) {
-                    SiteSetting::setValue($imageKey, $imageId);
-                } else {
+                if (! $result['success']) {
                     return back()->withErrors([$imageKey => 'Image upload failed: ' . $result['error']]);
                 }
             }
@@ -406,12 +445,11 @@ class AdminWebController extends Controller
             unset($validated[$imageKey]);
         }
 
-
         $validated['face_scan_enabled'] = $request->has('face_scan_enabled') ? '1' : '0';
         $validated['email_verification_enabled'] = $request->has('email_verification_enabled') ? '1' : '0';
-        $validated['image_verification_enabled'] = $request->has('image_verification_enabled') ? '1' : '0';
+        $validated['photo_auto_approval_enabled'] = $request->has('photo_auto_approval_enabled') ? '1' : '0';
 
-        $service->update(array_filter($validated, fn ($v) => $v !== null));
+        $this->siteSettingService->update(array_filter($validated, fn ($v) => $v !== null));
 
         Log::info('[ADMIN WEB - UpdateSettings] Admin: ' . Auth::id() . ' updated site settings.');
 
@@ -502,7 +540,10 @@ class AdminWebController extends Controller
 
     public function deletePage(int $id)
     {
-        Page::where('id', $id)->delete();
+        $pageService = new PageService();
+        $page        = $pageService->findById($id);
+        $pageService->delete($page);
+
         return redirect()->route('admin.web.pages')->with('success', 'Page deleted.');
     }
 
@@ -588,18 +629,138 @@ class AdminWebController extends Controller
         return redirect()->route('admin.web.reports')->with('success', 'Report dismissed.');
     }
 
-    public function banUserFromReport(Request $request, int $id): RedirectResponse
+    public function banUserFromReport(Request $request, int $id, UserBanService $banService): RedirectResponse
     {
         $report = Report::with('reported')->findOrFail($id);
 
-        DB::transaction(function () use ($report) {
-            $report->reported->update(['is_banned' => true]);
+        DB::transaction(function () use ($report, $banService) {
+            $banService->ban(
+                $report->reported,
+                $report->reason ?: 'Account banned following a user report review.',
+                false,
+            );
             $report->update(['status' => 'action_taken']);
         });
 
         Log::info('[ADMIN WEB - BanFromReport] Admin: ' . Auth::id() . ' banned user: ' . $report->reported_id . ' via report ID: ' . $id);
 
         return redirect()->route('admin.web.reports')->with('success', 'User banned and report marked as action taken.');
+    }
+
+    // -----------------------------------------------------------------------
+    // Account Disable Requests
+    // -----------------------------------------------------------------------
+
+    public function accountDisableRequests(Request $request): View
+    {
+        $query = AccountDisableRequest::with([
+            'user:id,name,email,is_active,is_banned',
+            'reviewer:id,name',
+        ])->latest();
+
+        $status = $request->input('status', 'pending');
+        if (in_array($status, ['pending', 'action_taken', 'dismissed'], true)) {
+            $query->where('status', $status);
+        } else {
+            $query->where('status', 'pending');
+            $status = 'pending';
+        }
+
+        $requests = $query->paginate(20)->withQueryString();
+
+        return view('admin.account-disable-requests.index', compact('requests', 'status'));
+    }
+
+    public function disableAccountFromRequest(
+        ReviewAccountDisableRequestRequest $request,
+        int $id,
+        AccountDisableRequestService $service,
+    ): RedirectResponse {
+        $disableRequest = AccountDisableRequest::with('user')->findOrFail($id);
+
+        try {
+            $service->disableAccount(
+                $disableRequest,
+                Auth::user(),
+                $request->validated('admin_message'),
+            );
+        } catch (\RuntimeException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return redirect()->route('admin.web.account-disable-requests', ['status' => 'action_taken'])
+            ->with('success', 'User account disabled successfully.');
+    }
+
+    public function banAccountFromRequest(
+        ReviewAccountDisableRequestRequest $request,
+        int $id,
+        AccountDisableRequestService $service,
+    ): RedirectResponse {
+        $disableRequest = AccountDisableRequest::with('user')->findOrFail($id);
+
+        if ($disableRequest->user_id === Auth::id()) {
+            return back()->with('error', 'You cannot ban your own account.');
+        }
+
+        try {
+            $service->banAccount(
+                $disableRequest,
+                Auth::user(),
+                $request->validated('admin_message'),
+            );
+        } catch (\RuntimeException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return redirect()->route('admin.web.account-disable-requests', ['status' => 'action_taken'])
+            ->with('success', 'User account banned successfully.');
+    }
+
+    public function dismissAccountDisableRequest(
+        DismissAccountDisableRequestRequest $request,
+        int $id,
+        AccountDisableRequestService $service,
+    ): RedirectResponse {
+        $disableRequest = AccountDisableRequest::findOrFail($id);
+
+        try {
+            $service->dismiss(
+                $disableRequest,
+                Auth::user(),
+                $request->validated('admin_message'),
+            );
+        } catch (\RuntimeException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return redirect()->route('admin.web.account-disable-requests')
+            ->with('success', 'Request dismissed.');
+    }
+
+    public function reactivateAccountFromRequest(
+        DismissAccountDisableRequestRequest $request,
+        int $id,
+        AccountDisableRequestService $service,
+    ): RedirectResponse {
+        $disableRequest = AccountDisableRequest::with('user')->findOrFail($id);
+
+        if ($disableRequest->user_id === Auth::id()) {
+            return back()->with('error', 'You cannot reactivate your own account.');
+        }
+
+        try {
+            $service->reactivateAccount(
+                $disableRequest,
+                Auth::user(),
+                $request->validated('admin_message'),
+            );
+        } catch (\RuntimeException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return redirect()->route('admin.web.account-disable-requests', ['status' => 'action_taken'])
+            ->with('success', 'User account reactivated successfully.');
     }
 
     // -----------------------------------------------------------------------

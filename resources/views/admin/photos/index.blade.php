@@ -22,7 +22,7 @@
         <div class="stat-card h-100 d-flex flex-column">
             {{-- Photo --}}
             <div class="ratio ratio-1x1 mb-3" style="border-radius:8px;overflow:hidden;background:#f1f1f1;">
-                <img src="{{ \Illuminate\Support\Facades\Storage::url($photo->file_path) }}"
+                <img src="{{ profilePhotoUrl($photo->file_path) }}"
                      alt="Photo {{ $photo->id }}"
                      style="object-fit:cover;width:100%;height:100%;"
                      loading="lazy"

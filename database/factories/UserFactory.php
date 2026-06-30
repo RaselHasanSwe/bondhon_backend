@@ -3,40 +3,40 @@
 namespace Database\Factories;
 
 use App\Models\User;
+use App\Models\SelectOption;
+use App\Services\ProfileCompletionService;
+use App\Services\ProfileService;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 
 /**
  * @extends Factory<User>
  */
 class UserFactory extends Factory
 {
-    /**
-     * The current password being used by the factory.
-     */
     protected static ?string $password;
 
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
     public function definition(): array
     {
+        $gender = fake()->randomElement(['male', 'female']);
+
+        $profileCreatedBy = SelectOption::where('group_key', 'profile_created_by')
+            ->where('is_active', true)
+            ->inRandomOrder()
+            ->first()?->value ?? 'self';
+
         return [
             'name' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
+            'gender' => $gender,
             'email_verified_at' => now(),
-            'password' => static::$password ??= Hash::make('password'),
-            'gender' => fake()->randomElement(['male', 'female']),
-            'profile_created_by' => fake()->randomElement(['self', 'parents', 'siblings']),
+            'profile_created_by' => $profileCreatedBy,
+            'password' => static::$password ??= Hash::make('123456789'),
             'role' => 'user',
             'is_active' => true,
             'is_banned' => false,
-            'subscription_plan' => 'free',
+            'subscription_plan' => 'free', // Default free
             'subscription_expires_at' => null,
-            'remember_token' => Str::random(10),
         ];
     }
 
@@ -70,24 +70,26 @@ class UserFactory extends Factory
         ]);
     }
 
-    /**
-     * Indicate that the user should be inactive.
-     */
-    public function inactive(): static
+    public function configure(): static
     {
-        return $this->state(fn (array $attributes) => [
-            'is_active' => false,
-        ]);
+        return $this->afterCreating(function (User $user) {
+            app(ProfileService::class)->createProfile($user->id);
+        });
     }
 
-    /**
-     * Indicate that the user should have a premium subscription.
-     */
-    public function withSubscription(string $plan = 'gold', int $daysFromNow = 30): static
+    public function withCompleteProfile(): static
     {
-        return $this->state(fn (array $attributes) => [
-            'subscription_plan' => $plan,
-            'subscription_expires_at' => now()->addDays($daysFromNow),
-        ]);
+        return $this->afterCreating(function (User $user) {
+            ProfileFactory::new()->completeForUser($user);
+
+            app(ProfileCompletionService::class)->recalculateAndSave($user->fresh());
+        });
+    }
+
+    public function withBasicProfile(): static
+    {
+        return $this->afterCreating(function (User $user) {
+            ProfileFactory::new()->seedForUser($user);
+        });
     }
 }

@@ -1,15 +1,13 @@
-@php
-    $loginSiteName = \App\Models\SiteSetting::getValue('site_name', config('app.name', 'Admin'));
-    $loginSiteLogo = \App\Models\SiteSetting::getValue('site_logo', null);
-@endphp
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Login — {{ $loginSiteName }}</title>
-    @if($loginSiteLogo)
-        <link rel="icon" href="{{ $loginSiteLogo }}">
+    <title>Admin Login — {{ $siteName }}</title>
+    @if($siteFavicon)
+        <link rel="icon" href="{{ cfImage($siteFavicon) }}">
+    @elseif($siteLogo)
+        <link rel="icon" href="{{ cfImage($siteLogo) }}">
     @endif
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
@@ -31,7 +29,7 @@
 <body>
 <div class="login-card">
     <div class="text-center mb-4">
-        <div class="brand-title">{{ $loginSiteName }}</div>
+        <div class="brand-title">{{ $siteName }}</div>
         <p class="text-muted mb-0" style="font-size:.8rem;letter-spacing:.1em;">SUPER ADMIN PANEL</p>
     </div>
 
@@ -48,7 +46,7 @@
         <div class="mb-3">
             <label class="form-label fw-semibold small">Email Address</label>
             <input type="email" name="email" class="form-control"
-                   value="{{ old('email') }}" placeholder="admin@mybouma.com" required autofocus>
+                   value="{{ old('email') }}" placeholder="admin@Enorsia.com" required autofocus>
         </div>
         <div class="mb-4">
             <label class="form-label fw-semibold small">Password</label>

@@ -15,9 +15,29 @@
                     <div class="col-md-6">
                         <label class="form-label fw-semibold small">Site Name</label>
                         <input type="text" name="site_name" class="form-control @error('site_name') is-invalid @enderror"
-                               value="{{ old('site_name', $settings['site_name'] ?? '') }}" placeholder="My Bouma">
+                               value="{{ old('site_name', $settings['site_name'] ?? '') }}" placeholder="Enorsia">
                         @error('site_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold small">Site Logo</label>
+                        @if(!empty($settings['site_logo']))
+                            <div class="mb-2">
+                                <img src="{{ cfImage($settings['site_logo']) }}" alt="Logo" style="max-height:60px;border-radius:8px;border:1px solid #e5e7eb;">
+                            </div>
+                        @endif
+                        <input type="file" name="site_logo" class="form-control @error('site_logo') is-invalid @enderror" accept="image/*">
+                        <small class="text-muted">PNG/SVG recommended. Max 2MB.</small>
+                        @error('site_logo')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+
+                    <div class="col-md-12">
+                        <label class="form-label fw-semibold small">Site Slogan</label>
+                        <input type="text" name="site_slogan" class="form-control @error('site_slogan') is-invalid @enderror"
+                               value="{{ old('site_slogan', $settings['site_slogan'] ?? '') }}" placeholder="Your trusted matrimony platform">
+                        @error('site_slogan')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+
                     <div class="col-md-3">
                         <label class="form-label fw-semibold small">Currency Code</label>
                         <input type="text" name="currency" class="form-control @error('currency') is-invalid @enderror"
@@ -32,21 +52,10 @@
                     </div>
 
                     <div class="col-md-6">
-                        <label class="form-label fw-semibold small">Site Logo</label>
-                        @if(!empty($settings['site_logo']))
-                            <div class="mb-2">
-                                <img src="{{ cfImage($settings['site_logo']) }}" alt="Logo" style="max-height:60px;border-radius:8px;border:1px solid #e5e7eb;">
-                            </div>
-                        @endif
-                        <input type="file" name="site_logo" class="form-control @error('site_logo') is-invalid @enderror" accept="image/*">
-                        <small class="text-muted">PNG/SVG recommended. Max 2MB.</small>
-                        @error('site_logo')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                    </div>
-                    <div class="col-md-6">
                         <label class="form-label fw-semibold small">Site Favicon</label>
                         @if(!empty($settings['site_favicon']))
                             <div class="mb-2">
-                                <img src="{{ cfImage($settings['site_logo']) }}" alt="Favicon" style="max-height:32px;border-radius:4px;border:1px solid #e5e7eb;">
+                                <img src="{{ cfImage($settings['site_favicon']) }}" alt="Favicon" style="max-height:32px;border-radius:4px;border:1px solid #e5e7eb;">
                             </div>
                         @endif
                         <input type="file" name="site_favicon" class="form-control @error('site_favicon') is-invalid @enderror" accept="image/*">
@@ -63,7 +72,7 @@
                     <div class="col-md-6">
                         <label class="form-label fw-semibold small">Contact Email</label>
                         <input type="email" name="contact_email" class="form-control @error('contact_email') is-invalid @enderror"
-                               value="{{ old('contact_email', $settings['contact_email'] ?? '') }}" placeholder="support@My Bouma.com">
+                               value="{{ old('contact_email', $settings['contact_email'] ?? '') }}" placeholder="support@Enorsia.com">
                         @error('contact_email')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
                     <div class="col-md-6">
@@ -105,14 +114,33 @@
                 </div>
             </div>
 
+            {{-- Matching --}}
             <div class="table-card p-4 mb-4">
-                <h6 class="fw-bold mb-3" style="color:#C9A227"><i class="bi bi-camera-fill me-2"></i>Image Verification</h6>
+                <h6 class="fw-bold mb-3" style="color:#C9A227"><i class="bi bi-heart me-2"></i>Matching</h6>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold small">Minimum Match Score (%)</label>
+                        <input type="number" name="minimum_match_score" min="0" max="100" step="1"
+                               class="form-control @error('minimum_match_score') is-invalid @enderror"
+                               value="{{ old('minimum_match_score', $settings['minimum_match_score'] ?? '40') }}"
+                               placeholder="40">
+                        @error('minimum_match_score')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        <p class="small text-muted mb-0 mt-2">
+                            Only matches at or above this score appear on the <code>/matches</code> page and in the daily match digest.
+                            Individual profile views always show the real compatibility score.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-card p-4 mb-4">
+                <h6 class="fw-bold mb-3" style="color:#C9A227"><i class="bi bi-camera-fill me-2"></i>Photo Auto Approval</h6>
                 <div class="d-flex flex-column gap-2">
                     <div class="form-check form-switch">
-                        <input class="form-check-input" type="checkbox" role="switch" id="image_verification_enabled" name="image_verification_enabled" value="1" {{ !empty($settings['image_verification_enabled']) && filter_var($settings['image_verification_enabled'], FILTER_VALIDATE_BOOLEAN) ? 'checked' : '' }}>
-                        <label class="form-check-label fw-semibold" for="image_verification_enabled">Require image verification?</label>
+                        <input class="form-check-input" type="checkbox" role="switch" id="photo_auto_approval_enabled" name="photo_auto_approval_enabled" value="1" {{ !empty($settings['photo_auto_approval_enabled']) && filter_var($settings['photo_auto_approval_enabled'], FILTER_VALIDATE_BOOLEAN) ? 'checked' : '' }}>
+                        <label class="form-check-label fw-semibold" for="photo_auto_approval_enabled">Photo Auto Approval</label>
                     </div>
-                    <p class="small text-muted mb-0">When enabled, users can upload photos, which are then reviewed by the Super Admin for approval or rejection before being published.</p>
+                    <p class="small text-muted mb-0">When enabled, profile photos uploaded by users are approved automatically and become visible immediately. When disabled, uploads stay pending until a super-admin approves or rejects them.</p>
                 </div>
             </div>
 

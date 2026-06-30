@@ -4,24 +4,41 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Requests\Profile\UpdatePreferenceRequest;
 use App\Http\Requests\Profile\UpdateProfileRequest;
+use App\Models\MatchScore;
 use App\Models\Profile;
 use App\Models\ProfilePhoto;
 use App\Models\ProfileView;
 use App\Models\Interest;
 use App\Models\User;
+use App\Jobs\SendProfileViewedEmail;
+use App\Services\InterestService;
+use App\Services\MatchingService;
 use App\Services\ProfileCompletionService;
+use App\Services\ProfilePhotoStorageService;
+use App\Services\NotificationService;
+use App\Services\ShortlistService;
+use App\Services\SiteSettingService;
+use App\Services\SubscriptionFeatureService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
 use Intervention\Image\Laravel\Facades\Image;
 use OpenApi\Attributes as OA;
 
 #[OA\Tag(name: 'Profile', description: 'Profile management endpoints')]
 class ProfileController extends ApiController
 {
-    public function __construct(private readonly ProfileCompletionService $completionService) {}
+    public function __construct(
+        private readonly ProfileCompletionService $completionService,
+        private readonly ProfilePhotoStorageService $photoStorage,
+        private readonly SiteSettingService $siteSettings,
+        private readonly NotificationService $notificationService,
+        private readonly SubscriptionFeatureService $featureService,
+        private readonly InterestService $interestService,
+        private readonly ShortlistService $shortlistService,
+        private readonly MatchingService $matchingService,
+    ) {}
 
     #[OA\Get(
         path: '/api/v1/profile',
@@ -81,6 +98,7 @@ class ProfileController extends ApiController
                 'familyDetail',
                 'educationCareer',
                 'lifestyle',
+                'faceScanSession',
                 'photos' => fn ($q) => $q->where('is_approved', true)->where('is_private', false),
             ])->first();
 
@@ -92,11 +110,55 @@ class ProfileController extends ApiController
                 return $this->errorResponse('This profile is not available.', null, 403);
             }
 
-            $this->recordProfileView($currentUser, $targetUser);
+            $isOwnProfile = $currentUser->id === $targetUser->id;
+
+            $hasPaidPlan = $this->featureService->hasPaidSubscription($currentUser);
+
+            if (! $hasPaidPlan) {
+                Log::warning('[PROFILE - ShowById] Free plan profile access denied. Viewer: ' . $currentUser->id);
+
+                return $this->errorResponse(
+                    'Upgrade your plan to view full profiles.',
+                    ['feature' => 'full_profile_access'],
+                    403
+                );
+            }
+
+            $viewsToday = ProfileView::where('viewer_id', $currentUser->id)
+                ->where('viewed_id', '!=', $currentUser->id)
+                ->whereDate('viewed_at', today())
+                ->count();
+
+            $alreadyViewedToday = ProfileView::where('viewer_id', $currentUser->id)
+                ->where('viewed_id', $targetUser->id)
+                ->whereDate('viewed_at', today())
+                ->exists();
+
+            if (! $isOwnProfile && ! $alreadyViewedToday && ! $this->featureService->withinDailyLimit($currentUser, 'profile_views_per_day', $viewsToday)) {
+                $limit = (int) $this->featureService->value($currentUser, 'profile_views_per_day');
+                Log::warning('[PROFILE - ShowById] Daily view limit reached. Viewer: ' . $currentUser->id);
+
+                return $this->errorResponse(
+                    "You have reached your daily profile view limit ({$limit}/day). Upgrade your plan to view more profiles.",
+                    ['feature' => 'profile_views_per_day', 'limit' => $limit, 'used' => $viewsToday],
+                    403
+                );
+            }
+
+            if (! $isOwnProfile) {
+                $this->recordProfileView($currentUser, $targetUser);
+            }
+
+            $viewsTodayAfter = $isOwnProfile || $alreadyViewedToday ? $viewsToday : $viewsToday + 1;
+            $accessMeta      = $this->buildProfileAccessMeta($currentUser, $viewsTodayAfter, true);
+
+            $profileData           = $this->formatPublicProfile($targetUser, $currentUser);
+            $profileData['access'] = $accessMeta;
+            $profileData           = $this->attachViewerContext($profileData, $currentUser, $targetUser, $isOwnProfile);
 
             Log::info('[PROFILE - ShowById] Success. Viewer: ' . $currentUser->id . ' | Viewed: ' . $targetUser->id);
 
-            return $this->successResponse($this->formatPublicProfile($targetUser, $currentUser), 'Profile retrieved successfully.');
+            return $this->successResponse($profileData, 'Profile retrieved successfully.');
 
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             Log::warning('[PROFILE - ShowById] Profile not found: ' . $profileId);
@@ -323,24 +385,33 @@ class ProfileController extends ApiController
         try {
             $image    = Image::read($request->file('photo'));
             $image->scaleDown(width: 1200);
-
-            $filename = 'photos/' . $user->id . '/' . uniqid('photo_', true) . '.jpg';
             $encoded  = $image->toJpeg(85);
 
-            Storage::disk('public')->put($filename, $encoded);
+            $stored = $this->photoStorage->store((string) $encoded, $user->id);
+
+            $autoApprove = $this->siteSettings->boolean('photo_auto_approval_enabled', false);
 
             $photo = ProfilePhoto::create([
                 'user_id'           => $user->id,
-                'file_path'         => $filename,
+                'file_path'         => $stored['path'],
                 'is_primary'        => false,
-                'is_approved'       => false,
+                'is_approved'       => $autoApprove,
                 'is_private'        => (bool) $request->boolean('is_private', false),
-                'moderation_status' => 'pending',
+                'moderation_status' => $autoApprove ? 'approved' : 'pending',
             ]);
 
-            Log::info('[PROFILE PHOTO - Upload] Success. Photo ID: ' . $photo->id . ' | File: ' . $filename . ' | User ID: ' . $user->id);
+            if ($autoApprove) {
+                $this->completionService->recalculateAndSave($user->fresh());
+                $this->notificationService->notifyPhotoApproved($user);
+            }
 
-            return $this->successResponse($photo, 'Photo uploaded successfully. It will be visible after admin approval.', 201);
+            Log::info('[PROFILE PHOTO - Upload] Success. Photo ID: ' . $photo->id . ' | File: ' . $stored['path'] . ' | User ID: ' . $user->id);
+
+            $message = $autoApprove
+                ? 'Photo uploaded and approved successfully.'
+                : 'Photo uploaded successfully. It will be visible after admin approval.';
+
+            return $this->successResponse($photo->fresh(), $message, 201);
 
         } catch (\Throwable $e) {
             Log::error('[PROFILE PHOTO - Upload] Failed for User ID: ' . $user->id . ' | Error: ' . $e->getMessage(), [
@@ -371,7 +442,7 @@ class ProfileController extends ApiController
             $photo = ProfilePhoto::where('id', $photoId)->where('user_id', $user->id)->firstOrFail();
 
             DB::transaction(function () use ($photo, $user, $photoId) {
-                Storage::disk('public')->delete($photo->file_path);
+                $this->photoStorage->delete($photo->file_path);
                 $photo->delete();
                 $this->completionService->recalculateAndSave($user->fresh());
             });
@@ -439,6 +510,10 @@ class ProfileController extends ApiController
 
     private function recordProfileView(User $viewer, User $viewed): void
     {
+        if ($viewer->id === $viewed->id) {
+            return;
+        }
+
         try {
             $exists = ProfileView::where('viewer_id', $viewer->id)
                 ->where('viewed_id', $viewed->id)
@@ -452,6 +527,11 @@ class ProfileController extends ApiController
                     'viewed_at' => now(),
                 ]);
                 Log::info('[PROFILE VIEW - Record] Viewer: ' . $viewer->id . ' | Viewed: ' . $viewed->id);
+
+                if ($this->featureService->hasPaidSubscription($viewed)) {
+                    $this->notificationService->notifyProfileViewed($viewed, $viewer);
+                    SendProfileViewedEmail::dispatch($viewer->id, $viewed->id);
+                }
             }
         } catch (\Throwable $e) {
             // Non-critical — log but do not fail the request
@@ -461,6 +541,9 @@ class ProfileController extends ApiController
 
     private function formatProfile(User $user): array
     {
+        $photos = $user->photos;
+        $primaryPhoto = $photos->firstWhere('is_primary', true) ?? $photos->first();
+
         return [
             'id'                 => $user->id,
             'name'               => $user->name,
@@ -477,8 +560,66 @@ class ProfileController extends ApiController
             'lifestyle'          => $user->lifestyle,
             'horoscope_detail'   => $user->horoscopeDetail,
             'partner_preference' => $user->partnerPreference,
-            'photos'             => $user->photos,
+            'primary_photo'      => $primaryPhoto?->file_path,
+            'photos'             => $photos,
         ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function buildProfileAccessMeta(User $viewer, int $viewsToday, bool $hasPaidPlan): array
+    {
+        $limit = (int) $this->featureService->value($viewer, 'profile_views_per_day');
+
+        return [
+            'full_profile'          => $hasPaidPlan,
+            'profile_views_per_day' => [
+                'limit'     => $limit,
+                'used'      => $viewsToday,
+                'unlimited' => $limit < 0,
+                'remaining' => $limit < 0 ? null : max(0, $limit - $viewsToday),
+            ],
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $profileData
+     * @return array<string, mixed>
+     */
+    private function attachViewerContext(array $profileData, User $viewer, User $target, bool $isOwnProfile): array
+    {
+        if ($isOwnProfile) {
+            return $profileData;
+        }
+
+        $interestMeta = $this->interestService->buildStatusPayloadForUser($viewer, $target->id);
+
+        $profileData['connection_status']  = $interestMeta['status'];
+        $profileData['interest_id']        = $interestMeta['interest_id'];
+        $profileData['is_interest_sender'] = $interestMeta['is_sender'];
+        $profileData['can_send_interest']  = $interestMeta['can_send_interest'];
+
+        $this->shortlistService->attachShortlistStatus($viewer, collect([$target]));
+        $profileData['is_shortlisted'] = (bool) $target->getAttribute('is_shortlisted');
+
+        if ($this->featureService->can($viewer, 'compatibility_score_visible')) {
+            $matchScore = MatchScore::findForPair($viewer->id, $target->id);
+
+            if (! $matchScore) {
+                $matchScore = $this->matchingService->calculateAndStoreScore($viewer, $target, ignoreMinimum: true);
+            }
+
+            if ($matchScore) {
+                $profileData['compatibility_score'] = [
+                    'score'           => (float) $matchScore->score,
+                    'score_breakdown' => $matchScore->score_breakdown,
+                    'calculated_at'   => $matchScore->calculated_at,
+                ];
+            }
+        }
+
+        return $profileData;
     }
 
     private function formatPublicProfile(User $user, User $viewer): array
@@ -499,6 +640,9 @@ class ProfileController extends ApiController
             $photosQuery->whereRaw('0=1');
         }
 
+        $photos = $photosQuery->get();
+        $primaryPhoto = $photos->firstWhere('is_primary', true) ?? $photos->first();
+
         return [
             'id'             => $user->id,
             'name'           => $user->name,
@@ -516,15 +660,17 @@ class ProfileController extends ApiController
                 'state'                         => $user->profile->state,
                 'city'                          => $user->profile->city,
                 'about_me'                      => $user->profile->about_me,
-                'is_verified'                   => $user->profile->is_verified,
+                'is_verified'                   => $user->faceScanSession?->status === 'approved',
                 'profile_completion_percentage' => $user->profile->profile_completion_percentage,
                 'last_seen_at'                  => ($privacySettings['show_online_status'] ?? true) ? $user->profile->last_seen_at : null,
             ] : null,
+            'face_scan_status'  => $user->faceScanSession?->status,
             'religious_detail'  => $user->religiousDetail ? ['religion' => $user->religiousDetail->religion, 'caste' => $user->religiousDetail->caste] : null,
             'family_detail'     => $user->familyDetail ? ['family_type' => $user->familyDetail->family_type, 'family_status' => $user->familyDetail->family_status] : null,
             'education_career'  => $user->educationCareer ? ['highest_education' => $user->educationCareer->highest_education, 'profession' => $user->educationCareer->profession, 'employed_in' => $user->educationCareer->employed_in] : null,
             'lifestyle'         => $user->lifestyle ? ['diet' => $user->lifestyle->diet, 'smoking' => $user->lifestyle->smoking, 'drinking' => $user->lifestyle->drinking, 'hobbies' => $user->lifestyle->hobbies] : null,
-            'photos'            => $photosQuery->get(),
+            'primary_photo'     => $primaryPhoto?->file_path,
+            'photos'            => $photos,
             'is_connection'     => $isMutualConnection,
         ];
     }

@@ -21,6 +21,8 @@ class ProfilePhoto extends Model
 
     protected $hidden = [];
 
+    protected $appends = ['url'];
+
     protected function casts(): array
     {
         return [
@@ -36,5 +38,10 @@ class ProfilePhoto extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function getUrlAttribute(): ?string
+    {
+        return $this->file_path;
     }
 }

@@ -6,6 +6,8 @@ use App\Http\Controllers\Api\V1\OptionGroupController;
 use App\Http\Controllers\Api\V1\SelectOptionController;
 use App\Http\Controllers\Api\V1\PublicSettingController;
 use App\Http\Controllers\Api\V1\PublicPageController;
+use App\Http\Controllers\Api\V1\PublicProfileSearchController;
+use App\Http\Controllers\Api\V1\PublicSubscriptionPlanController;
 use App\Http\Controllers\Api\V1\Admin\AdminNotificationController;
 use App\Http\Controllers\Api\V1\Admin\AdminPhotoModerationController;
 use App\Http\Controllers\Api\V1\Admin\AdminReportController;
@@ -16,6 +18,7 @@ use App\Http\Controllers\Api\V1\Auth\FaceScanController;
 use App\Http\Controllers\Api\V1\Auth\EmailVerificationController;
 use App\Http\Controllers\Api\V1\Auth\ForgotPasswordController;
 use App\Http\Controllers\Api\V1\Auth\ResetPasswordController;
+use App\Http\Controllers\Api\V1\DashboardController;
 use App\Http\Controllers\Api\V1\BlockController;
 use App\Http\Controllers\Api\V1\ChatController;
 use App\Http\Controllers\Api\V1\InterestController;
@@ -29,11 +32,12 @@ use App\Http\Controllers\Api\V1\CallController;
 use App\Http\Controllers\Api\V1\ShortlistController;
 use App\Http\Controllers\Api\V1\SubscriptionController;
 use App\Http\Controllers\Api\V1\ContactMessageController;
+use App\Http\Controllers\Api\V1\AccountDisableRequestController;
 use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
-| API Routes — MyBouma Matrimony Platform
+| API Routes — Enorsia Matrimony Platform
 | All routes prefixed: /api/v1
 |--------------------------------------------------------------------------
 */
@@ -46,13 +50,19 @@ Route::prefix('v1')->group(function () {
     |----------------------------------------------------------------------
     */
     // Dynamic select options (public, cached)
-    Route::get('/options/{group}', [SelectOptionController::class, 'index'])->middleware('throttle:120,1');
+    Route::get('/options/bulk', [SelectOptionController::class, 'bulk'])->middleware('throttle:12000,1');
+    Route::get('/options/{group}', [SelectOptionController::class, 'index'])->middleware('throttle:12000,1');
     Route::get('/option-groups',    [OptionGroupController::class,  'index'])->middleware('throttle:60,1');
 
     Route::get('/settings', [PublicSettingController::class, 'index'])->middleware('throttle:60,1');
     Route::get('/pages',          [PublicPageController::class, 'index'])->middleware('throttle:60,1');
     Route::get('/pages/{slug}',   [PublicPageController::class, 'show'])->middleware('throttle:60,1');
-    Route::post('/contact',       [ContactMessageController::class, 'store'])->middleware('throttle:5,1');
+    Route::get('/subscription-plans', [PublicSubscriptionPlanController::class, 'index'])->middleware('throttle:60,1');
+    Route::post('/contact',       [ContactMessageController::class, 'store'])->middleware('throttle:30,1');
+    Route::get('/public/profiles/recent', [PublicProfileSearchController::class, 'recent'])
+        ->middleware(['auth.optional', 'throttle:120,1']);
+    Route::get('/public/profiles/search', [PublicProfileSearchController::class, 'search'])
+        ->middleware(['auth.optional', 'throttle:120,1']);
 
     /*
     |----------------------------------------------------------------------
@@ -126,6 +136,9 @@ Route::prefix('v1')->group(function () {
         // Partner Preferences
         Route::put('/preferences', [ProfileController::class, 'updatePreferences']);
 
+        // Dashboard (aggregated summary — single request)
+        Route::get('/dashboard', [DashboardController::class, 'index']);
+
         // ---------------------------------------------------------------
         // Phase 2 — Core Features
         // ---------------------------------------------------------------
@@ -142,6 +155,7 @@ Route::prefix('v1')->group(function () {
             Route::post('/', [InterestController::class, 'send']);
             Route::get('/received', [InterestController::class, 'received']);
             Route::get('/sent', [InterestController::class, 'sent']);
+            Route::get('/contacts', [InterestController::class, 'contacts']);
             Route::get('/status/{userId}', [InterestController::class, 'checkStatus']);
             Route::put('/{id}/accept', [InterestController::class, 'accept']);
             Route::put('/{id}/decline', [InterestController::class, 'decline']);
@@ -158,6 +172,10 @@ Route::prefix('v1')->group(function () {
 
         // Report
         Route::post('/report', [ReportController::class, 'report']);
+
+        // Account Disable Request
+        Route::post('/account-disable-requests', [AccountDisableRequestController::class, 'store'])
+            ->middleware('throttle:5,1');
 
         // Profile Views — requires see_who_viewed_profile
         Route::get('/profile-views', [ProfileViewController::class, 'myViewers']);

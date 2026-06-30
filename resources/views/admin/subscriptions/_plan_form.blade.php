@@ -1,12 +1,3 @@
-{{--
-    _plan_form.blade.php
-    Shared by plans.blade.php (create) and edit_plan.blade.php (edit).
-    Variables available: $plan (optional, for edit mode).
-
-    NOTE: Only features explicitly saved here are surfaced to users in the
-    frontend. A superadmin controls which permissions each plan exposes.
---}}
-
 @use(App\Services\SubscriptionFeatureService)
 @php
     $groupedFeatures = SubscriptionFeatureService::groupedDefinitions();

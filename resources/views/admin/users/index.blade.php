@@ -125,7 +125,7 @@
                             @elseif($user->is_active)
                                 <span class="badge bg-success">Active</span>
                             @else
-                                <span class="badge bg-warning">Pending</span>
+                                <span class="badge bg-warning text-dark">Disabled</span>
                             @endif
 
                             @if($user->role === 'user')

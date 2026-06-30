@@ -20,6 +20,7 @@ class Page extends Model
 
     protected $casts = [
         'is_published' => 'boolean',
+        'show_in_menu' => 'boolean',
         'sort_order'   => 'integer',
     ];
 

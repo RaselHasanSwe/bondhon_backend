@@ -14,6 +14,7 @@ class Interest extends Model
         'sender_id',
         'receiver_id',
         'status',
+        'send_count',
         'expires_at',
     ];
 

@@ -38,7 +38,7 @@ class CallInitiated implements ShouldBroadcast
             'caller' => [
                 'id'         => $caller?->id,
                 'name'       => $caller?->name,
-                'avatar'     => $photo ? $photo->file_path : null,
+                'avatar'     => $photo?->file_path,
                 'profile_id' => $caller?->profile?->profile_id,
             ],
         ];

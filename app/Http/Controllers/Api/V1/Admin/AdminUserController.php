@@ -4,6 +4,9 @@ namespace App\Http\Controllers\Api\V1\Admin;
 
 use App\Http\Controllers\Api\V1\ApiController;
 use App\Models\User;
+use App\Services\FaceScanReviewService;
+use App\Services\UserBanService;
+use App\Services\UserAccountStatusService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -121,29 +124,39 @@ class AdminUserController extends ApiController
             new OA\Response(response: 500, description: 'Server error'),
         ]
     )]
-    public function ban(Request $request, int $id): JsonResponse
+    public function ban(Request $request, int $id, UserAccountStatusService $statusService): JsonResponse
     {
-        $request->validate(['is_banned' => ['required', 'boolean']]);
+        $request->validate([
+            'is_banned' => ['required', 'boolean'],
+            'reason'    => ['required_if:is_banned,true', 'nullable', 'string', 'min:10', 'max:2000'],
+        ]);
 
         Log::info('[ADMIN USER - Ban] Admin ID: ' . $request->user()->id . ' | Target User ID: ' . $id . ' | is_banned: ' . ($request->is_banned ? 'true' : 'false'));
 
         try {
             $user = User::withTrashed()->findOrFail($id);
 
-            DB::transaction(function () use ($user, $request) {
-                $user->update(['is_banned' => $request->is_banned]);
+            if ($request->boolean('is_banned')) {
+                $statusService->banByAdmin(
+                    $user,
+                    $request->input('reason', 'Violation of terms of service.'),
+                    $request->user(),
+                );
+            } else {
+                $statusService->reactivateByAdmin(
+                    $user,
+                    $request->input('reason'),
+                    $request->user(),
+                );
+            }
 
-                // Revoke all tokens when banning
-                if ($request->is_banned) {
-                    $user->tokens()->delete();
-                }
-            });
-
-            $action = $request->is_banned ? 'banned' : 'unbanned';
+            $action = $request->boolean('is_banned') ? 'banned' : 'reactivated';
             Log::info('[ADMIN USER - ' . strtoupper($action) . '] Admin: ' . $request->user()->id . ' | User: ' . $id);
 
             return $this->successResponse($user->fresh(), 'User has been ' . $action . '.');
 
+        } catch (\RuntimeException $e) {
+            return $this->errorResponse($e->getMessage(), null, 422);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             Log::warning('[ADMIN USER - Ban] User not found. User ID: ' . $id);
             return $this->errorResponse('User not found.', null, 404);
@@ -219,11 +232,12 @@ class AdminUserController extends ApiController
             new OA\Response(response: 500, description: 'Server error'),
         ]
     )]
-    public function reviewFaceScan(Request $request, int $id): JsonResponse
+    public function reviewFaceScan(Request $request, int $id, FaceScanReviewService $reviewService): JsonResponse
     {
         $request->validate([
             'decision' => ['required', 'in:approved,rejected,ban'],
-            'review_note' => ['nullable', 'string', 'max:2000'],
+            'review_note' => ['required_if:decision,rejected', 'nullable', 'string', 'max:2000'],
+            'send_email_notification' => ['nullable', 'boolean'],
         ]);
 
         try {
@@ -233,21 +247,14 @@ class AdminUserController extends ApiController
                 return $this->errorResponse('Face scan session not found.', null, 400);
             }
 
-            DB::transaction(function () use ($user, $request) {
-                $session = $user->faceScanSession;
-                $status = $request->string('decision')->toString();
-
-                $session->update([
-                    'status' => $status === 'ban' ? 'rejected' : $status,
-                    'review_note' => $request->input('review_note'),
-                    'reviewed_by' => $request->user()->id,
-                    'reviewed_at' => now(),
-                ]);
-
-                if ($status === 'ban') {
-                    $user->update(['is_banned' => true]);
-                }
-            });
+            $reviewService->review(
+                $user,
+                $user->faceScanSession,
+                $request->string('decision')->toString(),
+                $request->input('review_note'),
+                $request->user()->id,
+                $request->boolean('send_email_notification'),
+            );
 
             return $this->successResponse($user->fresh(['faceScanSession.captures']), 'Face scan review updated successfully.');
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
@@ -274,6 +281,8 @@ class AdminUserController extends ApiController
                 'role' => $user->role,
                 'is_active' => $user->is_active,
                 'is_banned' => $user->is_banned,
+                'ban_reason' => $user->ban_reason,
+                'banned_at' => $user->banned_at,
                 'subscription_plan' => $user->subscription_plan,
                 'subscription_expires_at' => $user->subscription_expires_at,
                 'email_verified_at' => $user->email_verified_at,
@@ -298,7 +307,7 @@ class AdminUserController extends ApiController
                 'captures' => $session->captures->map(fn ($capture) => [
                     'id' => $capture->id,
                     'capture_key' => $capture->capture_key,
-                    'image_url' => asset('storage/' . $capture->image_path),
+                    'image_path' => $capture->image_path,
                     'metadata' => $capture->metadata,
                     'captured_at' => $capture->captured_at,
                 ])->values(),

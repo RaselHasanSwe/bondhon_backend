@@ -10,22 +10,26 @@ class SiteSettingSeeder extends Seeder
     public function run(): void
     {
         $defaults = [
-            'site_name'          => 'My Bouma',
+            'site_name'          => 'Enorsia',
+            'site_slogan'        => "Bangladesh's Most Trusted Matrimony Platform",
             'site_logo'          => null,
             'site_favicon'       => null,
             'currency'           => 'BDT',
             'currency_symbol'    => '৳',
-            'contact_email'      => 'support@mybouma.com',
-            'contact_phone'      => '+880 1700-000000',
+            'contact_email'      => 'info@enorsia.com',
+            'contact_phone'      => '+880 1770-744894',
             'contact_address'    => 'Dhaka, Bangladesh',
-            'facebook_url'       => 'https://facebook.com/mybouma',
-            'twitter_url'        => null,
-            'instagram_url'      => null,
-            'meta_title'         => 'My Bouma — Premium Matrimony Platform',
-            'meta_description'   => 'Find your perfect life partner on My Bouma — Bangladesh\'s most trusted premium matrimony platform.',
+            'facebook_url'       => 'https://facebook.com/Enorsia',
+            'twitter_url'        => 'https://twitter.com/Enorsia',
+            'instagram_url'      => 'https://instagram.com/Enorsia',
+            'linkedin_url'       => 'https://linkedin.com/company/Enorsia',
+            'meta_title'         => 'Enorsia — Premium Matrimony Platform',
+            'meta_description'   => 'Find your perfect life partner on Enorsia — Bangladesh\'s most trusted premium matrimony platform.',
             'meta_keywords'      => 'matrimony, marriage, bride, groom, matchmaking, Bangladesh',
-            'face_scan_enabled'  => true,
-            'email_verification_enabled' => true,
+            'face_scan_enabled'  => false,
+            'email_verification_enabled' => false,
+            'photo_auto_approval_enabled' => true,
+            'minimum_match_score'  => 80,
         ];
 
         foreach ($defaults as $key => $value) {
