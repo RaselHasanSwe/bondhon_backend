@@ -38,6 +38,7 @@ class SiteSettingService
             'face_scan_enabled' => ['type' => 'boolean', 'label' => 'Enable Face Scan Verification'],
             'email_verification_enabled' => ['type' => 'boolean', 'label' => 'Enable Email Verification'],
             'photo_auto_approval_enabled' => ['type' => 'boolean', 'label' => 'Photo Auto Approval'],
+            'minimum_match_score' => ['type' => 'number', 'label' => 'Minimum Match Score for Matches Page & Daily Digest'],
             'facebook_url'     => ['type' => 'url',   'label' => 'Facebook URL'],
             'twitter_url'      => ['type' => 'url',   'label' => 'Twitter / X URL'],
             'instagram_url'    => ['type' => 'url',   'label' => 'Instagram URL'],
@@ -76,6 +77,17 @@ class SiteSettingService
         }
 
         return filter_var($value, FILTER_VALIDATE_BOOLEAN);
+    }
+
+    /**
+     * Minimum compatibility score (0–100) for the matches list and daily digest.
+     * Profile views always show the actual score regardless of this threshold.
+     */
+    public function minimumMatchScore(): float
+    {
+        $value = $this->get('minimum_match_score', 40);
+
+        return max(0.0, min(100.0, (float) $value));
     }
 
     public function forgetCache(): void

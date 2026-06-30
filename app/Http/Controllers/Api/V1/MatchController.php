@@ -330,17 +330,20 @@ class MatchController extends ApiController
             return $this->errorResponse('Cannot view compatibility score for this user.', null, 403);
         }
 
-        // Try stored score first
-        $matchScore = MatchScore::where('user_id', $user->id)
-            ->where('candidate_id', $userId)
-            ->first();
+        // Try stored pair score first
+        $matchScore = MatchScore::findForPair($user->id, $userId);
 
         // If not stored, calculate on-demand (one-off)
         if (! $matchScore) {
-            $this->matchingService->calculateAndStoreScore($user, $candidate);
-            $matchScore = MatchScore::where('user_id', $user->id)
-                ->where('candidate_id', $userId)
-                ->firstOrFail();
+            $matchScore = $this->matchingService->calculateAndStoreScore($user, $candidate, ignoreMinimum: true);
+        }
+
+        if (! $matchScore) {
+            return $this->errorResponse(
+                'Compatibility score is not available for this profile.',
+                null,
+                404
+            );
         }
 
         return $this->successResponse([

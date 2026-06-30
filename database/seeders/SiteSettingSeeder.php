@@ -29,6 +29,7 @@ class SiteSettingSeeder extends Seeder
             'face_scan_enabled'  => false,
             'email_verification_enabled' => false,
             'photo_auto_approval_enabled' => true,
+            'minimum_match_score'  => 80,
         ];
 
         foreach ($defaults as $key => $value) {

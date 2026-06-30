@@ -4,7 +4,7 @@
 
 @section('content')
 <style>
-    .digest-greeting {
+    .greeting {
         color: #3D2C1E;
         font-family: 'Georgia', serif;
         font-size: 13px;
@@ -13,7 +13,7 @@
         margin-bottom: 24px;
         opacity: 0.7;
     }
-    .digest-headline {
+    .headline {
         color: #3D2C1E;
         font-family: 'Georgia', 'Times New Roman', serif;
         font-size: 26px;
@@ -22,36 +22,66 @@
         line-height: 1.3;
         margin-bottom: 6px;
     }
-    .digest-headline span { color: #B8860B; }
+    .headline span { color: #B8860B; }
     .section-rule { align-items: center; display: flex; gap: 10px; margin: 18px 0 24px; }
     .section-rule-line { background: linear-gradient(90deg,#D4A017,transparent); flex: 1; height: 1px; }
     .section-rule-gem { color: #D4A017; font-size: 10px; }
-    .digest-subtext {
+    .body-text {
         color: #5A3E2B;
         font-family: Arial, 'Helvetica Neue', sans-serif;
         font-size: 15px;
         line-height: 1.8;
         margin-bottom: 24px;
     }
-    /* Match cards */
     .match-card {
         background: #FFFDF5;
         border: 1px solid #E8D5A3;
         border-left: 4px solid #D4A017;
         border-radius: 6px;
-        margin-bottom: 14px;
-        padding: 16px 20px;
+        margin-bottom: 16px;
+        overflow: hidden;
     }
-    .match-card-header {
+    .match-card-inner {
         align-items: center;
         display: flex;
+        gap: 20px;
+        padding: 20px 22px;
+    }
+    .match-photo {
+        border: 2px solid #E8D5A3;
+        border-radius: 50%;
+        flex-shrink: 0;
+        height: 72px;
+        object-fit: cover;
+        width: 72px;
+    }
+    .match-photo-placeholder {
+        align-items: center;
+        background: linear-gradient(135deg, #FEF3C7, #FDE68A);
+        border: 2px solid #E8D5A3;
+        border-radius: 50%;
+        color: #B8860B;
+        display: flex;
+        flex-shrink: 0;
+        font-family: 'Georgia', serif;
+        font-size: 28px;
+        font-weight: 700;
+        height: 72px;
+        justify-content: center;
+        width: 72px;
+    }
+    .match-header {
+        align-items: flex-start;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px 12px;
         justify-content: space-between;
         margin-bottom: 6px;
     }
     .match-name {
         color: #3D2C1E;
         font-family: 'Georgia', serif;
-        font-size: 17px;
+        font-size: 20px;
         font-weight: 700;
     }
     .match-score-badge {
@@ -62,13 +92,14 @@
         font-size: 12px;
         font-weight: 700;
         letter-spacing: 0.5px;
-        padding: 4px 12px;
+        padding: 5px 12px;
+        white-space: nowrap;
     }
     .match-meta {
         color: #6B4C35;
         font-family: Arial, sans-serif;
         font-size: 13px;
-        line-height: 1.6;
+        line-height: 1.7;
     }
     .match-cta {
         display: inline-block;
@@ -113,14 +144,15 @@
     .closing-signature { color: #6B4C35; font-family: 'Georgia', serif; font-size: 14px; font-weight: 700; letter-spacing: 1px; margin-top: 10px; }
     .closing-team { color: #B8860B; font-family: Arial, sans-serif; font-size: 11px; letter-spacing: 2px; margin-top: 4px; text-transform: uppercase; }
     @media only screen and (max-width: 620px) {
-        .digest-headline { font-size: 22px; }
+        .headline { font-size: 22px; }
+        .match-card-inner { flex-direction: column; text-align: center; }
         .cta-button { padding: 14px 28px; font-size: 13px; }
     }
 </style>
 
-{{-- Greeting --}}
-<p class="digest-greeting">Assalamu Alaikum / Adaab, {{ $user->name ?? 'Dear Member' }},</p>
-<h1 class="digest-headline">
+<p class="greeting">Assalamu Alaikum / Adaab, {{ $user->name ?? 'Dear Member' }},</p>
+
+<h1 class="headline">
     Your Daily<br><span>Match Digest</span>
 </h1>
 
@@ -129,42 +161,62 @@
     <span class="section-rule-gem">✦</span>
 </div>
 
-<p class="digest-subtext">
-    Great news! Our matching algorithm has found <strong>{{ count($topMatches) }} highly compatible profile{{ count($topMatches) !== 1 ? 's' : '' }}</strong> for you today.
-    These are based on your partner preferences, religion, family values, lifestyle, and more.
+<p class="body-text">
+    Great news! We found <strong>{{ count($topMatches) }} highly compatible profile{{ count($topMatches) !== 1 ? 's' : '' }}</strong> for you today
+    based on your partner preferences, religion, family values, lifestyle, and more.
 </p>
 
-{{-- Match Cards --}}
 @forelse($topMatches as $match)
 <div class="match-card">
-    <div class="match-card-header">
-        <span class="match-name">{{ $match['name'] }}</span>
-        <span class="match-score-badge">{{ $match['score'] }}% Match</span>
+    <div class="match-card-inner">
+        @if(!empty($match['photo_url']))
+            <img src="{{ $match['photo_url'] }}" alt="{{ $match['name'] }}" class="match-photo">
+        @else
+            <div class="match-photo-placeholder">{{ strtoupper(substr($match['name'], 0, 1)) }}</div>
+        @endif
+
+        <div style="flex:1; min-width:0;">
+            <div class="match-header">
+                <span class="match-name">{{ $match['name'] }}</span>
+                <span class="match-score-badge">{{ $match['score'] }}% Match</span>
+            </div>
+            <div class="match-meta">
+                @if(!empty($match['age']))
+                    {{ $match['age'] }} years &nbsp;&nbsp;
+                @endif
+                @if(!empty($match['city']) || !empty($match['country']))
+                    📍
+                    @if(!empty($match['city']))
+                        {{ ucfirst($match['city']) }}
+                    @endif
+                    @if(!empty($match['state']))
+                        , {{ ucfirst($match['state']) }}
+                    @endif
+                    @if(!empty($match['country']))
+                        , {{ ucfirst(str_replace('_', ' ', $match['country'])) }}
+                    @endif
+                    <br>
+                @endif
+                @if(!empty($match['religion']))
+                    🕌 {{ ucfirst($match['religion']) }}&nbsp;&nbsp;
+                @endif
+                @if(!empty($match['education']))
+                    🎓 {{ ucwords(str_replace('_', ' ', $match['education'])) }}
+                @endif
+                @if(!empty($match['profession']))
+                    <br>💼 {{ ucwords(str_replace('_', ' ', $match['profession'])) }}
+                @endif
+            </div>
+            <a href="{{ $match['profile_url'] }}" class="match-cta" target="_blank">View Profile ›</a>
+        </div>
     </div>
-    <div class="match-meta">
-        @if(!empty($match['profile']?->city))
-            📍 {{ ucfirst($match['profile']->city) }}
-            @if(!empty($match['profile']?->country))
-                , {{ ucfirst(str_replace('_', ' ', $match['profile']->country)) }}
-            @endif
-            &nbsp;&nbsp;
-        @endif
-        @if(!empty($match['religion']))
-            🕌 {{ ucfirst($match['religion']) }}&nbsp;&nbsp;
-        @endif
-        @if(!empty($match['education']))
-            🎓 {{ ucwords(str_replace('_', ' ', $match['education'])) }}
-        @endif
-    </div>
-    <a href="{{ $match['url'] }}" class="match-cta" target="_blank">View Profile ›</a>
 </div>
 @empty
-<p class="digest-subtext">No new high-compatibility matches were found today. Complete your profile and preferences to get better matches!</p>
+<p class="body-text">No new high-compatibility matches were found today. Complete your profile and preferences to get better matches!</p>
 @endforelse
 
-{{-- Main CTA --}}
 <div class="cta-wrapper">
-    <a href="{{ config('app.frontend_url', config('app.url')) }}/matches" class="cta-button" target="_blank">
+    <a href="{{ $matchesUrl }}" class="cta-button" target="_blank">
         ✦ &nbsp; View All Matches &nbsp; ✦
     </a>
 </div>
@@ -174,6 +226,4 @@
     <p class="closing-signature">Warm regards,</p>
     <p class="closing-team">The {{ $siteName }} Team</p>
 </div>
-
 @endsection
-

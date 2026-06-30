@@ -6,8 +6,8 @@ use App\Models\Block;
 use App\Models\Interest;
 use App\Models\MatchScore;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -34,6 +34,10 @@ use Illuminate\Support\Facades\Log;
  */
 class MatchingService
 {
+    public function __construct(
+        private readonly SiteSettingService $siteSettings,
+    ) {}
+
     /** Education level rank (higher = more educated). */
     private array $educationRank = [
         'below_ssc'    => 1,
@@ -62,102 +66,267 @@ class MatchingService
      */
     public function calculateScore(User $user, User $candidate): float
     {
-        $this->loadRelations($user);
-        $this->loadRelations($candidate);
-
-        $pref  = $user->partnerPreference;
-        $score = 0.0;
-
-        $score += $this->scoreReligion($pref, $candidate);
-        $score += $this->scoreAge($pref, $candidate);
-        $score += $this->scoreLocation($user, $candidate);
-        $score += $this->scoreEducation($pref, $candidate);
-        $score += $this->scoreIncome($pref, $candidate);
-        $score += $this->scoreMaritalStatus($pref, $candidate);
-        $score += $this->scoreDiet($pref, $candidate);
-        $score += $this->scoreHeight($pref, $candidate);
-        $score += $this->scoreLifestyle($pref, $candidate);
-        $score += $this->scoreFamilyPrefs($pref, $candidate);
-        $score += $this->scoreReligiousness($pref, $candidate);
-        $score += $this->scoreBodyType($pref, $candidate);
-        $score += $this->scoreWorkingStatus($pref, $candidate);
-        $score += $this->scoreMotherTongue($pref, $candidate);
-        $score += $this->scoreResidingStatus($pref, $candidate);
-
-        return min(100.0, max(0.0, $score));
+        return $this->calculatePairScoreData($user, $candidate)['score'];
     }
 
     /**
-     * Calculate score with breakdown and persist to match_scores table.
+     * Calculate and persist a pair score if it does not already exist.
+     * One row per unordered pair (min user id, max user id).
+     * Skips storage when score is below the site minimum threshold.
+     *
+     * @param  bool  $ignoreMinimum  Profile view: store and show any score (matches page still filters by admin min).
+     *
+     * @return MatchScore|null  The existing or newly created row; null if not stored.
      */
-    public function calculateAndStoreScore(User $user, User $candidate): void
-    {
+    public function calculateAndStoreScore(
+        User $user,
+        User $candidate,
+        ?Carbon $calculatedAt = null,
+        bool $ignoreMinimum = false,
+    ): ?MatchScore {
+        if ($user->id === $candidate->id) {
+            return null;
+        }
+
+        $existing = MatchScore::findForPair($user->id, $candidate->id);
+        if ($existing) {
+            return $existing;
+        }
+
         $this->loadRelations($user);
         $this->loadRelations($candidate);
 
-        $pref = $user->partnerPreference;
-
-        $breakdown = [
-            'religion'        => $this->scoreReligion($pref, $candidate),
-            'age'             => $this->scoreAge($pref, $candidate),
-            'location'        => $this->scoreLocation($user, $candidate),
-            'education'       => $this->scoreEducation($pref, $candidate),
-            'income'          => $this->scoreIncome($pref, $candidate),
-            'marital_status'  => $this->scoreMaritalStatus($pref, $candidate),
-            'diet'            => $this->scoreDiet($pref, $candidate),
-            'height'          => $this->scoreHeight($pref, $candidate),
-            'lifestyle'       => $this->scoreLifestyle($pref, $candidate),
-            'family'          => $this->scoreFamilyPrefs($pref, $candidate),
-            'religiousness'   => $this->scoreReligiousness($pref, $candidate),
-            'body_type'       => $this->scoreBodyType($pref, $candidate),
-            'working_status'  => $this->scoreWorkingStatus($pref, $candidate),
-            'mother_tongue'   => $this->scoreMotherTongue($pref, $candidate),
-            'residing_status' => $this->scoreResidingStatus($pref, $candidate),
-        ];
-
-        $total = min(100.0, max(0.0, array_sum($breakdown)));
-
-        MatchScore::updateOrCreate(
-            ['user_id' => $user->id, 'candidate_id' => $candidate->id],
-            [
-                'score'           => $total,
-                'score_breakdown' => $breakdown,
-                'calculated_at'   => now(),
-            ]
+        $minScore = $this->siteSettings->minimumMatchScore();
+        $pairData = $this->calculatePairScoreData(
+            $user,
+            $candidate,
+            skipLoad: true,
+            minScore: $ignoreMinimum ? null : $minScore,
         );
+
+        if ($pairData['score'] <= 0) {
+            return null;
+        }
+
+        if (! $ignoreMinimum && $pairData['score'] < $minScore) {
+            Log::info('[MATCHING - Skip] User ' . $user->id . ' | Candidate ' . $candidate->id
+                . ' | Score ' . round($pairData['score'], 2) . ' | below min ' . $minScore);
+
+            return null;
+        }
+
+        [$low, $high] = MatchScore::normalizePairIds($user->id, $candidate->id);
+
+        $matchScore = MatchScore::create([
+            'user_id'         => $low,
+            'candidate_id'    => $high,
+            'score'           => $pairData['score'],
+            'score_breakdown' => $pairData['breakdown'],
+            'calculated_at'   => $calculatedAt ?? now(),
+        ]);
+
+        Log::info('[MATCHING - Created] Pair ' . $low . ':' . $high
+            . ' | Score ' . round($pairData['score'], 2));
+
+        return $matchScore;
     }
 
     /**
-     * Calculate and store scores for a user against all eligible candidates.
+     * Create new pair scores for eligible candidates up to the daily limit.
+     * Existing pairs are never updated. Re-running the same day creates nothing
+     * unless $force is true.
+     *
+     * @param  array<string, true>|null  $pairCache  Shared pair keys (low:high) — skips rescoring existing pairs.
+     * @param  array<int, true>|null     $usersWithNewPairs  Filled with both user IDs when a new pair is stored.
+     *
+     * @return int Number of new scores created.
      */
-    public function calculateAndStoreAllScores(User $user): void
-    {
-        Log::info('[MATCHING - CalculateAll] Start for User ID: ' . $user->id);
+    public function calculateAndStoreAllScores(
+        User $user,
+        ?Carbon $calculatedAt = null,
+        ?int $dailyCreateLimit = null,
+        bool $force = false,
+        ?array &$pairCache = null,
+        ?array &$usersWithNewPairs = null,
+    ): int {
+        $runAt    = $calculatedAt ?? now();
+        $minScore = $this->siteSettings->minimumMatchScore();
+
+        Log::info('[MATCHING - CalculateAll] Start for User ID: ' . $user->id
+            . ' | minScore=' . $minScore
+            . ' | dailyLimit=' . ($dailyCreateLimit ?? 'none')
+            . ' | force=' . ($force ? 'yes' : 'no'));
+
+        if ($dailyCreateLimit !== null && $dailyCreateLimit <= 0) {
+            return 0;
+        }
+
+        $createdToday = $this->countScoresCreatedOnDateForUser($user->id, $runAt);
+        $remaining    = $dailyCreateLimit === null
+            ? PHP_INT_MAX
+            : ($force ? $dailyCreateLimit : max(0, $dailyCreateLimit - $createdToday));
+
+        if ($remaining <= 0) {
+            Log::info('[MATCHING - CalculateAll] Daily limit reached for User ID: ' . $user->id);
+
+            return 0;
+        }
 
         $blockedIds   = Block::where('blocker_id', $user->id)->pluck('blocked_id');
         $blockedByIds = Block::where('blocked_id', $user->id)->pluck('blocker_id');
         $excludeIds   = $blockedIds->merge($blockedByIds)->push($user->id)->unique()->values();
 
+        if ($pairCache === null) {
+            $pairCache = $this->loadPairKeysForUser($user->id);
+        }
+
         $oppositeGender = $user->gender === 'male' ? 'female' : 'male';
+        $this->loadRelations($user);
 
-        User::where('gender', $oppositeGender)
-            ->where('is_active', true)
-            ->where('is_banned', false)
-            ->whereNotIn('id', $excludeIds)
-            ->whereNotNull('email_verified_at')
-            ->chunk(100, function ($candidates) use ($user) {
-                foreach ($candidates as $candidate) {
-                    try {
-                        $this->calculateAndStoreScore($user, $candidate);
-                    } catch (\Throwable $e) {
-                        Log::error('[MATCHING - CalculateScore] Failed. User: ' . $user->id
-                            . ' | Candidate: ' . $candidate->id
-                            . ' | Error: ' . $e->getMessage());
-                    }
+        $topProspects = [];
+        $scanned      = 0;
+        $skippedPairs = 0;
+
+        $candidateQuery = $this->buildFilteredCandidateQuery($user, $excludeIds, $oppositeGender);
+
+        $candidateQuery->chunkById(50, function ($candidates) use (
+            $user,
+            $minScore,
+            $remaining,
+            &$topProspects,
+            &$scanned,
+            &$skippedPairs,
+            &$pairCache,
+        ) {
+            foreach ($candidates as $candidate) {
+                $scanned++;
+
+                $pairKey = MatchScore::pairKey($user->id, $candidate->id);
+                if (isset($pairCache[$pairKey])) {
+                    $skippedPairs++;
+
+                    continue;
                 }
-            });
 
-        Log::info('[MATCHING - CalculateAll] Complete for User ID: ' . $user->id);
+                $pairData = $this->calculatePairScoreData($user, $candidate, skipLoad: true, minScore: $minScore);
+
+                if ($pairData['score'] < $minScore) {
+                    continue;
+                }
+
+                Log::info('[MATCHING - Score] User ' . $user->id . ' | Candidate ' . $candidate->id
+                    . ' | Pair ' . $pairKey . ' | Score ' . round($pairData['score'], 2));
+
+                $this->pushTopProspect($topProspects, [
+                    'candidate' => $candidate,
+                    'score'     => $pairData['score'],
+                    'breakdown' => $pairData['breakdown'],
+                    'pairKey'   => $pairKey,
+                ], $remaining);
+            }
+
+            return true;
+        });
+
+        usort($topProspects, fn ($a, $b) => $b['score'] <=> $a['score']);
+
+        $created = 0;
+
+        foreach ($topProspects as $prospect) {
+            if ($created >= $remaining) {
+                break;
+            }
+
+            try {
+                if (isset($pairCache[$prospect['pairKey']])) {
+                    continue;
+                }
+
+                [$low, $high] = MatchScore::normalizePairIds($user->id, $prospect['candidate']->id);
+
+                MatchScore::create([
+                    'user_id'         => $low,
+                    'candidate_id'    => $high,
+                    'score'           => $prospect['score'],
+                    'score_breakdown' => $prospect['breakdown'],
+                    'calculated_at'   => $runAt,
+                ]);
+
+                $pairCache[$prospect['pairKey']] = true;
+                if ($usersWithNewPairs !== null) {
+                    $usersWithNewPairs[$low]  = true;
+                    $usersWithNewPairs[$high] = true;
+                }
+                $created++;
+
+                Log::info('[MATCHING - Created] User ' . $user->id . ' | Candidate ' . $prospect['candidate']->id
+                    . ' | Pair ' . $prospect['pairKey'] . ' | Score ' . round($prospect['score'], 2));
+            } catch (\Throwable $e) {
+                Log::error('[MATCHING - CalculateScore] Failed. User: ' . $user->id
+                    . ' | Candidate: ' . $prospect['candidate']->id
+                    . ' | Error: ' . $e->getMessage());
+            }
+        }
+
+        Log::info('[MATCHING - CalculateAll] Complete for User ID: ' . $user->id
+            . ' | scanned=' . $scanned
+            . ' | skippedPairs=' . $skippedPairs
+            . ' | created=' . $created);
+
+        return $created;
+    }
+
+    /**
+     * Build plain-array match rows for digest email / in-app notification.
+     *
+     * @param  iterable<MatchScore>  $matchScores
+     * @return array<int, array<string, mixed>>
+     */
+    public function buildDigestMatchSummaries(User $viewer, iterable $matchScores): array
+    {
+        $frontend = rtrim(config('app.frontend_url', config('app.url')), '/');
+        $summaries = [];
+
+        foreach ($matchScores as $matchScore) {
+            if (! $matchScore instanceof MatchScore) {
+                continue;
+            }
+
+            $partner = $matchScore->partnerFor($viewer->id);
+            if (! $partner) {
+                continue;
+            }
+
+            $partner->loadMissing([
+                'profile',
+                'religiousDetail',
+                'educationCareer',
+                'photos' => fn ($q) => $q->where('is_approved', true)->where('is_private', false),
+            ]);
+
+            $profile      = $partner->profile;
+            $primaryPhoto = $partner->photos?->firstWhere('is_primary', true)
+                ?? $partner->photos?->first();
+            $profileId    = $profile?->profile_id ?? $partner->id;
+
+            $summaries[] = [
+                'match_score_id' => $matchScore->id,
+                'candidate_id'   => $partner->id,
+                'name'           => $partner->name ?? 'A Member',
+                'score'          => (int) round((float) $matchScore->score),
+                'age'            => $profile?->dob?->age,
+                'city'           => $profile?->city,
+                'state'          => $profile?->state,
+                'country'        => $profile?->country,
+                'religion'       => $partner->religiousDetail?->religion,
+                'education'      => $partner->educationCareer?->highest_education,
+                'profession'     => $partner->educationCareer?->profession,
+                'photo_url'      => profilePhotoUrl($primaryPhoto?->file_path),
+                'profile_url'    => $frontend . '/profile/' . $profileId,
+            ];
+        }
+
+        return $summaries;
     }
 
     /**
@@ -181,8 +350,16 @@ class MatchingService
         $excludeIds = $excludeIds->merge($acceptedCandidateIds)->unique()->values();
 
         $oppositeGender = $user->gender === 'male' ? 'female' : 'male';
+        $minScore       = $this->siteSettings->minimumMatchScore();
+        $userId         = $user->id;
 
-        return MatchScore::with([
+        $paginator = MatchScore::with([
+                'user',
+                'user.profile',
+                'user.religiousDetail',
+                'user.educationCareer',
+                'user.faceScanSession',
+                'user.photos' => fn ($q) => $q->where('is_approved', true)->where('is_private', false)->where('is_primary', true),
                 'candidate',
                 'candidate.profile',
                 'candidate.religiousDetail',
@@ -190,28 +367,251 @@ class MatchingService
                 'candidate.faceScanSession',
                 'candidate.photos' => fn ($q) => $q->where('is_approved', true)->where('is_private', false)->where('is_primary', true),
             ])
-            ->where('user_id', $user->id)
-            ->whereHas('candidate', fn ($q) => $q
-                ->where('gender', $oppositeGender)
-                ->where('is_active', true)
-                ->where('is_banned', false)
-                ->whereNotNull('email_verified_at')
-                ->whereNotIn('id', $excludeIds)
-            )
+            ->involvingUser($userId)
+            ->where('score', '>=', $minScore)
+            ->where(function ($q) use ($userId, $oppositeGender, $excludeIds) {
+                $q->where(function ($inner) use ($userId, $oppositeGender, $excludeIds) {
+                    $inner->where('user_id', $userId)
+                        ->whereHas('candidate', fn ($c) => $c
+                            ->where('gender', $oppositeGender)
+                            ->where('is_active', true)
+                            ->where('is_banned', false)
+                            ->whereNotNull('email_verified_at')
+                            ->whereNotIn('id', $excludeIds)
+                        );
+                })->orWhere(function ($inner) use ($userId, $oppositeGender, $excludeIds) {
+                    $inner->where('candidate_id', $userId)
+                        ->whereHas('user', fn ($c) => $c
+                            ->where('gender', $oppositeGender)
+                            ->where('is_active', true)
+                            ->where('is_banned', false)
+                            ->whereNotNull('email_verified_at')
+                            ->whereNotIn('id', $excludeIds)
+                        );
+                });
+            })
             ->orderByDesc('score')
             ->paginate($perPage);
+
+        $paginator->getCollection()->transform(function (MatchScore $matchScore) use ($userId) {
+            $partner = $matchScore->partnerFor($userId);
+            if ($partner) {
+                $matchScore->setRelation('candidate', $partner);
+            }
+
+            return $matchScore;
+        });
+
+        return $paginator;
     }
 
     // -----------------------------------------------------------------------
     // Private helpers
     // -----------------------------------------------------------------------
 
+    /**
+     * @return array{score: float, breakdown: array<string, float>}
+     */
+    private function calculatePairScoreData(
+        User $userA,
+        User $userB,
+        bool $skipLoad = false,
+        ?float $minScore = null,
+    ): array {
+        if (! $skipLoad) {
+            $this->loadRelations($userA);
+            $this->loadRelations($userB);
+        }
+
+        $breakdownA = $this->buildBreakdown($userA, $userB);
+        $sumA       = array_sum($breakdownA);
+
+        if ($minScore !== null && ($sumA + 100.0) / 2 < $minScore) {
+            return ['score' => 0.0, 'breakdown' => []];
+        }
+
+        $breakdownB = $this->buildBreakdown($userB, $userA);
+        $sumB       = array_sum($breakdownB);
+        $total      = ($sumA + $sumB) / 2;
+
+        if ($minScore !== null && $total < $minScore) {
+            return ['score' => $total, 'breakdown' => []];
+        }
+
+        $breakdown = [];
+        foreach (array_keys($breakdownA) as $key) {
+            $breakdown[$key] = ($breakdownA[$key] + $breakdownB[$key]) / 2;
+        }
+
+        return ['score' => min(100.0, max(0.0, $total)), 'breakdown' => $breakdown];
+    }
+
+    /**
+     * @return array<string, float>
+     */
+    private function buildBreakdown(User $user, User $candidate): array
+    {
+        $pref = $user->partnerPreference;
+
+        return [
+            'religion'        => $this->scoreReligion($pref, $candidate),
+            'age'             => $this->scoreAge($pref, $candidate),
+            'location'        => $this->scoreLocation($user, $candidate),
+            'education'       => $this->scoreEducation($pref, $candidate),
+            'income'          => $this->scoreIncome($pref, $candidate),
+            'marital_status'  => $this->scoreMaritalStatus($pref, $candidate),
+            'diet'            => $this->scoreDiet($pref, $candidate),
+            'height'          => $this->scoreHeight($pref, $candidate),
+            'lifestyle'       => $this->scoreLifestyle($pref, $candidate),
+            'family'          => $this->scoreFamilyPrefs($pref, $candidate),
+            'religiousness'   => $this->scoreReligiousness($pref, $candidate),
+            'body_type'       => $this->scoreBodyType($pref, $candidate),
+            'working_status'  => $this->scoreWorkingStatus($pref, $candidate),
+            'mother_tongue'   => $this->scoreMotherTongue($pref, $candidate),
+            'residing_status' => $this->scoreResidingStatus($pref, $candidate),
+        ];
+    }
+
+    /**
+     * @return array<string, true>
+     */
+    public function loadPairKeysForUser(int $userId): array
+    {
+        $keys = [];
+
+        MatchScore::query()
+            ->involvingUser($userId)
+            ->select(['user_id', 'candidate_id'])
+            ->each(function (MatchScore $match) use (&$keys) {
+                $keys[MatchScore::pairKey($match->user_id, $match->candidate_id)] = true;
+            });
+
+        return $keys;
+    }
+
+    /**
+     * Load all pair keys touching any of the given user IDs (one query per batch).
+     *
+     * @param  int[]  $userIds
+     * @return array<string, true>
+     */
+    public function loadPairKeysForUsers(array $userIds): array
+    {
+        if ($userIds === []) {
+            return [];
+        }
+
+        $keys = [];
+
+        MatchScore::query()
+            ->where(function ($q) use ($userIds) {
+                $q->whereIn('user_id', $userIds)->orWhereIn('candidate_id', $userIds);
+            })
+            ->select(['user_id', 'candidate_id'])
+            ->each(function (MatchScore $match) use (&$keys) {
+                $keys[MatchScore::pairKey($match->user_id, $match->candidate_id)] = true;
+            });
+
+        return $keys;
+    }
+
+    /**
+     * @param  \Illuminate\Support\Collection<int, int>|array<int, int>  $excludeIds
+     */
+    private function buildFilteredCandidateQuery(User $user, $excludeIds, string $oppositeGender)
+    {
+        $pref = $user->partnerPreference;
+
+        $query = User::query()
+            ->where('gender', $oppositeGender)
+            ->where('is_active', true)
+            ->where('is_banned', false)
+            ->whereNotIn('id', $excludeIds)
+            ->whereNotNull('email_verified_at')
+            ->with($this->scoringRelations());
+
+        if ($pref?->age_min) {
+            $query->whereHas('profile', fn ($q) => $q->whereDate(
+                'dob',
+                '<=',
+                now()->subYears((int) $pref->age_min)->format('Y-m-d')
+            ));
+        }
+
+        if ($pref?->age_max) {
+            $query->whereHas('profile', fn ($q) => $q->whereDate(
+                'dob',
+                '>=',
+                now()->subYears((int) $pref->age_max + 1)->addDay()->format('Y-m-d')
+            ));
+        }
+
+        $religions = $this->normalizedPreferenceList($pref?->religion);
+        if ($religions !== []) {
+            $query->whereHas('religiousDetail', fn ($q) => $q->whereIn('religion', $religions));
+        }
+
+        $maritalStatuses = $this->normalizedPreferenceList($pref?->marital_status);
+        if ($maritalStatuses !== []) {
+            $query->whereHas('profile', fn ($q) => $q->whereIn('marital_status', $maritalStatuses));
+        }
+
+        return $query->orderBy('id');
+    }
+
+    /**
+     * @return string[]
+     */
+    private function normalizedPreferenceList(mixed $value): array
+    {
+        if (empty($value)) {
+            return [];
+        }
+
+        return array_values(array_filter(is_array($value) ? $value : [$value]));
+    }
+
+    private function countScoresCreatedOnDateForUser(int $userId, Carbon $date): int
+    {
+        return MatchScore::query()
+            ->involvingUser($userId)
+            ->whereDate('calculated_at', $date->toDateString())
+            ->count();
+    }
+
+    /**
+     * @return string[]
+     */
+    private function scoringRelations(): array
+    {
+        return [
+            'profile', 'religiousDetail', 'educationCareer',
+            'lifestyle', 'familyDetail', 'partnerPreference',
+        ];
+    }
+
+    /**
+     * @param  array<int, array{candidate: User, score: float, breakdown: array<string, float>}>  $top
+     */
+    private function pushTopProspect(array &$top, array $prospect, int $limit): void
+    {
+        $top[] = $prospect;
+
+        if (count($top) <= $limit) {
+            if (count($top) === $limit) {
+                usort($top, fn ($a, $b) => $b['score'] <=> $a['score']);
+            }
+
+            return;
+        }
+
+        usort($top, fn ($a, $b) => $b['score'] <=> $a['score']);
+        array_pop($top);
+    }
+
     private function loadRelations(User $user): void
     {
-        $user->loadMissing([
-            'profile', 'religiousDetail', 'educationCareer',
-            'lifestyle', 'familyDetail', 'horoscopeDetail', 'partnerPreference',
-        ]);
+        $user->loadMissing($this->scoringRelations());
     }
 
     /** 18 pts — religion */

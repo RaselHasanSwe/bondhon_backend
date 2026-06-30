@@ -428,6 +428,7 @@ class AdminWebController extends Controller
             'meta_title'       => ['nullable', 'string', 'max:160'],
             'meta_description' => ['nullable', 'string', 'max:320'],
             'meta_keywords'    => ['nullable', 'string', 'max:255'],
+            'minimum_match_score' => ['nullable', 'integer', 'min:0', 'max:100'],
             'site_logo'        => ['nullable', 'image', 'max:2048'],
             'site_favicon'     => ['nullable', 'image', 'max:512'],
         ]);

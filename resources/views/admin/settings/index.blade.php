@@ -114,6 +114,25 @@
                 </div>
             </div>
 
+            {{-- Matching --}}
+            <div class="table-card p-4 mb-4">
+                <h6 class="fw-bold mb-3" style="color:#C9A227"><i class="bi bi-heart me-2"></i>Matching</h6>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold small">Minimum Match Score (%)</label>
+                        <input type="number" name="minimum_match_score" min="0" max="100" step="1"
+                               class="form-control @error('minimum_match_score') is-invalid @enderror"
+                               value="{{ old('minimum_match_score', $settings['minimum_match_score'] ?? '40') }}"
+                               placeholder="40">
+                        @error('minimum_match_score')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        <p class="small text-muted mb-0 mt-2">
+                            Only matches at or above this score appear on the <code>/matches</code> page and in the daily match digest.
+                            Individual profile views always show the real compatibility score.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
             <div class="table-card p-4 mb-4">
                 <h6 class="fw-bold mb-3" style="color:#C9A227"><i class="bi bi-camera-fill me-2"></i>Photo Auto Approval</h6>
                 <div class="d-flex flex-column gap-2">

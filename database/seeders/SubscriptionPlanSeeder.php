@@ -57,6 +57,7 @@ class SubscriptionPlanSeeder extends Seeder
                     'match_report_monthly' => false,
                     // Notifications
                     'push_notifications' => true,
+                    'email_digest_frequency' => 'none',
                 ],
                 'is_active' => true,
                 'sort_order' => 1,
@@ -99,6 +100,7 @@ class SubscriptionPlanSeeder extends Seeder
                     'match_report_monthly' => true,
                     // Notifications
                     'push_notifications' => true,
+                    'email_digest_frequency' => 'daily',
                 ],
                 'is_active' => true,
                 'sort_order' => 2,

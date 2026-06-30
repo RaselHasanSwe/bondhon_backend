@@ -172,6 +172,13 @@ class SubscriptionFeatureService
                 'label'   => 'Browser / App Push Notifications',
                 'group'   => 'Notifications',
             ],
+            'email_digest_frequency' => [
+                'type'    => 'enum',
+                'default' => 'none',
+                'label'   => 'Daily Match Digest Email',
+                'group'   => 'Notifications',
+                'options' => ['none', 'daily', 'weekly'],
+            ],
         ];
     }
 

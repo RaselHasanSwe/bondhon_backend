@@ -22,6 +22,11 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+
+        // ── Site Settings & Pages ──
+        $this->call(SiteSettingSeeder::class);
+        $this->call(PageSeeder::class);
+
         $this->call(SubscriptionTypeSeeder::class);
         $this->call(SubscriptionPlanSeeder::class);
 
@@ -31,10 +36,6 @@ class DatabaseSeeder extends Seeder
 
         $this->call(UserSeeder::class);
         $this->call(UserSubscriptionSeeder::class);
-
-        // ── Site Settings & Pages ──
-        $this->call(SiteSettingSeeder::class);
-        $this->call(PageSeeder::class);
 
         // Create an admin user (idempotent)
         User::firstOrCreate(

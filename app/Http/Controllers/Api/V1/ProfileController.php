@@ -604,15 +604,10 @@ class ProfileController extends ApiController
         $profileData['is_shortlisted'] = (bool) $target->getAttribute('is_shortlisted');
 
         if ($this->featureService->can($viewer, 'compatibility_score_visible')) {
-            $matchScore = MatchScore::where('user_id', $viewer->id)
-                ->where('candidate_id', $target->id)
-                ->first();
+            $matchScore = MatchScore::findForPair($viewer->id, $target->id);
 
             if (! $matchScore) {
-                $this->matchingService->calculateAndStoreScore($viewer, $target);
-                $matchScore = MatchScore::where('user_id', $viewer->id)
-                    ->where('candidate_id', $target->id)
-                    ->first();
+                $matchScore = $this->matchingService->calculateAndStoreScore($viewer, $target, ignoreMinimum: true);
             }
 
             if ($matchScore) {

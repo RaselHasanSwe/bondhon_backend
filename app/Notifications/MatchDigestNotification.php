@@ -3,35 +3,26 @@
 namespace App\Notifications;
 
 use App\Mail\MatchDigestMailable;
-use App\Models\MatchScore;
 use App\Models\User;
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
 
-class MatchDigestNotification extends Notification implements ShouldQueue
+/**
+ * One digest per user: all matches in a single in-app notification and one email.
+ *
+ * @param  array<int, array<string, mixed>>  $matchSummaries  Plain match rows from MatchingService::buildDigestMatchSummaries()
+ */
+class MatchDigestNotification extends Notification
 {
-    use Queueable;
-
-    /**
-     * @param  MatchScore[] $topMatches  Top match score records (eager-loaded candidate)
-     * @param  bool         $sendEmail   Whether to also send the email digest.
-     *                                   Controlled by the user's `email_digest_frequency`
-     *                                   subscription feature ('daily' | 'weekly' | 'none').
-     */
     public function __construct(
-        public readonly array $topMatches,
-        public readonly bool  $sendEmail = false,
+        public readonly array $matchSummaries,
+        public readonly bool $sendEmail = false,
     ) {}
 
-    /**
-     * Channels: always store in-app (database); only email when $sendEmail is true.
-     */
     public function via(object $notifiable): array
     {
         $channels = ['database'];
 
-        if ($this->sendEmail) {
+        if ($this->sendEmail && filled($notifiable->email ?? null) && $this->matchSummaries !== []) {
             $channels[] = 'mail';
         }
 
@@ -41,22 +32,27 @@ class MatchDigestNotification extends Notification implements ShouldQueue
     public function toMail(object $notifiable): MatchDigestMailable
     {
         /** @var User $notifiable */
-        return new MatchDigestMailable($notifiable, $this->topMatches);
+        return (new MatchDigestMailable($notifiable, $this->matchSummaries))
+            ->to($notifiable->email);
     }
 
     public function toArray(object $notifiable): array
     {
-        $matches = collect($this->topMatches)->map(fn ($ms) => [
-            'candidate_id'   => $ms->candidate_id,
-            'candidate_name' => $ms->candidate?->name ?? 'Someone',
-            'score'          => round($ms->score),
-        ])->values()->all();
+        $count = count($this->matchSummaries);
 
         return [
             'type'    => 'match_digest',
             'title'   => 'Your Daily Match Digest',
-            'message' => 'You have ' . count($matches) . ' new top matches today!',
-            'matches' => $matches,
+            'message' => $count === 1
+                ? 'You have 1 new top match today!'
+                : 'You have ' . $count . ' new top matches today!',
+            'matches' => collect($this->matchSummaries)->map(fn (array $m) => [
+                'candidate_id'   => $m['candidate_id'] ?? null,
+                'candidate_name' => $m['name'] ?? 'Someone',
+                'score'          => $m['score'] ?? 0,
+                'photo_url'      => $m['photo_url'] ?? null,
+                'profile_url'    => $m['profile_url'] ?? null,
+            ])->values()->all(),
         ];
     }
 }

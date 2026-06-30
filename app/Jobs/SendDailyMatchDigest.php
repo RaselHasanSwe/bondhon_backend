@@ -2,11 +2,8 @@
 
 namespace App\Jobs;
 
-use App\Models\MatchScore;
 use App\Models\User;
-use App\Notifications\MatchDigestNotification;
-use App\Services\MatchingService;
-use App\Services\SubscriptionFeatureService;
+use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -15,17 +12,7 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 
 /**
- * SendDailyMatchDigest — Runs daily at midnight (00:00).
- *
- * 1. Recalculates match scores for all active users.
- * 2. Fetches top N matches per user where N comes from their subscription's
- *    `daily_matches` permission (-1 = unlimited → capped at 50).
- * 3. Sends an in-app notification to every eligible user.
- * 4. Sends the email digest only when the user's `email_digest_frequency`
- *    subscription permission allows it:
- *      - 'daily'  → every night
- *      - 'weekly' → only on Monday nights
- *      - 'none'   → in-app only, no email
+ * Orchestrator for scheduled cron: splits users into batch jobs (10 users each).
  */
 class SendDailyMatchDigest implements ShouldQueue
 {
@@ -33,75 +20,85 @@ class SendDailyMatchDigest implements ShouldQueue
 
     public int $tries = 1;
 
-    /** Absolute cap for "unlimited" plans so we don't send 1000 cards. */
-    private const UNLIMITED_CAP = 50;
+    public function __construct(
+        public readonly ?string $runAt = null,
+        public readonly ?bool $sendNotifications = null,
+        public readonly ?bool $sendEmails = null,
+        public readonly bool $force = false,
+        public readonly bool $sync = false,
+    ) {}
 
-    public function __construct() {}
-
-    public function handle(MatchingService $matchingService, SubscriptionFeatureService $featureService): void
+    public function handle(): void
     {
-        $startTime  = now();
-        $isMonday   = now()->isMonday(); // Weekly digest goes out on Mondays
-        $totalUsers = User::where('is_active', true)->where('is_banned', false)->count();
+        self::dispatchBatches(
+            runAt: $this->runAt,
+            sendNotifications: $this->sendNotifications,
+            sendEmails: $this->sendEmails,
+            force: $this->force,
+            sync: $this->sync,
+        );
+    }
 
-        Log::info('[DAILY MATCH DIGEST - Start] Processing ' . $totalUsers . ' active users. isMonday=' . ($isMonday ? 'yes' : 'no'));
+    /**
+     * Queue (or run) one ProcessMatchDigestBatch job per USERS_PER_JOB users.
+     *
+     * @return int Number of batch jobs dispatched.
+     */
+    public static function dispatchBatches(
+        ?string $runAt = null,
+        ?bool $sendNotifications = null,
+        ?bool $sendEmails = null,
+        bool $force = false,
+        bool $sync = false,
+    ): int {
+        $runAtParsed = $runAt ? Carbon::parse($runAt) : now();
 
-        User::where('is_active', true)
+        $userIds = User::query()
+            ->where('is_active', true)
             ->where('is_banned', false)
             ->whereNotNull('email_verified_at')
-            ->chunk(50, function ($users) use ($matchingService, $featureService, $isMonday) {
-                foreach ($users as $user) {
-                    try {
-                        // ── 1. Recalculate match scores ──────────────────────────
-                        $matchingService->calculateAndStoreAllScores($user);
+            ->orderBy('id')
+            ->pluck('id');
 
-                        // ── 2. Resolve daily_matches limit from subscription ─────
-                        $rawLimit = (int) $featureService->value($user, 'daily_matches');
-                        // 0 means the feature is disabled for this plan
-                        if ($rawLimit === 0) {
-                            continue;
-                        }
-                        // -1 means unlimited → cap at UNLIMITED_CAP
-                        $limit = $rawLimit < 0 ? self::UNLIMITED_CAP : $rawLimit;
+        $chunks = $userIds->chunk(ProcessMatchDigestBatch::USERS_PER_JOB);
+        $batch  = 0;
 
-                        // ── 3. Fetch today's top matches (score ≥ 40) ────────────
-                        $topMatches = MatchScore::with([
-                                'candidate',
-                                'candidate.profile',
-                                'candidate.religiousDetail',
-                                'candidate.educationCareer',
-                            ])
-                            ->where('user_id', $user->id)
-                            ->whereDate('calculated_at', today())
-                            ->where('score', '>=', 40)
-                            ->orderByDesc('score')
-                            ->limit($limit)
-                            ->get()
-                            ->all();
+        Log::info('[DAILY MATCH DIGEST - Dispatch] Total users: ' . $userIds->count()
+            . ' | batches: ' . $chunks->count()
+            . ' | usersPerJob=' . ProcessMatchDigestBatch::USERS_PER_JOB
+            . ' | runAt=' . $runAtParsed->toDateTimeString()
+            . ' | force=' . ($force ? 'yes' : 'no')
+            . ' | sync=' . ($sync ? 'yes' : 'no'));
 
-                        if (empty($topMatches)) {
-                            continue;
-                        }
+        if ($chunks->isEmpty()) {
+            Log::info('[DAILY MATCH DIGEST - Dispatch] No eligible users found.');
 
-                        // ── 4. Resolve email_digest_frequency from subscription ──
-                        $digestFrequency = (string) $featureService->value($user, 'email_digest_frequency');
+            return 0;
+        }
 
-                        $sendEmail = match ($digestFrequency) {
-                            'daily'  => true,
-                            'weekly' => $isMonday,   // email only on Monday nights
-                            default  => false,        // 'none' or unknown → no email
-                        };
+        foreach ($chunks as $chunk) {
+            $batch++;
+            $ids = $chunk->values()->all();
 
-                        // ── 5. Send notification ────────────────────────────────
-                        $user->notify(new MatchDigestNotification($topMatches, $sendEmail));
+            $job = new ProcessMatchDigestBatch(
+                userIds: $ids,
+                runAt: $runAt,
+                sendNotifications: $sendNotifications,
+                sendEmails: $sendEmails,
+                force: $force,
+            );
 
-                    } catch (\Throwable $e) {
-                        Log::error('[DAILY MATCH DIGEST - Error] User ID: ' . $user->id . ' | ' . $e->getMessage());
-                    }
-                }
-            });
+            if ($sync) {
+                dispatch_sync($job);
+                Log::info('[DAILY MATCH DIGEST - Batch Done] #' . $batch . ' | users: ' . implode(',', $ids));
+            } else {
+                dispatch($job);
+                Log::info('[DAILY MATCH DIGEST - Batch Queued] #' . $batch . ' | users: ' . implode(',', $ids));
+            }
+        }
 
-        $duration = now()->diffInSeconds($startTime);
-        Log::info('[DAILY MATCH DIGEST - Complete] Processed ' . $totalUsers . ' users in ' . $duration . 's.');
+        Log::info('[DAILY MATCH DIGEST - Dispatch Complete] Dispatched ' . $chunks->count() . ' batch job(s).');
+
+        return $chunks->count();
     }
 }
