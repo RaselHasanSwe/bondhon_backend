@@ -71,7 +71,7 @@ class PageService
     public function create(array $data): Page
     {
         $page = Page::create($data);
-        $this->forgetCache();
+        $this->forgetCache($page->slug);
 
         return $page;
     }
@@ -81,11 +81,12 @@ class PageService
      */
     public function update(Page $page, array $data): Page
     {
-        $slug = $page->slug;
+        $oldSlug = $page->slug;
         $page->update($data);
-        $this->forgetCache($slug);
+        $page = $page->fresh();
+        $this->forgetCache($oldSlug, $page->slug);
 
-        return $page->fresh();
+        return $page;
     }
 
     public function delete(Page $page): void
@@ -95,14 +96,16 @@ class PageService
         $this->forgetCache($slug);
     }
 
-    public function forgetCache(?string $slug = null): void
+    public function forgetCache(string ...$slugs): void
     {
         Cache::forget(self::CACHE_KEY_PUBLISHED);
         Cache::forget(self::CACHE_KEY_MENU);
 
-        if ($slug !== null) {
+        foreach (array_unique(array_filter($slugs)) as $slug) {
             Cache::forget($this->slugCacheKey($slug));
         }
+
+        app(FrontendRevalidationService::class)->revalidatePages(...$slugs);
     }
 
     private function slugCacheKey(string $slug): string

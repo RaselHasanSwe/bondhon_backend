@@ -93,6 +93,7 @@ class SiteSettingService
     public function forgetCache(): void
     {
         Cache::forget(self::CACHE_KEY);
+        app(FrontendRevalidationService::class)->revalidateSettings();
     }
 
     /**
