@@ -31,7 +31,7 @@ return new class extends Migration
             $table->boolean('is_verified')->default(false);
             $table->boolean('is_photo_approved')->default(false);
             $table->timestamp('last_seen_at')->nullable();
-            $table->json('privacy_settings')->default('{}');
+            $table->json('privacy_settings')->nullable();
             $table->timestamps();
         });
     }
