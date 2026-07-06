@@ -26,6 +26,17 @@ class CallController extends ApiController
     ) {}
 
     // ─────────────────────────────────────────────────────────────────────────
+    // GET /calls/ice-servers
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public function iceServers(Request $request): JsonResponse
+    {
+        return $this->successResponse([
+            'ice_servers' => $this->signalingService->getIceServers($request->user()),
+        ], 'ICE servers retrieved.');
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
     // POST /calls/initiate
     // ─────────────────────────────────────────────────────────────────────────
 

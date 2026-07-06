@@ -20,8 +20,7 @@ class WebRTCSignalingService
     /**
      * Build the ICE server configuration array for the given user.
      *
-     * Returns STUN servers + TURN servers with time-limited HMAC credentials
-     * compatible with coturn's static-auth-secret REST API.
+     * Returns STUN servers + TURN servers with static or HMAC credentials.
      */
     public function getIceServers(User $user): array
     {
@@ -32,33 +31,35 @@ class WebRTCSignalingService
             $servers[] = ['urls' => $url];
         }
 
-        // ── TURN (only when host & secret are configured) ──────────────
+        // ── TURN (when host + credentials are configured) ────────────────
         $turnConfig = config('webrtc.turn');
         $host       = $turnConfig['host'] ?? '';
-        $secret     = $turnConfig['secret'] ?? '';
 
-        if ($host && $secret) {
-            $ttl      = (int) ($turnConfig['credential_ttl'] ?? 86400);
-            $expiry   = time() + $ttl;
-            $username = "{$expiry}:{$user->id}";
-            $password = base64_encode(hash_hmac('sha1', $username, $secret, true));
+        if (! $host) {
+            return $servers;
+        }
 
-            $port    = $turnConfig['port'] ?? 3478;
-            $tlsPort = $turnConfig['tls_port'] ?? 5349;
+        $credentials = $this->buildTurnCredentials($turnConfig, $user);
+        if (! $credentials) {
+            return $servers;
+        }
 
-            // UDP + TCP TURN
-            $servers[] = [
-                'urls'       => "turn:{$host}:{$port}?transport=udp",
-                'username'   => $username,
-                'credential' => $password,
-            ];
-            $servers[] = [
-                'urls'       => "turn:{$host}:{$port}?transport=tcp",
-                'username'   => $username,
-                'credential' => $password,
-            ];
+        [$username, $password] = $credentials;
+        $port    = $turnConfig['port'] ?? 3478;
+        $tlsPort = $turnConfig['tls_port'] ?? 5349;
 
-            // TLS TURN (turns:)
+        $servers[] = [
+            'urls'       => "turn:{$host}:{$port}?transport=udp",
+            'username'   => $username,
+            'credential' => $password,
+        ];
+        $servers[] = [
+            'urls'       => "turn:{$host}:{$port}?transport=tcp",
+            'username'   => $username,
+            'credential' => $password,
+        ];
+
+        if ($turnConfig['enable_tls'] ?? false) {
             $servers[] = [
                 'urls'       => "turns:{$host}:{$tlsPort}?transport=tcp",
                 'username'   => $username,
@@ -67,6 +68,39 @@ class WebRTCSignalingService
         }
 
         return $servers;
+    }
+
+    /**
+     * Resolve TURN username/password for static or HMAC auth.
+     *
+     * @return array{0: string, 1: string}|null
+     */
+    private function buildTurnCredentials(array $turnConfig, User $user): ?array
+    {
+        $authMode = $turnConfig['auth_mode'] ?? 'static';
+
+        if ($authMode === 'hmac') {
+            $secret = $turnConfig['secret'] ?? '';
+            if (! $secret) {
+                return null;
+            }
+
+            $ttl      = (int) ($turnConfig['credential_ttl'] ?? 86400);
+            $expiry   = time() + $ttl;
+            $username = "{$expiry}:{$user->id}";
+            $password = base64_encode(hash_hmac('sha1', $username, $secret, true));
+
+            return [$username, $password];
+        }
+
+        $username = $turnConfig['username'] ?? '';
+        $password = $turnConfig['password'] ?? '';
+
+        if (! $username || ! $password) {
+            return null;
+        }
+
+        return [$username, $password];
     }
 
     /**
