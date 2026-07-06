@@ -175,4 +175,6 @@ class CloudflareImageService
     {
         return $this->baseDeliveryUrl($imageId) . '/' . $variant;
     }
+
+    // Demo text add for service name change
 }
