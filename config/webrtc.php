@@ -30,15 +30,23 @@ return [
     | TURN Server (self-hosted coturn on VPS)
     |----------------------------------------------------------------------
     | Set TURN_SERVER_HOST to your VPS IP or domain.
-    | TURN_SECRET must match the `static-auth-secret` in coturn config.
-    | TURN_TLS_PORT is for turns: (TLS) connections.
+    |
+    | Auth modes (TURN_AUTH_MODE):
+    |   static — fixed username/password (coturn `user=name:password` in turnserver.conf)
+    |   hmac   — time-limited credentials via coturn `static-auth-secret` (recommended for prod)
+    |
+    | Development & production use the same keys; set values in each environment's .env.
     */
     'turn' => [
-        'host'         => env('TURN_SERVER_HOST', ''),          // e.g. 103.12.45.67 or turn.example.com
-        'port'         => env('TURN_SERVER_PORT', 3478),        // UDP/TCP port
-        'tls_port'     => env('TURN_SERVER_TLS_PORT', 5349),    // TLS port
-        'secret'       => env('TURN_SECRET', ''),               // coturn static-auth-secret
-        'credential_ttl' => (int) env('TURN_CREDENTIAL_TTL', 86400), // 24 hours
+        'host'           => env('TURN_SERVER_HOST', ''),
+        'port'           => (int) env('TURN_SERVER_PORT', 3478),
+        'tls_port'       => (int) env('TURN_SERVER_TLS_PORT', 5349),
+        'enable_tls'     => env('TURN_ENABLE_TLS', false),
+        'auth_mode'      => env('TURN_AUTH_MODE', 'static'), // static | hmac
+        'username'       => env('TURN_USERNAME', ''),
+        'password'       => env('TURN_PASSWORD', ''),
+        'secret'         => env('TURN_SECRET', ''),
+        'credential_ttl' => (int) env('TURN_CREDENTIAL_TTL', 86400),
     ],
 
 ];
