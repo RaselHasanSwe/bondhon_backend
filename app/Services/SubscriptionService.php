@@ -6,6 +6,7 @@ use App\Library\SslCommerz\SslCommerzNotification;
 use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
 use App\Models\User;
+use App\Services\SubscriptionPaymentMailService;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -16,6 +17,9 @@ use Illuminate\Support\Str;
  */
 class SubscriptionService
 {
+    public function __construct(
+        private readonly SubscriptionPaymentMailService $paymentMailService,
+    ) {}
     /**
      * Initiate a subscription payment via SSLCommerz.
      *
@@ -137,9 +141,15 @@ class SubscriptionService
             ]);
         });
 
+        Cache::forget("user_plan:{$subscription->user_id}");
+
+        $subscription = $subscription->fresh(['user', 'subscriptionPlan']);
+
         Log::info('[SUBSCRIPTION - Activate] Activated. User ID: ' . $subscription->user_id . ' | Plan: ' . $subscription->plan . ' | Expires: ' . $expireDate);
 
-        return $subscription->fresh(['user', 'subscriptionPlan']);
+        $this->paymentMailService->sendPaymentConfirmation($subscription);
+
+        return $subscription;
     }
 
     /**

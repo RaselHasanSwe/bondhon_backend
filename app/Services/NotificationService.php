@@ -20,7 +20,8 @@ class NotificationService
     public const TYPE_PROFILE_VIEWED      = 'profile_viewed';
     public const TYPE_NEW_MESSAGE         = 'new_message';
     public const TYPE_MATCH_DIGEST        = 'match_digest';
-    public const TYPE_SUBSCRIPTION_EXPIRY = 'subscription_expiry';
+    public const TYPE_SUBSCRIPTION_EXPIRY   = 'subscription_expiry';
+    public const TYPE_SUBSCRIPTION_ACTIVATED = 'subscription_activated';
     public const TYPE_PHOTO_APPROVED      = 'photo_approved';
     public const TYPE_PHOTO_REJECTED      = 'photo_rejected';
     public const TYPE_FACE_SCAN_APPROVED  = 'face_scan_approved';
@@ -207,6 +208,22 @@ class NotificationService
             'message'   => 'Your ' . $user->subscription_plan . ' plan expires in ' . $daysLeft . ' days. Renew now!',
             'days_left' => $daysLeft,
             'icon'      => 'clock',
+        ]);
+    }
+
+    public function notifySubscriptionActivated(User $user, \App\Models\Subscription $subscription): void
+    {
+        $planName = $subscription->subscriptionPlan?->name ?? ucfirst((string) $subscription->plan);
+
+        $this->send($user, self::TYPE_SUBSCRIPTION_ACTIVATED, [
+            'title'          => 'Payment Confirmed',
+            'message'        => 'Your ' . $planName . ' subscription is now active. Invoice has been sent to your email.',
+            'plan'           => $subscription->plan,
+            'plan_name'      => $planName,
+            'transaction_id' => $subscription->transaction_id,
+            'amount_bdt'     => (float) $subscription->amount_bdt,
+            'expires_at'     => $subscription->expires_at?->toISOString(),
+            'icon'           => 'check',
         ]);
     }
 
