@@ -441,3 +441,254 @@ UDP/TCP :3478
   - Restart queue workers (`php artisan queue:restart`)
   - Restart Reverb if its code/config changed
   - Restart PHP-FPM if PHP configuration changed
+
+# COTURN SERVER MANAGEMENT
+
+## Server Information
+
+- Domain: `turn.mybouma.com`
+- Server IP: `206.189.87.32`
+- Realm: `mybouma.com`
+
+## Ports
+
+| Port | Protocol | Purpose |
+|------|----------|----------|
+| 3478 | TCP/UDP | STUN / TURN |
+| 5349 | TCP/UDP | TURN over TLS |
+| 49152-65535 | UDP | Relay Media |
+
+---
+
+## Configuration
+
+Config file:
+
+```bash
+/etc/turnserver.conf
+```
+
+Certificate:
+
+```bash
+/etc/coturn/certs/fullchain.pem
+/etc/coturn/certs/privkey.pem
+```
+
+---
+
+## Service Management
+
+Start
+
+```bash
+sudo systemctl start coturn
+```
+
+Stop
+
+```bash
+sudo systemctl stop coturn
+```
+
+Restart
+
+```bash
+sudo systemctl restart coturn
+```
+
+Status
+
+```bash
+sudo systemctl status coturn
+```
+
+---
+
+## View Logs
+
+```bash
+sudo journalctl -fu coturn
+```
+
+or
+
+```bash
+sudo tail -100 /var/log/turnserver.log
+```
+
+---
+
+## Check Listening Ports
+
+```bash
+sudo ss -tulpn | grep -E '3478|5349'
+```
+
+Expected:
+
+- TCP 3478
+- UDP 3478
+- TCP 5349
+- UDP 5349
+
+---
+
+## Manual Debug Mode
+
+Stop service first:
+
+```bash
+sudo systemctl stop coturn
+```
+
+Run manually:
+
+```bash
+sudo /usr/bin/turnserver -c /etc/turnserver.conf -v
+```
+
+---
+
+## Test TLS
+
+```bash
+openssl s_client -connect turn.mybouma.com:5349
+```
+
+Expected:
+
+```
+Verify return code: 0 (ok)
+```
+
+---
+
+## Test TURN Server
+
+Open:
+
+https://webrtc.github.io/samples/src/content/peerconnection/trickle-ice/
+
+Use:
+
+```
+stun:turn.mybouma.com:3478
+
+turn:turn.mybouma.com:3478?transport=udp
+
+turns:turn.mybouma.com:5349?transport=tcp
+```
+
+Username:
+
+```
+rasel
+```
+
+Password:
+
+```
+YOUR_PASSWORD
+```
+
+Expected ICE candidates:
+
+- ✅ host
+- ✅ srflx
+- ✅ relay
+
+If **relay** appears, TURN is working correctly.
+
+---
+
+## Chrome Debug
+
+```
+chrome://webrtc-internals
+```
+
+Check:
+
+- ICE Connection State
+- Selected Candidate Pair
+- Bytes Sent / Received
+- Relay Candidate
+
+---
+
+## Firewall
+
+Open these ports:
+
+```text
+3478 TCP
+3478 UDP
+5349 TCP
+5349 UDP
+49152-65535 UDP
+```
+
+---
+
+## Certificate Renewal
+
+```bash
+sudo certbot renew
+```
+
+Copy certificates:
+
+```bash
+sudo cp /etc/letsencrypt/live/mybouma.com/fullchain.pem /etc/coturn/certs/
+sudo cp /etc/letsencrypt/live/mybouma.com/privkey.pem /etc/coturn/certs/
+```
+
+Restart Coturn:
+
+```bash
+sudo systemctl restart coturn
+```
+
+---
+
+## Common Issues
+
+### Port not listening
+
+```bash
+sudo ss -tulpn | grep -E '3478|5349'
+```
+
+### TLS not working
+
+```bash
+openssl s_client -connect turn.mybouma.com:5349
+```
+
+### Authentication failed
+
+Verify:
+
+- `lt-cred-mech`
+- `user=username:password`
+
+### No relay candidate
+
+Check:
+
+- Username/password
+- Firewall
+- TURN URLs
+- Coturn service status
+
+---
+
+## Production Checklist
+
+- ✅ DNS points to VPS
+- ✅ SSL installed
+- ✅ Coturn running
+- ✅ Ports open
+- ✅ Relay candidate appears
+- ✅ WebRTC calls working
