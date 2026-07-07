@@ -55,7 +55,7 @@ class SubscriptionPaymentMailService
             'planName'         => $plan?->name ?? ucfirst((string) $subscription->plan),
             'planType'         => $subscription->plan,
             'durationLabel'    => $this->formatPlanDuration($plan),
-            'amountFormatted'  => $currencySymbol . number_format((float) $subscription->amount_bdt, 0),
+            'amountFormatted'  => number_format((float) $subscription->amount_bdt, 0),
             'currencySymbol'   => $currencySymbol,
             'siteName'         => $this->siteSettings->get('site_name', config('app.name', 'Bondhon')),
             'siteSlogan'       => $this->siteSettings->get('site_slogan', ''),

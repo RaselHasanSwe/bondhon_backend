@@ -238,6 +238,7 @@ Route::prefix('v1')->group(function () {
             Route::post('/initiate',    [SubscriptionController::class, 'initiate']);
             Route::post('/free',        [SubscriptionController::class, 'subscribeFree']);
             Route::get('/history',      [SubscriptionController::class, 'history']);
+            Route::get('/{id}/invoice', [SubscriptionController::class, 'invoice']);
             Route::post('/{id}/switch', [SubscriptionController::class, 'switchPlan']);
         });
 

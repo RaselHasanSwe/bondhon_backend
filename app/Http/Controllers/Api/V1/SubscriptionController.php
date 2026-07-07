@@ -18,6 +18,7 @@ class SubscriptionController extends ApiController
     public function __construct(
         private readonly SubscriptionService $subscriptionService,
         private readonly SubscriptionFeatureService $featureService,
+        private readonly \App\Services\SubscriptionPaymentMailService $paymentMailService,
     ) {}
 
     /**
@@ -227,6 +228,33 @@ class SubscriptionController extends ApiController
             ]);
 
         return $this->successResponse($subscriptions, 'Payment history retrieved.');
+    }
+
+    /**
+     * GET /api/v1/subscription/{id}/invoice
+     * Download the PDF invoice for a subscription owned by the authenticated user.
+     */
+    public function invoice(Request $request, int $id): \Symfony\Component\HttpFoundation\Response
+    {
+        $subscription = Subscription::with(['user', 'subscriptionPlan'])
+            ->where('id', $id)
+            ->where('user_id', $request->user()->id)
+            ->first();
+
+        if (! $subscription) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Subscription not found.',
+            ], 404);
+        }
+
+        $pdf = $this->paymentMailService->generateInvoicePdf($subscription);
+        $filename = 'invoice-' . $subscription->transaction_id . '.pdf';
+
+        return response($pdf, 200, [
+            'Content-Type'        => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="' . $filename . '"',
+        ]);
     }
 }
 
