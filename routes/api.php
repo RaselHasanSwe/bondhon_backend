@@ -187,6 +187,7 @@ Route::prefix('v1')->group(function () {
         // Conversations
         Route::prefix('conversations')->group(function () {
             Route::get('/', [ChatController::class, 'index']);
+            Route::get('/unread-count', [ChatController::class, 'unreadCount']);
             Route::post('/', [ChatController::class, 'getOrCreate'])              // requires chat_access
                 ->middleware('feature:chat_access');
             Route::get('/{conversationId}', [ChatController::class, 'show']);

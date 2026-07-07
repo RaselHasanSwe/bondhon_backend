@@ -47,6 +47,17 @@ class ChatController extends ApiController
     }
 
     /**
+     * GET /api/v1/conversations/unread-count
+     * Total unread messages across all conversations.
+     */
+    public function unreadCount(Request $request): JsonResponse
+    {
+        $count = $this->chatService->getTotalUnreadCount($request->user());
+
+        return $this->successResponse(['unread_count' => $count], 'Unread message count retrieved.');
+    }
+
+    /**
      * POST /api/v1/conversations
      * Get or create a conversation with another user (mutual interest required).
      */
