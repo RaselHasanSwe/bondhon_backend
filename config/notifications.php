@@ -53,6 +53,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Subscription Payment Email Delay
+    |--------------------------------------------------------------------------
+    |
+    | Seconds to wait before sending the payment confirmation email after a
+    | subscription is activated. Adjust via SUBSCRIPTION_PAYMENT_EMAIL_DELAY_SECONDS.
+    |
+    */
+
+    'subscription_payment_email_delay_seconds' => (int) env('SUBSCRIPTION_PAYMENT_EMAIL_DELAY_SECONDS', 60),
+
+    /*
+    |--------------------------------------------------------------------------
     | Max Interest Resend Attempts Per User Pair
     |--------------------------------------------------------------------------
     |

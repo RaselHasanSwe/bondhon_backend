@@ -107,6 +107,17 @@ class ChatService
     }
 
     /**
+     * Total unread messages across all conversations for a user.
+     */
+    public function getTotalUnreadCount(User $user): int
+    {
+        $asUserOne = (int) Conversation::where('user_one_id', $user->id)->sum('user_one_unread');
+        $asUserTwo = (int) Conversation::where('user_two_id', $user->id)->sum('user_two_unread');
+
+        return $asUserOne + $asUserTwo;
+    }
+
+    /**
      * Get paginated messages for a conversation.
      */
     public function getMessages(Conversation $conversation, int $perPage = 40, ?int $beforeId = null)

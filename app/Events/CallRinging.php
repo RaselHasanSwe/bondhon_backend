@@ -9,7 +9,11 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class CallEnded implements ShouldBroadcastNow
+/**
+ * Fired when the receiver's client shows the incoming-call UI.
+ * Tells the caller to switch from "Calling…" to "Ringing…" + ringback tone.
+ */
+class CallRinging implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
@@ -19,21 +23,18 @@ class CallEnded implements ShouldBroadcastNow
     {
         return [
             new PrivateChannel('user.' . $this->callLog->caller_id),
-            new PrivateChannel('user.' . $this->callLog->receiver_id),
         ];
     }
 
     public function broadcastAs(): string
     {
-        return 'call.ended';
+        return 'call.ringing';
     }
 
     public function broadcastWith(): array
     {
         return [
-            'call_id'          => $this->callLog->id,
-            'status'           => $this->callLog->status,
-            'duration_seconds' => $this->callLog->duration_seconds,
+            'call_id' => $this->callLog->id,
         ];
     }
 }
