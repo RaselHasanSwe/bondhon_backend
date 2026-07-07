@@ -12,6 +12,7 @@ use App\Models\Subscription;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
@@ -43,7 +44,7 @@ class DatabaseSeeder extends Seeder
             [
                 'name'               => 'Admin User',
                 'email'              => 'admin@Enorsia.com',
-                'password'           => bcrypt('password'),
+                'password'           => Hash::make('123456789'),
                 'gender'             => 'male',
                 'profile_created_by' => 'self',
                 'role'               => 'admin',

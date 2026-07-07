@@ -25,6 +25,7 @@ return [
         'http://206.189.87.32',
         'https://mybouma.com',
         'https://www.mybouma.com',
+        'https://206.189.87.32',
     ],
 
     'allowed_origins_patterns' => [],
