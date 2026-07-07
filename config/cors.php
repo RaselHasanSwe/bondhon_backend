@@ -19,14 +19,17 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => [
-        'http://localhost:3000',
-        'http://127.0.0.1:3000',
-        'http://206.189.87.32',
-        'https://mybouma.com',
-        'https://www.mybouma.com',
-        'https://206.189.87.32',
-    ],
+    // 'allowed_origins' => [
+    //     'http://localhost:3000',
+    //     'http://127.0.0.1:3000',
+    //     'http://206.189.87.32',
+    //     'https://mybouma.com',
+    //     'https://www.mybouma.com',
+    //     'https://206.189.87.32',
+    // ],
+    'allowed_origins' => array_filter(
+        array_map('trim', explode(',', env('CORS_ALLOWED_ORIGINS', '')))
+    ),
 
     'allowed_origins_patterns' => [],
 
