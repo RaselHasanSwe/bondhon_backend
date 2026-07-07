@@ -3,8 +3,11 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Events\CallAnswered;
+use App\Events\CallCancelled;
+use App\Events\CallDeclined;
 use App\Events\CallEnded;
 use App\Events\CallInitiated;
+use App\Events\CallRinging;
 use App\Http\Requests\Call\InitiateCallRequest;
 use App\Http\Requests\Call\SignalCallRequest;
 use App\Http\Resources\CallLogResource;
@@ -130,6 +133,32 @@ class CallController extends ApiController
     }
 
     // ─────────────────────────────────────────────────────────────────────────
+    // PUT /calls/{id}/ringing  — receiver acknowledges incoming-call UI is shown
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public function ringing(Request $request, int $id): JsonResponse
+    {
+        $user    = $request->user();
+        $callLog = CallLog::find($id);
+
+        if (! $callLog) {
+            return $this->errorResponse('Call not found.', null, 404);
+        }
+
+        if ($callLog->receiver_id !== $user->id) {
+            return $this->errorResponse('Forbidden.', null, 403);
+        }
+
+        if ($callLog->status !== 'initiated') {
+            return $this->successResponse(null, 'Call is no longer ringing.');
+        }
+
+        broadcast(new CallRinging($callLog));
+
+        return $this->successResponse(null, 'Ringing acknowledged.');
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
     // PUT /calls/{id}/answer
     // ─────────────────────────────────────────────────────────────────────────
 
@@ -197,12 +226,38 @@ class CallController extends ApiController
             return $callLog->fresh();
         });
 
-        $callLog->load(['caller', 'receiver']);
-        broadcast(new CallEnded($callLog));
-
         Log::info('[CALL - Declined]', ['call_id' => $callLog->id, 'user_id' => $user->id]);
 
+        $callLog->load(['caller', 'receiver']);
+        broadcast(new CallDeclined($callLog));
+
         return $this->successResponse(['call' => new CallLogResource($callLog)], 'Call declined.');
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // PUT /calls/{id}/cancel-notify  — caller: instant push so receiver dismisses
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public function cancelNotify(Request $request, int $id): JsonResponse
+    {
+        $user    = $request->user();
+        $callLog = CallLog::find($id);
+
+        if (! $callLog) {
+            return $this->errorResponse('Call not found.', null, 404);
+        }
+
+        if ($callLog->caller_id !== $user->id) {
+            return $this->errorResponse('Forbidden.', null, 403);
+        }
+
+        if ($callLog->status !== 'initiated') {
+            return $this->successResponse(null, 'Call is no longer ringing.');
+        }
+
+        broadcast(new CallCancelled($callLog));
+
+        return $this->successResponse(null, 'Cancel notified.');
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -227,6 +282,9 @@ class CallController extends ApiController
             return $this->errorResponse('This call is already ended.', ['status' => $callLog->status], 409);
         }
 
+        // Push to the other party immediately — don't wait for the DB transaction.
+        broadcast(new CallEnded($callLog));
+
         $callLog = DB::transaction(function () use ($callLog) {
             $endedAt          = now();
             $durationSeconds  = null;
@@ -248,9 +306,6 @@ class CallController extends ApiController
 
             return $callLog->fresh();
         });
-
-        $callLog->load(['caller', 'receiver']);
-        broadcast(new CallEnded($callLog));
 
         Log::info('[CALL - Ended]', [
             'call_id'          => $callLog->id,

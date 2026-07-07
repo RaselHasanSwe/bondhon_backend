@@ -9,7 +9,8 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class CallEnded implements ShouldBroadcastNow
+/** Caller cancelled while receiver is still ringing — instant dismiss (no queue). */
+class CallCancelled implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
@@ -18,22 +19,19 @@ class CallEnded implements ShouldBroadcastNow
     public function broadcastOn(): array
     {
         return [
-            new PrivateChannel('user.' . $this->callLog->caller_id),
             new PrivateChannel('user.' . $this->callLog->receiver_id),
         ];
     }
 
     public function broadcastAs(): string
     {
-        return 'call.ended';
+        return 'call.cancelled';
     }
 
     public function broadcastWith(): array
     {
         return [
-            'call_id'          => $this->callLog->id,
-            'status'           => $this->callLog->status,
-            'duration_seconds' => $this->callLog->duration_seconds,
+            'call_id' => $this->callLog->id,
         ];
     }
 }

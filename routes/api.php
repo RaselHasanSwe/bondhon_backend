@@ -209,8 +209,10 @@ Route::prefix('v1')->group(function () {
         Route::prefix('calls')->group(function () {
             Route::get('/ice-servers', [CallController::class, 'iceServers']);
             Route::post('/initiate', [CallController::class, 'initiate']);
+            Route::put('/{id}/ringing', [CallController::class, 'ringing']);
             Route::put('/{id}/answer', [CallController::class, 'answer']);
             Route::put('/{id}/decline', [CallController::class, 'decline']);
+            Route::put('/{id}/cancel-notify', [CallController::class, 'cancelNotify']);
             Route::put('/{id}/end', [CallController::class, 'end']);
             Route::post('/{id}/signal', [CallController::class, 'signal']);
             Route::get('/history', [CallController::class, 'history']);
