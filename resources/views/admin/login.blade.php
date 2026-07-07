@@ -20,6 +20,10 @@
             background: #fff; border-radius: 16px; padding: 2.5rem;
             width: 100%; max-width: 400px; box-shadow: 0 20px 60px rgba(0,0,0,.3);
         }
+        @media (max-width: 575.98px) {
+            body { padding: 1rem; }
+            .login-card { padding: 1.5rem; }
+        }
         .brand-title { color: #C9A227; font-weight: 800; font-size: 2rem; }
         .btn-gold { background: #C9A227; color: #fff; border: none; }
         .btn-gold:hover { background: #a8891e; color: #fff; }
