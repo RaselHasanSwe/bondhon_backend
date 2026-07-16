@@ -15,7 +15,7 @@ class PageSeeder extends Seeder
                 'slug'             => 'home_hero',
                 'content'          => '<p>Join <strong>thousands of verified profiles</strong> and let our smart matching algorithm find your ideal match. Registration is completely free.</p><div class="home-stats" style="display:flex;gap:2rem;margin-top:1.5rem;flex-wrap:wrap;"><div style="text-align:center"><strong style="font-size:1.5rem;color:#C9A227;">50,000+</strong><div style="font-size:.85rem;color:#6B7280;">Profiles</div></div><div style="text-align:center"><strong style="font-size:1.5rem;color:#C9A227;">10,000+</strong><div style="font-size:.85rem;color:#6B7280;">Matches Made</div></div><div style="text-align:center"><strong style="font-size:1.5rem;color:#C9A227;">4.9 ★</strong><div style="font-size:.85rem;color:#6B7280;">Rating</div></div></div>',
                 'meta_title'       => "Bangladesh's Most Trusted Matrimony Platform",
-                'meta_description' => 'Find your perfect life partner on Enorsia — Bangladesh\'s most trusted premium matrimony platform.',
+                'meta_description' => 'Find your perfect life partner on Enorsia.',
                 'is_published'     => true,
                 'sort_order'       => 1,
             ],

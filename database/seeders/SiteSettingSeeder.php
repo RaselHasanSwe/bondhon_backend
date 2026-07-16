@@ -23,7 +23,7 @@ class SiteSettingSeeder extends Seeder
             'twitter_url'        => 'https://twitter.com/Enorsia',
             'instagram_url'      => 'https://instagram.com/Enorsia',
             'linkedin_url'       => 'https://linkedin.com/company/Enorsia',
-            'meta_title'         => 'Enorsia — Premium Matrimony Platform',
+            'meta_title'         => 'Enorsia — Find Your Perfect Life Partner',
             'meta_description'   => 'Find your perfect life partner on Enorsia — Bangladesh\'s most trusted premium matrimony platform.',
             'meta_keywords'      => 'matrimony, marriage, bride, groom, matchmaking, Bangladesh',
             'face_scan_enabled'  => false,
