@@ -11,7 +11,7 @@ class SiteSettingSeeder extends Seeder
     {
         $defaults = [
             'site_name'          => 'Enorsia',
-            'site_slogan'        => "Bangladesh's Most Trusted Matrimony Platform",
+            'site_slogan'        => 'Find Your Perfect Life Partner',
             'site_logo'          => null,
             'site_favicon'       => null,
             'currency'           => 'BDT',
@@ -24,7 +24,7 @@ class SiteSettingSeeder extends Seeder
             'instagram_url'      => 'https://instagram.com/Enorsia',
             'linkedin_url'       => 'https://linkedin.com/company/Enorsia',
             'meta_title'         => 'Enorsia — Find Your Perfect Life Partner',
-            'meta_description'   => 'Find your perfect life partner on Enorsia — Bangladesh\'s most trusted premium matrimony platform.',
+            'meta_description'   => 'Find your perfect life partner on Enorsia — a trusted matrimony platform.',
             'meta_keywords'      => 'matrimony, marriage, bride, groom, matchmaking, Bangladesh',
             'face_scan_enabled'  => false,
             'email_verification_enabled' => false,
@@ -33,7 +33,7 @@ class SiteSettingSeeder extends Seeder
         ];
 
         foreach ($defaults as $key => $value) {
-            SiteSetting::firstOrCreate(['key' => $key], ['value' => $value]);
+            SiteSetting::updateOrCreate(['key' => $key], ['value' => $value]);
         }
     }
 }
