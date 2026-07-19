@@ -603,20 +603,18 @@ class ProfileController extends ApiController
         $this->shortlistService->attachShortlistStatus($viewer, collect([$target]));
         $profileData['is_shortlisted'] = (bool) $target->getAttribute('is_shortlisted');
 
-        if ($this->featureService->can($viewer, 'compatibility_score_visible')) {
-            $matchScore = MatchScore::findForPair($viewer->id, $target->id);
+        $matchScore = MatchScore::findForPair($viewer->id, $target->id);
 
-            if (! $matchScore) {
-                $matchScore = $this->matchingService->calculateAndStoreScore($viewer, $target, ignoreMinimum: true);
-            }
+        if (! $matchScore) {
+            $matchScore = $this->matchingService->calculateAndStoreScore($viewer, $target, ignoreMinimum: true);
+        }
 
-            if ($matchScore) {
-                $profileData['compatibility_score'] = [
-                    'score'           => (float) $matchScore->score,
-                    'score_breakdown' => $matchScore->score_breakdown,
-                    'calculated_at'   => $matchScore->calculated_at,
-                ];
-            }
+        if ($matchScore) {
+            $profileData['compatibility_score'] = [
+                'score'           => (float) $matchScore->score,
+                'score_breakdown' => $matchScore->score_breakdown,
+                'calculated_at'   => $matchScore->calculated_at,
+            ];
         }
 
         return $profileData;
