@@ -38,6 +38,14 @@ class NotificationService
     public const TYPE_ADMIN_ACCOUNT_BANNED    = 'admin_account_banned';
     public const TYPE_ADMIN_ACCOUNT_REACTIVATED = 'admin_account_reactivated';
 
+    /** Notification types shown in the admin panel history & sidebar badge. */
+    public const ADMIN_PANEL_NOTIFICATION_TYPES = [
+        self::TYPE_BROADCAST_MESSAGE,
+        self::TYPE_PHOTO_APPROVED,
+        self::TYPE_PHOTO_REJECTED,
+        self::TYPE_SUBSCRIPTION_EXPIRY,
+    ];
+
     /**
      * Send a notification to a user (stores in DB + broadcasts via WebSocket).
      */

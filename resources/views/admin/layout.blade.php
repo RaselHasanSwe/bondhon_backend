@@ -19,16 +19,40 @@
         }
         body { background: #f4f6fb; font-family: 'Segoe UI', sans-serif; }
         .sidebar {
-            width: 250px; min-height: 100vh; background: var(--sidebar-bg);
+            width: 250px; height: 100vh; background: var(--sidebar-bg);
             position: fixed; top: 0; left: 0; z-index: 100;
             display: flex; flex-direction: column;
         }
         .sidebar-brand {
             padding: 1.5rem 1.25rem; border-bottom: 1px solid rgba(255,255,255,.1);
+            flex-shrink: 0;
         }
         .sidebar-brand h4 { color: var(--gold); font-weight: 700; margin: 0; }
         .sidebar-brand small { color: rgba(255,255,255,.5); font-size: 11px; }
-        .sidebar-nav { flex: 1; padding: 1rem 0; }
+        .sidebar-nav {
+            flex: 1; min-height: 0; padding: 1rem 0;
+            overflow-y: auto; overflow-x: hidden;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(201, 162, 39, .35) transparent;
+        }
+        .sidebar-nav::-webkit-scrollbar {
+            width: 5px;
+        }
+        .sidebar-nav::-webkit-scrollbar-track {
+            background: transparent;
+            margin: 4px 0;
+        }
+        .sidebar-nav::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, .12);
+            border-radius: 999px;
+            transition: background .2s ease;
+        }
+        .sidebar-nav::-webkit-scrollbar-thumb:hover {
+            background: rgba(201, 162, 39, .55);
+        }
+        .sidebar-nav:hover {
+            scrollbar-color: rgba(201, 162, 39, .55) transparent;
+        }
         .sidebar-nav .nav-link {
             color: rgba(255,255,255,.7); padding: .65rem 1.25rem;
             border-radius: 0; display: flex; align-items: center; gap: .75rem;
@@ -42,6 +66,8 @@
         .sidebar-nav .nav-link i { font-size: 1rem; width: 20px; }
         .sidebar-footer {
             padding: 1rem 1.25rem; border-top: 1px solid rgba(255,255,255,.1);
+            flex-shrink: 0; margin-top: auto;
+            background: var(--sidebar-bg);
         }
         .main-content { margin-left: 250px; min-height: 100vh; }
         .topbar {
@@ -71,103 +97,7 @@
 </head>
 <body>
 
-<!-- Sidebar -->
-<aside class="sidebar">
-    <div class="sidebar-brand">
-        <h4>{{ $siteName ? strtoupper($siteName) : strtoupper('Super Admin') }}</h4>
-        <small>Super Admin Panel</small>
-    </div>
-    <nav class="sidebar-nav">
-        <a href="{{ route('admin.web.dashboard') }}"
-           class="nav-link {{ request()->routeIs('admin.web.dashboard') ? 'active' : '' }}">
-            <i class="bi bi-speedometer2"></i> Dashboard
-        </a>
-        <a href="{{ route('admin.web.users') }}"
-           class="nav-link {{ request()->routeIs('admin.web.users') ? 'active' : '' }}">
-            <i class="bi bi-people"></i> Users
-        </a>
-        <a href="{{ route('admin.web.plans') }}"
-           class="nav-link {{ request()->routeIs('admin.web.plans') ? 'active' : '' }}">
-            <i class="bi bi-layers"></i> Plans
-        </a>
-        <a href="{{ route('admin.web.subscriptions') }}"
-           class="nav-link {{ request()->routeIs('admin.web.subscriptions') ? 'active' : '' }}">
-            <i class="bi bi-credit-card"></i> Subscriptions
-        </a>
-        <hr style="border-color:rgba(255,255,255,.1);margin:.5rem 1.25rem;">
-        <a href="{{ route('admin.web.photos') }}"
-           class="nav-link {{ request()->routeIs('admin.web.photos') ? 'active' : '' }}">
-            <i class="bi bi-images"></i> Approvals
-            @php $pendingPhotos = \App\Models\ProfilePhoto::where('moderation_status','pending')->count(); @endphp
-            @if($pendingPhotos > 0)
-                <span class="badge bg-danger ms-auto">{{ $pendingPhotos }}</span>
-            @endif
-        </a>
-        <a href="{{ route('admin.web.reports') }}"
-           class="nav-link {{ request()->routeIs('admin.web.reports') ? 'active' : '' }}">
-            <i class="bi bi-flag"></i> Reports
-            @php $pendingReports = \App\Models\Report::where('status','pending')->count(); @endphp
-            @if($pendingReports > 0)
-                <span class="badge bg-danger ms-auto">{{ $pendingReports }}</span>
-            @endif
-        </a>
-        <a href="{{ route('admin.web.account-disable-requests') }}"
-           class="nav-link {{ request()->routeIs('admin.web.account-disable-requests') ? 'active' : '' }}">
-            <i class="bi bi-person-x"></i> Ac. Disable Request
-            @php $pendingDisableRequests = \App\Models\AccountDisableRequest::where('status','pending')->count(); @endphp
-            @if($pendingDisableRequests > 0)
-                <span class="badge bg-danger ms-auto">{{ $pendingDisableRequests }}</span>
-            @endif
-        </a>
-        <a href="{{ route('admin.web.broadcast') }}"
-           class="nav-link {{ request()->routeIs('admin.web.broadcast') ? 'active' : '' }}">
-            <i class="bi bi-megaphone"></i> Broadcast
-        </a>
-        <a href="{{ route('admin.web.notifications.history') }}" style="font-size:15px;"
-           class="nav-link {{ request()->routeIs('admin.web.notifications.history') || request()->routeIs('admin.web.notifications.view') ? 'active' : '' }}">
-            <i class="bi bi-bell"></i>
-            Notifications
-            @php $totalNotes = \Illuminate\Support\Facades\DB::table('notifications')->where('is_read', false)->count(); @endphp
-            @if($totalNotes > 0)
-                <span class="badge bg-secondary ms-auto" style="font-size:10px">{{ $totalNotes > 99 ? '99+' : $totalNotes }}</span>
-            @endif
-        </a>
-        <a href="{{ route('admin.web.contact-messages') }}"
-           class="nav-link {{ request()->routeIs('admin.web.contact-messages') ? 'active' : '' }}">
-            <i class="bi bi-envelope-open"></i> Messages
-            @php $newMessages = \App\Models\ContactMessage::where('status','new')->count(); @endphp
-            @if($newMessages > 0)
-                <span class="badge bg-danger ms-auto">{{ $newMessages }}</span>
-            @endif
-        </a>
-        <hr style="border-color:rgba(255,255,255,.1);margin:.5rem 1.25rem;">
-        <a href="{{ route('admin.web.pages') }}"
-           class="nav-link {{ request()->routeIs('admin.web.pages') || request()->routeIs('admin.web.pages.edit') ? 'active' : '' }}">
-            <i class="bi bi-file-text"></i> CMS / Pages
-        </a>
-        <a href="{{ route('admin.web.select-options.index') }}"
-           class="nav-link {{ request()->routeIs('admin.web.select-options.*') ? 'active' : '' }}">
-            <i class="bi bi-ui-checks-grid"></i> Select Options
-        </a>
-        <a href="{{ route('admin.web.settings') }}"
-           class="nav-link {{ request()->routeIs('admin.web.settings') ? 'active' : '' }}">
-            <i class="bi bi-gear"></i> Site Settings
-        </a>
-        <a href="{{ route('admin.web.change-password') }}"
-           class="nav-link {{ request()->routeIs('admin.web.change-password') ? 'active' : '' }}">
-            <i class="bi bi-key"></i> Change Password
-        </a>
-    </nav>
-    <div class="sidebar-footer">
-        <div class="text-white-50 small mb-2">{{ Auth::user()->name }}</div>
-        <form method="POST" action="{{ route('admin.web.logout') }}">
-            @csrf
-            <button class="btn btn-sm btn-outline-danger w-100">
-                <i class="bi bi-box-arrow-right me-1"></i> Logout
-            </button>
-        </form>
-    </div>
-</aside>
+@include('admin.partials.sidebar')
 
 <!-- Main -->
 <div class="main-content">
