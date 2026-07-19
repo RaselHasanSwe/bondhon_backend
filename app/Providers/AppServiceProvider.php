@@ -6,6 +6,7 @@ use App\Events\InterestReceived;
 use App\Jobs\ExpireOldInterests;
 use App\Jobs\SendDailyMatchDigest;
 use App\Listeners\SendInterestNotification;
+use App\Services\AdminSidebarService;
 use App\Services\SiteSettingService;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Schedule;
@@ -41,6 +42,10 @@ class AppServiceProvider extends ServiceProvider
                 'siteLogo'     => $settings->get('site_logo'),
                 'siteFavicon'  => $settings->get('site_favicon'),
             ]);
+        });
+
+        View::composer('admin.partials.sidebar', function ($view) {
+            $view->with('sidebarBadges', app(AdminSidebarService::class)->getBadgeCounts());
         });
 
         View::composer('emails.*', function ($view) {

@@ -20,6 +20,7 @@ class PublicProfileCardResource extends JsonResource
         return [
             'id'            => $this->id,
             'name'          => $this->name,
+            'gender'        => $this->gender,
             'profile'       => $this->profile ? [
                 'profile_id' => $this->profile->profile_id,
                 'dob'       => $this->profile->dob,

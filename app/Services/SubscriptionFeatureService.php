@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\Cache;
  *   $svc->can($user, 'chat_access')          → bool
  *   $svc->value($user, 'daily_matches')       → int|bool|string
  *   $svc->withinDailyLimit($user, 'send_interest_per_day', $usedToday) → bool
- *   $svc->withinMonthlyLimit($user, 'contact_info_views_per_month', $usedMonth) → bool
+ *   $svc->withinMonthlyLimit($user, 'send_interest_per_day', $usedMonth) → bool
  */
 class SubscriptionFeatureService
 {
@@ -50,29 +50,11 @@ class SubscriptionFeatureService
                 'label'   => 'Daily Match Suggestions',
                 'group'   => 'Discovery & Search',
             ],
-            'search_access' => [
-                'type'    => 'bool',
-                'default' => true,
-                'label'   => 'Search Access',
-                'group'   => 'Discovery & Search',
-            ],
             'profile_views_per_day' => [
                 'type'    => 'qty',
                 'period'  => 'day',
                 'default' => 10,
                 'label'   => 'Profile Views per Day',
-                'group'   => 'Discovery & Search',
-            ],
-            'search_filters_advanced' => [
-                'type'    => 'bool',
-                'default' => false,
-                'label'   => 'Advanced Search Filters (income, caste, etc.)',
-                'group'   => 'Discovery & Search',
-            ],
-            'profile_id_search' => [
-                'type'    => 'bool',
-                'default' => false,
-                'label'   => 'Search by BON-XXXXXX Profile ID',
                 'group'   => 'Discovery & Search',
             ],
 
@@ -102,37 +84,12 @@ class SubscriptionFeatureService
                 'label'   => 'Video Call Access',
                 'group'   => 'Communication',
             ],
-            'message_read_receipt' => [
-                'type'    => 'bool',
-                'default' => false,
-                'label'   => 'Message Read Receipts',
-                'group'   => 'Communication',
-            ],
 
             // ── Visibility & Insights ────────────────────────────────────────
-            'contact_info_views_per_month' => [
-                'type'    => 'qty',
-                'period'  => 'month',
-                'default' => 0,
-                'label'   => 'Contact Info Unlocks per Month',
-                'group'   => 'Visibility & Insights',
-            ],
-            'see_who_liked_me' => [
-                'type'    => 'bool',
-                'default' => false,
-                'label'   => 'See Who Sent You Interest',
-                'group'   => 'Visibility & Insights',
-            ],
             'see_who_viewed_profile' => [
                 'type'    => 'bool',
                 'default' => false,
                 'label'   => 'See Who Viewed Your Profile',
-                'group'   => 'Visibility & Insights',
-            ],
-            'profile_visitors_detailed' => [
-                'type'    => 'bool',
-                'default' => false,
-                'label'   => 'Detailed Visitor List (name, not just count)',
                 'group'   => 'Visibility & Insights',
             ],
 
@@ -143,26 +100,6 @@ class SubscriptionFeatureService
                 'default' => 3,
                 'label'   => 'Max Photos Allowed to Upload',
                 'group'   => 'Photos & Privacy',
-            ],
-            'profile_visibility_control' => [
-                'type'    => 'bool',
-                'default' => false,
-                'label'   => 'Control Who Sees Your Profile',
-                'group'   => 'Photos & Privacy',
-            ],
-
-            // ── Reports & Analytics ──────────────────────────────────────────
-            'compatibility_score_visible' => [
-                'type'    => 'bool',
-                'default' => false,
-                'label'   => 'See Match % Compatibility Score',
-                'group'   => 'Reports & Analytics',
-            ],
-            'match_report_monthly' => [
-                'type'    => 'bool',
-                'default' => false,
-                'label'   => 'Monthly Match Analysis Report',
-                'group'   => 'Reports & Analytics',
             ],
 
             // ── Notifications ────────────────────────────────────────────────

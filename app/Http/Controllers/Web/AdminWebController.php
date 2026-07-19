@@ -767,14 +767,6 @@ class AdminWebController extends Controller
     // Notification History (Admin)
     // -----------------------------------------------------------------------
 
-    /** Notification types sent by admin (not user-to-user). */
-    private const ADMIN_NOTIFICATION_TYPES = [
-        'broadcast_message',
-        'photo_approved',
-        'photo_rejected',
-        'subscription_expiry',
-    ];
-
     public function notificationHistory(Request $request): View
     {
         $query = DB::table('notifications')
@@ -793,7 +785,7 @@ class AdminWebController extends Controller
                 'users.name as user_name',
                 'users.email as user_email'
             )
-            ->whereIn('notifications.type', self::ADMIN_NOTIFICATION_TYPES)
+            ->whereIn('notifications.type', NotificationService::ADMIN_PANEL_NOTIFICATION_TYPES)
             ->orderByDesc('notifications.created_at');
 
         // Filters
@@ -814,12 +806,12 @@ class AdminWebController extends Controller
         $notifications = $query->paginate(15)->withQueryString();
 
         // Stats for admin-sent notifications only
-        $totalCount  = DB::table('notifications')->whereIn('type', self::ADMIN_NOTIFICATION_TYPES)->count();
-        $unreadCount = DB::table('notifications')->whereIn('type', self::ADMIN_NOTIFICATION_TYPES)->where('is_read', false)->count();
+        $totalCount  = DB::table('notifications')->whereIn('type', NotificationService::ADMIN_PANEL_NOTIFICATION_TYPES)->count();
+        $unreadCount = DB::table('notifications')->whereIn('type', NotificationService::ADMIN_PANEL_NOTIFICATION_TYPES)->where('is_read', false)->count();
 
         // Type filter dropdown — only admin types that actually exist
         $types = DB::table('notifications')
-            ->whereIn('type', self::ADMIN_NOTIFICATION_TYPES)
+            ->whereIn('type', NotificationService::ADMIN_PANEL_NOTIFICATION_TYPES)
             ->distinct()->pluck('type')->sort()->values();
 
         return view('admin.notifications.history', compact('notifications', 'totalCount', 'unreadCount', 'types'));
@@ -869,7 +861,7 @@ class AdminWebController extends Controller
                 'users.email as user_email'
             )
             ->where('notifications.id', $id)
-            ->whereIn('notifications.type', self::ADMIN_NOTIFICATION_TYPES)
+            ->whereIn('notifications.type', NotificationService::ADMIN_PANEL_NOTIFICATION_TYPES)
             ->first();
 
         if (!$row) {
