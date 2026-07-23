@@ -77,7 +77,7 @@
     </h1>
 
     <p class="body-text">
-        Your account disable request has been reviewed and approved. Your {{ $siteName }} account is now disabled and you will no longer be able to sign in.
+        Your account disable request has been reviewed and approved. Your {{ $siteName }} account is now disabled and you will no longer be able to login.
     </p>
 
     @if($adminMessage)

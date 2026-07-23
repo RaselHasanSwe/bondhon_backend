@@ -21,7 +21,7 @@
     <h1 class="ban-headline">Your Account Has Been<br><span>Suspended</span></h1>
 
     <p class="ban-body-text">
-        An administrator has suspended your {{ $siteName }} account. You will no longer be able to sign in or use the platform.
+        An administrator has suspended your {{ $siteName }} account. You will no longer be able to login or use the platform.
     </p>
 
     @if($adminMessage)

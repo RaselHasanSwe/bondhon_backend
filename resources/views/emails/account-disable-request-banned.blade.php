@@ -77,7 +77,7 @@
     </h1>
 
     <p class="ban-body-text">
-        Your account disable request has been reviewed. Following our review, your {{ $siteName }} account has been suspended and you will no longer be able to sign in or use the platform.
+        Your account disable request has been reviewed. Following our review, your {{ $siteName }} account has been suspended and you will no longer be able to login or use the platform.
     </p>
 
     @if($adminMessage)

@@ -664,7 +664,7 @@
                 </div>
                 <div class="modal-body">
                     <p class="text-muted small mb-3">
-                        Disabling <strong>{{ $user->name }}</strong> will sign them out and block sign-in until reactivated. This is not a permanent ban.
+                        Disabling <strong>{{ $user->name }}</strong> will sign them out and block login until reactivated. This is not a permanent ban.
                     </p>
                     <div class="mb-3">
                         <label for="disable_admin_message" class="form-label fw-semibold small">Reason / Message <span class="text-danger">*</span></label>
@@ -734,7 +734,7 @@
                 </div>
                 <div class="modal-body">
                     <p class="text-muted small mb-3">
-                        Reactivate <strong>{{ $user->name }}</strong>'s account so they can sign in and use the platform again.
+                        Reactivate <strong>{{ $user->name }}</strong>'s account so they can login and use the platform again.
                     </p>
                     <div class="mb-3">
                         <label for="reactivate_admin_message" class="form-label fw-semibold small">Message to User <span class="text-muted">(optional)</span></label>

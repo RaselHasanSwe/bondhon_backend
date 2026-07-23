@@ -21,7 +21,7 @@
     <h1 class="headline">Your Account Has Been<br><span>Reactivated</span></h1>
 
     <p class="body-text">
-        Good news! An administrator has reactivated your {{ $siteName }} account. You can sign in again and continue using the platform.
+        Good news! An administrator has reactivated your {{ $siteName }} account. You can login again and continue using the platform.
     </p>
 
     @if($adminMessage)

@@ -61,7 +61,7 @@
             <input class="form-check-input" type="checkbox" name="remember" id="remember">
             <label class="form-check-label small" for="remember">Remember me</label>
         </div>
-        <button type="submit" class="btn btn-gold w-100 fw-semibold">Sign in to Admin Panel</button>
+        <button type="submit" class="btn btn-gold w-100 fw-semibold">Login to Admin Panel</button>
     </form>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
