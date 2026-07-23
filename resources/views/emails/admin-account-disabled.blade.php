@@ -21,7 +21,7 @@
     <h1 class="headline">Your Account Has Been<br><span>Disabled</span></h1>
 
     <p class="body-text">
-        An administrator has disabled your {{ $siteName }} account. You will no longer be able to sign in until your account is reactivated.
+        An administrator has disabled your {{ $siteName }} account. You will no longer be able to login until your account is reactivated.
     </p>
 
     @if($adminMessage)

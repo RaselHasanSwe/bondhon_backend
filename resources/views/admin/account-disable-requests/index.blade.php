@@ -248,7 +248,7 @@
                     </div>
                     <div class="modal-body">
                         <p class="small text-muted mb-3">
-                            Reactivate <strong>{{ $item->user?->name }}</strong>'s account so they can sign in again.
+                            Reactivate <strong>{{ $item->user?->name }}</strong>'s account so they can login again.
                         </p>
                         <label for="reactivate_admin_message_{{ $item->id }}" class="form-label fw-semibold small">
                             Message to User <span class="text-muted">(optional)</span>

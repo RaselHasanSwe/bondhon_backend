@@ -300,7 +300,7 @@ class NotificationService
 
     public function notifyAccountDisableRequestReactivated(User $user, ?string $adminMessage = null): void
     {
-        $message = 'Your account has been reactivated. You can sign in and use the platform again.';
+        $message = 'Your account has been reactivated. You can login and use the platform again.';
         if ($adminMessage) {
             $message .= ' Reason: ' . $adminMessage;
         }
@@ -335,7 +335,7 @@ class NotificationService
 
     public function notifyAdminAccountReactivated(User $user, ?string $adminMessage = null): void
     {
-        $message = 'Your account has been reactivated. You can sign in and use the platform again.';
+        $message = 'Your account has been reactivated. You can login and use the platform again.';
         if ($adminMessage) {
             $message .= ' Reason: ' . $adminMessage;
         }

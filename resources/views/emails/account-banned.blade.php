@@ -77,7 +77,7 @@
     </h1>
 
     <p class="ban-body-text">
-        We are writing to inform you that your {{ $siteName }} account has been suspended and you will no longer be able to sign in or use the platform.
+        We are writing to inform you that your {{ $siteName }} account has been suspended and you will no longer be able to login or use the platform.
     </p>
 
     <div class="reason-box">
