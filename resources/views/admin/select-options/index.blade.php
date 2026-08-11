@@ -22,7 +22,7 @@
             <label class="form-label fw-semibold small mb-2">
                 <i class="bi bi-list-ul me-2"></i>Option Groups
             </label>
-            <select class="form-select form-select-sm" onchange="window.location.href=this.value">
+            <select id="groupSelector" class="form-select form-select-sm" data-tom-select data-tom-select-navigate data-tom-select-placeholder="Select option group…">
                 <option value="{{ route('admin.web.select-options.index', ['group' => 'all']) }}"
                     {{ $group === 'all' ? 'selected' : '' }}>
                     — All Groups ({{ array_sum($groupCounts->toArray()) }}) —
@@ -66,8 +66,8 @@
     @if($isSelfNested)
     <div class="alert alert-secondary alert-dismissible fade show py-2 small mb-0 mt-2" role="alert">
         <i class="bi bi-diagram-3 me-1"></i>
-        <strong>Self-nested group</strong> — options can have parent options within the same group (tree structure, max depth: {{ $maxDepth }}).
-        <button type="button" class="btn-close btn-sm" data-bs-dismiss="alert"></button>
+        Country → Division → District → Upazila <span class="text-muted">({{ $maxDepth }} levels)</span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
     @endif
 </div>
@@ -75,13 +75,13 @@
 @if(session('success'))
     <div class="alert alert-success alert-dismissible fade show py-2 small" role="alert">
         <i class="bi bi-check-circle me-1"></i>{{ session('success') }}
-        <button type="button" class="btn-close btn-sm" data-bs-dismiss="alert"></button>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
 @endif
 @if(session('error'))
     <div class="alert alert-danger alert-dismissible fade show py-2 small" role="alert">
         <i class="bi bi-exclamation-circle me-1"></i>{{ session('error') }}
-        <button type="button" class="btn-close btn-sm" data-bs-dismiss="alert"></button>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
 @endif
 
@@ -230,7 +230,7 @@
                                     Parent — {{ $groups[$parentGroupKey] ?? $parentGroupKey }}
                                     <span class="text-danger">*</span>
                                 </label>
-                                <select name="parent_id" class="form-select form-select-sm" required>
+                                <select name="parent_id" class="form-select form-select-sm" data-tom-select data-tom-select-search required>
                                     <option value="">— Select parent —</option>
                                     @foreach($parentOptions as $p)
                                         <option value="{{ $p->id }}" {{ old('parent_id') == $p->id ? 'selected' : '' }}>
@@ -252,11 +252,11 @@
                             <input type="hidden" name="parent_id" id="parentIdFixed">
                             <div class="border rounded px-3 py-2 bg-light small d-flex justify-content-between align-items-center">
                                 <span>Child of: <strong id="parentLabelFixed"></strong></span>
-                                <button type="button" class="btn-close btn-sm" onclick="clearParent()" title="Remove parent"></button>
+                                <button type="button" class="btn-close" onclick="clearParent()" aria-label="Remove parent"></button>
                             </div>
                         </div>
                         <div id="parentSelect">
-                            <select name="parent_id" id="parentIdSelect" class="form-select form-select-sm">
+                            <select name="parent_id" id="parentIdSelect" class="form-select form-select-sm" data-tom-select data-tom-select-search data-tom-select-clear>
                                 <option value="">— Root level (no parent) —</option>
                                 @foreach($options as $po)
                                     @if(($po->_depth ?? 0) < $maxDepth - 1)
@@ -266,7 +266,7 @@
                                     @endif
                                 @endforeach
                             </select>
-                            <small class="text-muted">Leave blank to add at the root. Max depth: {{ $maxDepth }}.</small>
+                            <small class="text-muted">Max {{ $maxDepth }} levels.</small>
                         </div>
                     </div>
                     @endif
@@ -352,19 +352,20 @@ function openAddChild(parentId, parentLabel) {
     const hiddenInput = document.getElementById('parentIdFixed');
     const labelEl    = document.getElementById('parentLabelFixed');
     const titleEl    = document.getElementById('modalTitle');
+    const parentSelect = document.getElementById('parentIdSelect');
 
     if (fixed && select && hiddenInput && labelEl) {
         hiddenInput.value    = parentId;
         labelEl.textContent  = parentLabel;
         fixed.classList.remove('d-none');
         select.classList.add('d-none');
-        // disable the select so only the hidden field is submitted
-        const sel = select.querySelector('select');
-        if (sel) sel.disabled = true;
+        if (parentSelect) {
+            parentSelect.disabled = true;
+            window.AdminTomSelect?.destroy(parentSelect);
+        }
     }
     if (titleEl) titleEl.textContent = 'Add Child Option';
 
-    // clear label/value inputs
     if (addLabel) { addLabel.value = ''; }
     if (addValue) { addValue.value = ''; delete addValue.dataset.edited; }
 
@@ -375,11 +376,16 @@ function clearParent() {
     const fixed  = document.getElementById('parentFixed');
     const select = document.getElementById('parentSelect');
     const titleEl = document.getElementById('modalTitle');
+    const parentSelect = document.getElementById('parentIdSelect');
+
     if (fixed)  fixed.classList.add('d-none');
     if (select) {
         select.classList.remove('d-none');
-        const sel = select.querySelector('select');
-        if (sel) { sel.disabled = false; sel.value = ''; }
+        if (parentSelect) {
+            parentSelect.disabled = false;
+            parentSelect.value = '';
+            window.AdminTomSelect?.refresh(parentSelect);
+        }
     }
     if (titleEl) titleEl.textContent = 'Add Option';
 }

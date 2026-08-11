@@ -84,6 +84,9 @@ class PublicProfileSearchController extends ApiController
         if ($request->filled('city')) {
             $query->where('profiles.city', 'like', '%' . $request->city . '%');
         }
+        if ($request->filled('upazila')) {
+            $query->where('profiles.upazila', $request->upazila);
+        }
         if ($request->filled('nationality')) {
             $query->where('profiles.nationality', $request->nationality);
         }

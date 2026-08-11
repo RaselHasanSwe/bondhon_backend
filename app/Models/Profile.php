@@ -32,6 +32,7 @@ class Profile extends Model
         'country',
         'state',
         'city',
+        'upazila',
         'postal_code',
         'residing_status',
         'about_me',

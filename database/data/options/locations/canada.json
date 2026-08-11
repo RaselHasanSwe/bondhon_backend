@@ -1,0 +1,199 @@
+{
+    "group_key": "country",
+    "entry": {
+        "value": "canada",
+        "label": "Canada",
+        "sort_order": 4,
+        "metadata": {
+            "iso": "CA",
+            "dial": "+1",
+            "hierarchy_type": "flat_region_city",
+            "level_2_label": "Region \/ City",
+            "field_map": {
+                "level_2": "state"
+            }
+        },
+        "children": [
+            {
+                "value": "ontario",
+                "label": "Ontario",
+                "sort_order": 1
+            },
+            {
+                "value": "british_columbia",
+                "label": "British Columbia",
+                "sort_order": 2
+            },
+            {
+                "value": "alberta",
+                "label": "Alberta",
+                "sort_order": 3
+            },
+            {
+                "value": "manitoba",
+                "label": "Manitoba",
+                "sort_order": 4
+            },
+            {
+                "value": "quebec",
+                "label": "Quebec",
+                "sort_order": 5
+            },
+            {
+                "value": "saskatchewan",
+                "label": "Saskatchewan",
+                "sort_order": 6
+            },
+            {
+                "value": "nova_scotia",
+                "label": "Nova Scotia",
+                "sort_order": 7
+            },
+            {
+                "value": "new_brunswick",
+                "label": "New Brunswick",
+                "sort_order": 8
+            },
+            {
+                "value": "prince_edward_island",
+                "label": "Prince Edward Island",
+                "sort_order": 9
+            },
+            {
+                "value": "newfoundland_and_labrador",
+                "label": "Newfoundland and Labrador",
+                "sort_order": 10
+            },
+            {
+                "value": "yukon",
+                "label": "Yukon",
+                "sort_order": 11
+            },
+            {
+                "value": "northwest_territories",
+                "label": "Northwest Territories",
+                "sort_order": 12
+            },
+            {
+                "value": "nunavut",
+                "label": "Nunavut",
+                "sort_order": 13
+            },
+            {
+                "value": "ottawa",
+                "label": "Ottawa",
+                "sort_order": 14
+            },
+            {
+                "value": "toronto",
+                "label": "Toronto",
+                "sort_order": 15
+            },
+            {
+                "value": "victoria",
+                "label": "Victoria",
+                "sort_order": 16
+            },
+            {
+                "value": "edmonton",
+                "label": "Edmonton",
+                "sort_order": 17
+            },
+            {
+                "value": "winnipeg",
+                "label": "Winnipeg",
+                "sort_order": 18
+            },
+            {
+                "value": "quebec_city",
+                "label": "Quebec City",
+                "sort_order": 19
+            },
+            {
+                "value": "regina",
+                "label": "Regina",
+                "sort_order": 20
+            },
+            {
+                "value": "halifax",
+                "label": "Halifax",
+                "sort_order": 21
+            },
+            {
+                "value": "fredericton",
+                "label": "Fredericton",
+                "sort_order": 22
+            },
+            {
+                "value": "charlottetown",
+                "label": "Charlottetown",
+                "sort_order": 23
+            },
+            {
+                "value": "st_john_s",
+                "label": "St. John's",
+                "sort_order": 24
+            },
+            {
+                "value": "whitehorse",
+                "label": "Whitehorse",
+                "sort_order": 25
+            },
+            {
+                "value": "yellowknife",
+                "label": "Yellowknife",
+                "sort_order": 26
+            },
+            {
+                "value": "iqaluit",
+                "label": "Iqaluit",
+                "sort_order": 27
+            },
+            {
+                "value": "montreal",
+                "label": "Montreal",
+                "sort_order": 28
+            },
+            {
+                "value": "vancouver",
+                "label": "Vancouver",
+                "sort_order": 29
+            },
+            {
+                "value": "calgary",
+                "label": "Calgary",
+                "sort_order": 30
+            },
+            {
+                "value": "mississauga",
+                "label": "Mississauga",
+                "sort_order": 31
+            },
+            {
+                "value": "brampton",
+                "label": "Brampton",
+                "sort_order": 32
+            },
+            {
+                "value": "hamilton",
+                "label": "Hamilton",
+                "sort_order": 33
+            },
+            {
+                "value": "saskatoon",
+                "label": "Saskatoon",
+                "sort_order": 34
+            },
+            {
+                "value": "saint_john",
+                "label": "Saint John",
+                "sort_order": 35
+            },
+            {
+                "value": "others",
+                "label": "Others",
+                "sort_order": 36
+            }
+        ]
+    }
+}

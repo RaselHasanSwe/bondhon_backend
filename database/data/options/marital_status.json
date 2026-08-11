@@ -1,0 +1,9 @@
+{
+  "group_key": "marital_status",
+  "options": [
+    { "value": "never_married", "label": "Never Married", "sort_order": 1 },
+    { "value": "widowed", "label": "Widowed", "sort_order": 2 },
+    { "value": "divorced", "label": "Divorced", "sort_order": 3 },
+    { "value": "separated", "label": "Separated", "sort_order": 4 }
+  ]
+}

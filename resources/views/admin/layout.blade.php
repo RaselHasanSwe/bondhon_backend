@@ -9,6 +9,7 @@
     @endif
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    @include('admin.partials.tom-select')
     @stack('styles')
     <style>
         :root {
@@ -88,6 +89,13 @@
             font-size: 1.25rem;
         }
         .table-card { background: #fff; border-radius: 12px; border: 1px solid #e5e7eb; }
+        .alert-dismissible .btn-close {
+            top: 50%;
+            right: 0.75rem;
+            transform: translateY(-50%);
+            padding: 0.375rem;
+            margin: 0;
+        }
         .badge-silver { background-color: #9ca3af; color: #fff; }
         .badge-gold { background-color: #C9A227; color: #fff; }
         .badge-platinum { background-color: #7c3aed; color: #fff; }
@@ -131,6 +139,9 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
+<script src="{{ asset('js/admin/tom-select.js') }}"></script>
+@stack('scripts')
 @yield('scripts')
 </body>
 </html>

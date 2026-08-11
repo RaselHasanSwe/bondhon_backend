@@ -20,7 +20,7 @@ class UpdatePreferenceRequest extends FormRequest
             'height_min_cm'             => ['nullable', 'integer', 'min:100', 'max:250'],
             'height_max_cm'             => ['nullable', 'integer', 'min:100', 'max:250'],
             'marital_status'            => ['nullable', 'array'],
-            'marital_status.*'          => ['string', 'in:never_married,divorced,widowed,awaiting_divorce'],
+            'marital_status.*'          => ['string', 'in:never_married,widowed,divorced,separated'],
             'religion'                  => ['nullable', 'array'],
             'religion.*'                => ['string'],
             'caste'                     => ['nullable', 'array'],

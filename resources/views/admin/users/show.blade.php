@@ -53,7 +53,7 @@
     .ud-action-btn { border-radius: 10px; font-size: .83rem; font-weight: 600; padding: .55rem 1rem; }
     .photo-grid img { border-radius: 10px; aspect-ratio: 1/1; object-fit: cover; width: 100%; border: 1px solid rgba(0,0,0,.08); }
     .section-divider { font-size: .7rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #9ca3af; margin-bottom: .75rem; }
-    .status-dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
     .ud-sticky { position: sticky; top: 1rem; }
     @media (max-width: 1199px) { .ud-sticky { position: static; } }
     @media (max-width: 767px) { .ud-meta-item { width: 100%; } }
@@ -71,12 +71,12 @@
                     <div class="ud-avatar mx-auto mb-3">{{ $initials }}</div>
                     <h5 class="fw-bold mb-1 fs-6">{{ $user->name }}</h5>
                     <p class="text-muted mb-2" style="font-size:.78rem">{{ $user->email }}</p>
-                    <div class="d-flex justify-content-center gap-2 mb-3">
-                        <span class="badge rounded-pill bg-{{ $statusColor }}">
-                            <span class="status-dot bg-{{ $statusColor === 'success' ? 'white' : 'white' }}"></span>
+                    <div class="d-flex justify-content-center align-items-center gap-2 mb-3 flex-wrap">
+                        <span class="badge rounded-pill bg-{{ $statusColor }} d-inline-flex align-items-center gap-1 px-3 py-2">
+                            <span class="status-dot bg-white"></span>
                             {{ $statusLabel }}
                         </span>
-                        <span class="badge rounded-pill bg-light text-dark border">{{ ucfirst($user->role) }}</span>
+                        <span class="badge rounded-pill bg-light text-dark border d-inline-flex align-items-center px-3 py-2">{{ ucfirst($user->role) }}</span>
                     </div>
                     <hr class="my-2">
                     <div class="text-start px-1">
@@ -325,7 +325,7 @@
                         </div>
                         <div class="ud-meta-item"><span class="label">Profile Created For</span><span class="value">{{ humanize($profile->profile_created_for) ?? '—' }}</span></div>
                         <div class="ud-meta-item"><span class="label">Looking For</span><span class="value">{{ humanize($profile->looking_for) ??  '—' }}</span></div>
-                        <div class="ud-meta-item"><span class="label">Marital Status</span><span class="value">{{ humanize($profile->marital_status) ?? '—' }}</span></div>
+                        <div class="ud-meta-item"><span class="label">Marital Status</span><span class="value">{{ option_label('marital_status', $profile->marital_status) }}</span></div>
                     </div>
 
                     <div class="section-divider">Physical Attributes</div>
@@ -344,9 +344,12 @@
                     <div class="ud-meta-row mb-3">
                         <div class="ud-meta-item"><span class="label">Mother Tongue</span><span class="value">{{ humanize($profile->mother_tongue) ?? $profile->mother_tongue ?? '—' }}</span></div>
                         <div class="ud-meta-item"><span class="label">Nationality</span><span class="value">{{ humanize($profile->nationality) ?? $profile->nationality ?? '—' }}</span></div>
-                        <div class="ud-meta-item"><span class="label">Country</span><span class="value">{{ humanize($profile->country) ?? $profile->country ?? '—' }}</span></div>
-                        <div class="ud-meta-item"><span class="label">State / Division</span><span class="value">{{ humanize($profile->state) ?? $profile->state ?? '—' }}</span></div>
-                        <div class="ud-meta-item"><span class="label">City</span><span class="value">{{ humanize($profile->city) ?? $profile->city ?? '—' }}</span></div>
+                        @foreach(profile_location_fields($profile) as $locationField)
+                            <div class="ud-meta-item">
+                                <span class="label">{{ $locationField['label'] }}</span>
+                                <span class="value">{{ $locationField['value'] }}</span>
+                            </div>
+                        @endforeach
                         <div class="ud-meta-item"><span class="label">Postal Code</span><span class="value">{{ $profile->postal_code ?? '—' }}</span></div>
                         <div class="ud-meta-item"><span class="label">Residing Status</span><span class="value">{{ humanize($profile->residing_status) ?? $profile->residing_status ?? '—' }}</span></div>
                     </div>
@@ -428,7 +431,7 @@
             <div class="ud-card-body">
                 @if($education)
                     <div class="ud-meta-row">
-                        <div class="ud-meta-item"><span class="label">Highest Education</span><span class="value">{{humanize($education->highest_education) ?? $education->highest_education ?? '—' }}</span></div>
+                        <div class="ud-meta-item"><span class="label">Highest Education</span><span class="value">{{ option_label('education_level', $education->highest_education) }}</span></div>
                         <div class="ud-meta-item"><span class="label">College / University</span><span class="value">{{ humanize($education->college_university) ?? $education->college_university ?? '—' }}</span></div>
                         <div class="ud-meta-item"><span class="label">Institution & Year</span><span class="value">{{ humanize($education->institution_name_year) ?? $education->institution_name_year ?? '—' }}</span></div>
                         <div class="ud-meta-item"><span class="label">Employer</span><span class="value">{{ humanize($education->employer_name) ?? $education->employer_name ?? '—' }}</span></div>
@@ -534,7 +537,7 @@
 
                     <div class="section-divider">Family & Lifestyle</div>
                     <div class="ud-meta-row mb-3">
-                        <div class="ud-meta-item"><span class="label">Marital Status</span><span class="value">{{ json_list($partner->marital_status) }}</span></div>
+                        <div class="ud-meta-item"><span class="label">Marital Status</span><span class="value">{{ option_labels('marital_status', $partner->marital_status) }}</span></div>
                         <div class="ud-meta-item"><span class="label">Family Type</span><span class="value">{{ json_list($partner->family_type) }}</span></div>
                         <div class="ud-meta-item"><span class="label">Family Values</span><span class="value">{{ json_list($partner->family_values) }}</span></div>
                         <div class="ud-meta-item"><span class="label">Has Children</span><span class="value">{{ ucfirst($partner->has_children) ?? '—' }}</span></div>
@@ -554,18 +557,18 @@
                         <div class="ud-meta-item"><span class="label">Working Status</span><span class="value">{{ json_list($partner->working_status) }}</span></div>
                         <div class="ud-meta-item"><span class="label">Employed In</span><span class="value">{{ json_list($partner->employed_in) }}</span></div>
                         <div class="ud-meta-item"><span class="label">Profession</span><span class="value">{{ json_list($partner->profession) }}</span></div>
-                        <div class="ud-meta-item"><span class="label">Minimum Education</span><span class="value">{{ json_list($partner->education) }}</span></div>
+                        <div class="ud-meta-item"><span class="label">Minimum Education</span><span class="value">{{ option_labels('education_level', $partner->education) }}</span></div>
                         <div class="ud-meta-item"><span class="label">Mother Tongue</span><span class="value">{{ json_list($partner->mother_tongue) }}</span></div>
                     </div>
 
                     <div class="section-divider">Location Preferences</div>
                     <div class="ud-meta-row">
-                        <div class="ud-meta-item"><span class="label">Country</span><span class="value">{{ json_list($partner->country) }}</span></div>
+                        <div class="ud-meta-item"><span class="label">Country</span><span class="value">{{ country_option_labels($partner->country) }}</span></div>
                         <div class="ud-meta-item"><span class="label">Residing Status</span><span class="value">{{ json_list($partner->pref_residing_status) }}</span></div>
-                        <div class="ud-meta-item"><span class="label">Division (BD)</span><span class="value">{{ json_list($partner->pref_divisions) }}</span></div>
-                        <div class="ud-meta-item"><span class="label">District (BD)</span><span class="value">{{ json_list($partner->pref_districts) }}</span></div>
-                        <div class="ud-meta-item"><span class="label">Province (CA)</span><span class="value">{{ json_list($partner->pref_provinces) }}</span></div>
-                        <div class="ud-meta-item"><span class="label">State (USA)</span><span class="value">{{ json_list($partner->pref_states) }}</span></div>
+                        <div class="ud-meta-item"><span class="label">Division (BD)</span><span class="value">{{ country_option_labels($partner->pref_divisions) }}</span></div>
+                        <div class="ud-meta-item"><span class="label">District (BD)</span><span class="value">{{ country_option_labels($partner->pref_districts) }}</span></div>
+                        <div class="ud-meta-item"><span class="label">Province (CA)</span><span class="value">{{ country_option_labels($partner->pref_provinces) }}</span></div>
+                        <div class="ud-meta-item"><span class="label">State (USA)</span><span class="value">{{ country_option_labels($partner->pref_states) }}</span></div>
                     </div>
                 @else
                     <p class="text-muted mb-0 small">No partner preference data available.</p>

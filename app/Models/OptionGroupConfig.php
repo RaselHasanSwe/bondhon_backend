@@ -72,7 +72,7 @@ class OptionGroupConfig extends Model
     }
 
     /** Build a flat list of options for a group with depth and ancestry. */
-    public static function buildFlatTree(string $groupKey, int $maxDepth = 5): array
+    public static function buildFlatTree(string $groupKey, int $maxDepth = 4): array
     {
         $all = SelectOption::where('group_key', $groupKey)
             ->orderBy('sort_order')

@@ -1,0 +1,274 @@
+{
+    "group_key": "country",
+    "entry": {
+        "value": "united_states",
+        "label": "United States of America",
+        "sort_order": 2,
+        "metadata": {
+            "iso": "US",
+            "dial": "+1",
+            "hierarchy_type": "state_city",
+            "level_2_label": "State\/City",
+            "field_map": {
+                "level_2": "state"
+            }
+        },
+        "children": [
+            {
+                "value": "alabama",
+                "label": "Alabama",
+                "sort_order": 1
+            },
+            {
+                "value": "alaska",
+                "label": "Alaska",
+                "sort_order": 2
+            },
+            {
+                "value": "arizona",
+                "label": "Arizona",
+                "sort_order": 3
+            },
+            {
+                "value": "arkansas",
+                "label": "Arkansas",
+                "sort_order": 4
+            },
+            {
+                "value": "california",
+                "label": "California",
+                "sort_order": 5
+            },
+            {
+                "value": "colorado",
+                "label": "Colorado",
+                "sort_order": 6
+            },
+            {
+                "value": "connecticut",
+                "label": "Connecticut",
+                "sort_order": 7
+            },
+            {
+                "value": "delaware",
+                "label": "Delaware",
+                "sort_order": 8
+            },
+            {
+                "value": "district_of_columbia",
+                "label": "District of Columbia",
+                "sort_order": 9
+            },
+            {
+                "value": "florida",
+                "label": "Florida",
+                "sort_order": 10
+            },
+            {
+                "value": "georgia",
+                "label": "Georgia",
+                "sort_order": 11
+            },
+            {
+                "value": "hawaii",
+                "label": "Hawaii",
+                "sort_order": 12
+            },
+            {
+                "value": "idaho",
+                "label": "Idaho",
+                "sort_order": 13
+            },
+            {
+                "value": "illinois",
+                "label": "Illinois",
+                "sort_order": 14
+            },
+            {
+                "value": "indiana",
+                "label": "Indiana",
+                "sort_order": 15
+            },
+            {
+                "value": "iowa",
+                "label": "Iowa",
+                "sort_order": 16
+            },
+            {
+                "value": "kansas",
+                "label": "Kansas",
+                "sort_order": 17
+            },
+            {
+                "value": "kentucky",
+                "label": "Kentucky",
+                "sort_order": 18
+            },
+            {
+                "value": "louisiana",
+                "label": "Louisiana",
+                "sort_order": 19
+            },
+            {
+                "value": "maine",
+                "label": "Maine",
+                "sort_order": 20
+            },
+            {
+                "value": "maryland",
+                "label": "Maryland",
+                "sort_order": 21
+            },
+            {
+                "value": "massachusetts",
+                "label": "Massachusetts",
+                "sort_order": 22
+            },
+            {
+                "value": "michigan",
+                "label": "Michigan",
+                "sort_order": 23
+            },
+            {
+                "value": "minnesota",
+                "label": "Minnesota",
+                "sort_order": 24
+            },
+            {
+                "value": "mississippi",
+                "label": "Mississippi",
+                "sort_order": 25
+            },
+            {
+                "value": "missouri",
+                "label": "Missouri",
+                "sort_order": 26
+            },
+            {
+                "value": "montana",
+                "label": "Montana",
+                "sort_order": 27
+            },
+            {
+                "value": "nebraska",
+                "label": "Nebraska",
+                "sort_order": 28
+            },
+            {
+                "value": "nevada",
+                "label": "Nevada",
+                "sort_order": 29
+            },
+            {
+                "value": "new_hampshire",
+                "label": "New Hampshire",
+                "sort_order": 30
+            },
+            {
+                "value": "new_jersey",
+                "label": "New Jersey",
+                "sort_order": 31
+            },
+            {
+                "value": "new_mexico",
+                "label": "New Mexico",
+                "sort_order": 32
+            },
+            {
+                "value": "new_york",
+                "label": "New York",
+                "sort_order": 33
+            },
+            {
+                "value": "north_carolina",
+                "label": "North Carolina",
+                "sort_order": 34
+            },
+            {
+                "value": "north_dakota",
+                "label": "North Dakota",
+                "sort_order": 35
+            },
+            {
+                "value": "ohio",
+                "label": "Ohio",
+                "sort_order": 36
+            },
+            {
+                "value": "oklahoma",
+                "label": "Oklahoma",
+                "sort_order": 37
+            },
+            {
+                "value": "oregon",
+                "label": "Oregon",
+                "sort_order": 38
+            },
+            {
+                "value": "pennsylvania",
+                "label": "Pennsylvania",
+                "sort_order": 39
+            },
+            {
+                "value": "rhode_island",
+                "label": "Rhode Island",
+                "sort_order": 40
+            },
+            {
+                "value": "south_carolina",
+                "label": "South Carolina",
+                "sort_order": 41
+            },
+            {
+                "value": "south_dakota",
+                "label": "South Dakota",
+                "sort_order": 42
+            },
+            {
+                "value": "tennessee",
+                "label": "Tennessee",
+                "sort_order": 43
+            },
+            {
+                "value": "texas",
+                "label": "Texas",
+                "sort_order": 44
+            },
+            {
+                "value": "utah",
+                "label": "Utah",
+                "sort_order": 45
+            },
+            {
+                "value": "vermont",
+                "label": "Vermont",
+                "sort_order": 46
+            },
+            {
+                "value": "virginia",
+                "label": "Virginia",
+                "sort_order": 47
+            },
+            {
+                "value": "washington",
+                "label": "Washington",
+                "sort_order": 48
+            },
+            {
+                "value": "west_virginia",
+                "label": "West Virginia",
+                "sort_order": 49
+            },
+            {
+                "value": "wisconsin",
+                "label": "Wisconsin",
+                "sort_order": 50
+            },
+            {
+                "value": "wyoming",
+                "label": "Wyoming",
+                "sort_order": 51
+            }
+        ]
+    }
+}
