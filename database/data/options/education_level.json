@@ -1,0 +1,16 @@
+{
+  "group_key": "education_level",
+  "options": [
+    { "value": "below_ssc", "label": "Below SSC", "sort_order": 1 },
+    { "value": "ssc", "label": "SSC / High School", "sort_order": 2 },
+    { "value": "hsc", "label": "HSC", "sort_order": 3 },
+    { "value": "college_associates", "label": "College/Associates Degree", "sort_order": 4 },
+    { "value": "bachelors", "label": "Bachelor Degree", "sort_order": 5 },
+    { "value": "masters", "label": "Masters Degree", "sort_order": 6 },
+    { "value": "doctorate", "label": "Doctorate Degree", "sort_order": 7 },
+    { "value": "post_doctoral", "label": "Post Doctoral", "sort_order": 8 },
+    { "value": "ca_cpa", "label": "CA / CPA", "sort_order": 9 },
+    { "value": "doctor_physician", "label": "Doctor/Physician", "sort_order": 10 },
+    { "value": "other", "label": "Other", "sort_order": 11 }
+  ]
+}

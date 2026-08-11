@@ -59,6 +59,7 @@
                         Option Group <span class="text-danger">*</span>
                     </label>
                     <select name="group_key" class="form-select form-select-sm" id="editGroupKey"
+                            data-tom-select data-tom-select-search
                             onchange="handleGroupChange(this.value)">
                         @foreach($groups as $key => $label)
                             <option value="{{ $key }}" {{ old('group_key', $option->group_key) === $key ? 'selected' : '' }}>
@@ -75,7 +76,7 @@
                     <label class="form-label fw-semibold small">
                         Parent — {{ $groups[$parentGroupKey] ?? $parentGroupKey }}
                     </label>
-                    <select name="parent_id" class="form-select form-select-sm">
+                    <select name="parent_id" class="form-select form-select-sm" data-tom-select data-tom-select-search data-tom-select-clear>
                         <option value="">— None —</option>
                         @foreach($parentOptions as $p)
                             <option value="{{ $p->id }}" {{ $option->parent_id == $p->id ? 'selected' : '' }}>
@@ -91,7 +92,7 @@
                 @if($isSelfNested && $parentOptions->count())
                 <div class="mb-3">
                     <label class="form-label fw-semibold small">Parent (optional — leave blank for root level)</label>
-                    <select name="parent_id" class="form-select form-select-sm">
+                    <select name="parent_id" class="form-select form-select-sm" data-tom-select data-tom-select-search data-tom-select-clear>
                         <option value="">— Root level (no parent) —</option>
                         @foreach($parentOptions as $p)
                             <option value="{{ $p->id }}" {{ $option->parent_id == $p->id ? 'selected' : '' }}>

@@ -204,7 +204,7 @@ class ProfileController extends ApiController
                     'dob', 'height_cm', 'weight_kg', 'body_type',
                     'eye_color', 'hair_color', 'complexion', 'blood_group',
                     'marital_status', 'disability', 'mother_tongue', 'nationality',
-                    'country', 'state', 'city', 'postal_code', 'residing_status',
+                    'country', 'state', 'city', 'upazila', 'postal_code', 'residing_status',
                     'about_me', 'what_looking_for', 'privacy_settings',
                 ]);
 
@@ -657,6 +657,7 @@ class ProfileController extends ApiController
                 'country'                       => $user->profile->country,
                 'state'                         => $user->profile->state,
                 'city'                          => $user->profile->city,
+                'upazila'                       => $user->profile->upazila,
                 'about_me'                      => $user->profile->about_me,
                 'is_verified'                   => $user->faceScanSession?->status === 'approved',
                 'profile_completion_percentage' => $user->profile->profile_completion_percentage,

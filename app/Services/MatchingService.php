@@ -40,14 +40,17 @@ class MatchingService
 
     /** Education level rank (higher = more educated). */
     private array $educationRank = [
-        'below_ssc'    => 1,
-        'ssc'          => 2,
-        'hsc'          => 3,
-        'diploma'      => 4,
-        'bachelors'    => 5,
-        'masters'      => 6,
-        'phd'          => 7,
-        'postdoctoral' => 8,
+        'below_ssc'          => 1,
+        'ssc'                => 2,
+        'hsc'                => 3,
+        'college_associates' => 4,
+        'bachelors'          => 5,
+        'masters'            => 6,
+        'doctorate'          => 7,
+        'post_doctoral'      => 8,
+        'ca_cpa'             => 8,
+        'doctor_physician'   => 8,
+        'other'              => 0,
     ];
 
     /** Compatible diet pairs (bidirectional). */

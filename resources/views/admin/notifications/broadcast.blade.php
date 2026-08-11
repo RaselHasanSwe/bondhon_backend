@@ -3,10 +3,7 @@
 @section('page-title', 'Broadcast Notification')
 
 @push('styles')
-<link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
 <style>
-    .ts-wrapper.form-control { padding: 0; border: none; }
-    .ts-control { border: 1px solid #dee2e6; border-radius: .375rem; min-height: 38px; }
     #specific-users-section { display: none; }
 </style>
 @endpush
@@ -43,7 +40,7 @@
                 {{-- Delivery Channel --}}
                 <div class="mb-3">
                     <label class="form-label fw-semibold small">Delivery Channel <span class="text-danger">*</span></label>
-                    <select name="channel" class="form-select @error('channel') is-invalid @enderror">
+                    <select name="channel" class="form-select @error('channel') is-invalid @enderror" data-tom-select>
                         <option value="application" {{ old('channel', 'application') === 'application' ? 'selected' : '' }}>
                             📱 In-App Notification Only
                         </option>
@@ -60,7 +57,7 @@
                 {{-- Target Audience --}}
                 <div class="mb-3">
                     <label class="form-label fw-semibold small">Target Audience <span class="text-danger">*</span></label>
-                    <select name="target" id="targetSelect" class="form-select @error('target') is-invalid @enderror">
+                    <select name="target" id="targetSelect" class="form-select @error('target') is-invalid @enderror" data-tom-select>
                         <option value="all" {{ old('target') === 'all' ? 'selected' : '' }}>All Users</option>
                         <option value="free" {{ old('target') === 'free' ? 'selected' : '' }}>Free Plan Users</option>
                         @foreach($plans as $plan)
@@ -133,15 +130,14 @@
 </div>
 @endsection
 
-@section('scripts')
-<script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
+@push('scripts')
 <script>
-(function () {
+document.addEventListener('DOMContentLoaded', function () {
     const targetSelect = document.getElementById('targetSelect');
     const specificSection = document.getElementById('specific-users-section');
     const userIdsInput = document.getElementById('userIdsInput');
+    const userSearchSelect = document.getElementById('userSearchSelect');
 
-    // Show/hide specific users section
     function toggleSpecific() {
         if (targetSelect.value === 'specific') {
             specificSection.style.display = 'block';
@@ -149,28 +145,30 @@
             specificSection.style.display = 'none';
         }
     }
-    targetSelect.addEventListener('change', toggleSpecific);
-    toggleSpecific(); // run on page load
 
-    // Initialise TomSelect with remote search
-    const ts = new TomSelect('#userSearchSelect', {
-        valueField: 'id',
-        labelField: 'text',
-        searchField: 'text',
-        plugins: ['remove_button'],
-        load: function (query, callback) {
-            if (!query.length) return callback();
-            fetch('{{ route('admin.web.broadcast.users-search') }}?q=' + encodeURIComponent(query), {
-                headers: { 'X-Requested-With': 'XMLHttpRequest' }
-            })
-            .then(r => r.json())
-            .then(data => callback(data))
-            .catch(() => callback());
-        },
-        onChange: function (values) {
-            userIdsInput.value = values.join(',');
-        },
-    });
-})();
+    targetSelect.addEventListener('change', toggleSpecific);
+    toggleSpecific();
+
+    if (userSearchSelect) {
+        window.AdminTomSelect.init(userSearchSelect, {
+            valueField: 'id',
+            labelField: 'text',
+            searchField: 'text',
+            plugins: ['remove_button', 'dropdown_input'],
+            load: function (query, callback) {
+                if (!query.length) return callback();
+                fetch('{{ route('admin.web.broadcast.users-search') }}?q=' + encodeURIComponent(query), {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                .then(r => r.json())
+                .then(data => callback(data))
+                .catch(() => callback());
+            },
+            onChange: function (values) {
+                userIdsInput.value = values.join(',');
+            },
+        });
+    }
+});
 </script>
-@endsection
+@endpush

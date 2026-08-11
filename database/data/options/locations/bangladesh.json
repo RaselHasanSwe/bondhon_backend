@@ -1,0 +1,3003 @@
+{
+    "group_key": "country",
+    "entry": {
+        "value": "bangladesh",
+        "label": "Bangladesh",
+        "sort_order": 1,
+        "metadata": {
+            "iso": "BD",
+            "dial": "+880",
+            "hierarchy_type": "division_district_upazila",
+            "level_2_label": "Division",
+            "level_3_label": "District \/ City",
+            "level_4_label": "Upazila \/ Thana",
+            "field_map": {
+                "level_2": "city",
+                "level_3": "state",
+                "level_4": "upazila"
+            },
+            "data_source": "open-admin-data\/bangladesh-administrative-divisions (CC-BY-4.0)"
+        },
+        "children": [
+            {
+                "value": "barisal",
+                "label": "Barishal",
+                "sort_order": 1,
+                "children": [
+                    {
+                        "value": "barguna",
+                        "label": "Barguna",
+                        "sort_order": 1,
+                        "children": [
+                            {
+                                "value": "amtali",
+                                "label": "Amtali",
+                                "sort_order": 1
+                            },
+                            {
+                                "value": "bamna",
+                                "label": "Bamna",
+                                "sort_order": 2
+                            },
+                            {
+                                "value": "barguna_sadar",
+                                "label": "Barguna Sadar",
+                                "sort_order": 3
+                            },
+                            {
+                                "value": "betagi",
+                                "label": "Betagi",
+                                "sort_order": 4
+                            },
+                            {
+                                "value": "patharghata",
+                                "label": "Patharghata",
+                                "sort_order": 5
+                            },
+                            {
+                                "value": "taltali",
+                                "label": "Taltali",
+                                "sort_order": 6
+                            }
+                        ]
+                    },
+                    {
+                        "value": "barisal",
+                        "label": "Barishal",
+                        "sort_order": 2,
+                        "children": [
+                            {
+                                "value": "agailjhara",
+                                "label": "Agailjhara",
+                                "sort_order": 1
+                            },
+                            {
+                                "value": "babuganj",
+                                "label": "Babuganj",
+                                "sort_order": 2
+                            },
+                            {
+                                "value": "bakerganj",
+                                "label": "Bakerganj",
+                                "sort_order": 3
+                            },
+                            {
+                                "value": "banaripara",
+                                "label": "Banaripara",
+                                "sort_order": 4
+                            },
+                            {
+                                "value": "barishal_sadar_kotwali",
+                                "label": "Barishal Sadar (Kotwali)",
+                                "sort_order": 5
+                            },
+                            {
+                                "value": "gaurnadi",
+                                "label": "Gaurnadi",
+                                "sort_order": 6
+                            },
+                            {
+                                "value": "hijla",
+                                "label": "Hijla",
+                                "sort_order": 7
+                            },
+                            {
+                                "value": "mehendiganj",
+                                "label": "Mehendiganj",
+                                "sort_order": 8
+                            },
+                            {
+                                "value": "muladi",
+                                "label": "Muladi",
+                                "sort_order": 9
+                            },
+                            {
+                                "value": "ujirpur",
+                                "label": "Ujirpur",
+                                "sort_order": 10
+                            }
+                        ]
+                    },
+                    {
+                        "value": "bhola",
+                        "label": "Bhola",
+                        "sort_order": 3,
+                        "children": [
+                            {
+                                "value": "bhola_sadar",
+                                "label": "Bhola Sadar",
+                                "sort_order": 1
+                            },
+                            {
+                                "value": "borhanuddin",
+                                "label": "Borhanuddin",
+                                "sort_order": 2
+                            },
+                            {
+                                "value": "charfasson",
+                                "label": "Charfasson",
+                                "sort_order": 3
+                            },
+                            {
+                                "value": "daulatkhan",
+                                "label": "Daulatkhan",
+                                "sort_order": 4
+                            },
+                            {
+                                "value": "lalmohan",
+                                "label": "Lalmohan",
+                                "sort_order": 5
+                            },
+                            {
+                                "value": "monpura",
+                                "label": "Monpura",
+                                "sort_order": 6
+                            },
+                            {
+                                "value": "tazumuddin",
+                                "label": "Tazumuddin",
+                                "sort_order": 7
+                            }
+                        ]
+                    },
+                    {
+                        "value": "jhalokati",
+                        "label": "Jhalokati",
+                        "sort_order": 4,
+                        "children": [
+                            {
+                                "value": "jhalokathi_sadar",
+                                "label": "Jhalokathi Sadar",
+                                "sort_order": 1
+                            },
+                            {
+                                "value": "kanthalia",
+                                "label": "Kanthalia",
+                                "sort_order": 2
+                            },
+                            {
+                                "value": "nalchhity",
+                                "label": "Nalchhity",
+                                "sort_order": 3
+                            },
+                            {
+                                "value": "rajapur",
+                                "label": "Rajapur",
+                                "sort_order": 4
+                            }
+                        ]
+                    },
+                    {
+                        "value": "patuakhali",
+                        "label": "Patuakhali",
+                        "sort_order": 5,
+                        "children": [
+                            {
+                                "value": "bauphal",
+                                "label": "Bauphal",
+                                "sort_order": 1
+                            },
+                            {
+                                "value": "dashmina",
+                                "label": "Dashmina",
+                                "sort_order": 2
+                            },
+                            {
+                                "value": "dumki",
+                                "label": "Dumki",
+                                "sort_order": 3
+                            },
+                            {
+                                "value": "galachipa",
+                                "label": "Galachipa",
+                                "sort_order": 4
+                            },
+                            {
+                                "value": "kalapara",
+                                "label": "Kalapara",
+                                "sort_order": 5
+                            },
+                            {
+                                "value": "mirzaganj",
+                                "label": "Mirzaganj",
+                                "sort_order": 6
+                            },
+                            {
+                                "value": "patuakhali_sadar",
+                                "label": "Patuakhali Sadar",
+                                "sort_order": 7
+                            },
+                            {
+                                "value": "rangabali",
+                                "label": "Rangabali",
+                                "sort_order": 8
+                            }
+                        ]
+                    },
+                    {
+                        "value": "pirojpur",
+                        "label": "Pirojpur",
+                        "sort_order": 6,
+                        "children": [
+                            {
+                                "value": "bhandaria",
+                                "label": "Bhandaria",
+                                "sort_order": 1
+                            },
+                            {
+                                "value": "indurkani",
+                                "label": "Indurkani",
+                                "sort_order": 2
+                            },
+                            {
+                                "value": "kawkhali",
+                                "label": "Kawkhali",
+                                "sort_order": 3
+                            },
+                            {
+                                "value": "mathbaria",
+                                "label": "Mathbaria",
+                                "sort_order": 4
+                            },
+                            {
+                                "value": "nazirpur",
+                                "label": "Nazirpur",
+                                "sort_order": 5
+                            },
+                            {
+                                "value": "nesarabad_swarupkathi",
+                                "label": "Nesarabad (Swarupkathi)",
+                                "sort_order": 6
+                            },
+                            {
+                                "value": "pirojpur_sadar",
+                                "label": "Pirojpur Sadar",
+                                "sort_order": 7
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "value": "chittagong",
+                "label": "Chattogram",
+                "sort_order": 2,
+                "children": [
+                    {
+                        "value": "bandarban",
+                        "label": "Bandarban",
+                        "sort_order": 1,
+                        "children": [
+                            {
+                                "value": "alikadam",
+                                "label": "Alikadam",
+                                "sort_order": 1
+                            },
+                            {
+                                "value": "bandarban_sadar",
+                                "label": "Bandarban Sadar",
+                                "sort_order": 2
+                            },
+                            {
+                                "value": "lama",
+                                "label": "Lama",
+                                "sort_order": 3
+                            },
+                            {
+                                "value": "naikkhongchhari",
+                                "label": "Naikkhongchhari",
+                                "sort_order": 4
+                            },
+                            {
+                                "value": "rowangchhari",
+                                "label": "Rowangchhari",
+                                "sort_order": 5
+                            },
+                            {
+                                "value": "ruma",
+                                "label": "Ruma",
+                                "sort_order": 6
+                            },
+                            {
+                                "value": "thanchi",
+                                "label": "Thanchi",
+                                "sort_order": 7
+                            }
+                        ]
+                    },
+                    {
+                        "value": "brahmanbaria",
+                        "label": "Brahmanbaria",
+                        "sort_order": 2,
+                        "children": [
+                            {
+                                "value": "akhaura",
+                                "label": "Akhaura",
+                                "sort_order": 1
+                            },
+                            {
+                                "value": "ashuganj",
+                                "label": "Ashuganj",
+                                "sort_order": 2
+                            },
+                            {
+                                "value": "banchharampur",
+                                "label": "Banchharampur",
+                                "sort_order": 3
+                            },
+                            {
+                                "value": "bijoynagar",
+                                "label": "Bijoynagar",
+                                "sort_order": 4
+                            },
+                            {
+                                "value": "brahmanbaria_sadar",
+                                "label": "Brahmanbaria Sadar",
+                                "sort_order": 5
+                            },
+                            {
+                                "value": "kasba",
+                                "label": "Kasba",
+                                "sort_order": 6
+                            },
+                            {
+                                "value": "nabinagar",
+                                "label": "Nabinagar",
+                                "sort_order": 7
+                            },
+                            {
+                                "value": "nasirnagar",
+                                "label": "Nasirnagar",
+                                "sort_order": 8
+                            },
+                            {
+                                "value": "sarail",
+                                "label": "Sarail",
+                                "sort_order": 9
+                            }
+                        ]
+                    },
+                    {
+                        "value": "chandpur",
+                        "label": "Chandpur",
+                        "sort_order": 3,
+                        "children": [
+                            {
+                                "value": "chandpur_sadar",
+                                "label": "Chandpur Sadar",
+                                "sort_order": 1
+                            },
+                            {
+                                "value": "faridganj",
+                                "label": "Faridganj",
+                                "sort_order": 2
+                            },
+                            {
+                                "value": "haimchar",
+                                "label": "Haimchar",
+                                "sort_order": 3
+                            },
+                            {
+                                "value": "hajiganj",
+                                "label": "Hajiganj",
+                                "sort_order": 4
+                            },
+                            {
+                                "value": "kachua",
+                                "label": "Kachua",
+                                "sort_order": 5
+                            },
+                            {
+                                "value": "matlab_dakkhin",
+                                "label": "Matlab Dakkhin",
+                                "sort_order": 6
+                            },
+                            {
+                                "value": "matlab_uttar",
+                                "label": "Matlab Uttar",
+                                "sort_order": 7
+                            },
+                            {
+                                "value": "shahrasti",
+                                "label": "Shahrasti",
+                                "sort_order": 8
+                            }
+                        ]
+                    },
+                    {
+                        "value": "chittagong",
+                        "label": "Chattogram",
+                        "sort_order": 4,
+                        "children": [
+                            {
+                                "value": "anwara",
+                                "label": "Anwara",
+                                "sort_order": 1
+                            },
+                            {
+                                "value": "banshkhali",
+                                "label": "Banshkhali",
+                                "sort_order": 2
+                            },
+                            {
+                                "value": "boalkhali",
+                                "label": "Boalkhali",
+                                "sort_order": 3
+                            },
+                            {
+                                "value": "chandanaish",
+                                "label": "Chandanaish",
+                                "sort_order": 4
+                            },
+                            {
+                                "value": "fatikchhari",
+                                "label": "Fatikchhari",
+                                "sort_order": 5
+                            },
+                            {
+                                "value": "hathazari",
+                                "label": "Hathazari",
+                                "sort_order": 6
+                            },
+                            {
+                                "value": "karnaphuli",
+                                "label": "Karnaphuli",
+                                "sort_order": 7
+                            },
+                            {
+                                "value": "lohagara",
+                                "label": "Lohagara",
+                                "sort_order": 8
+                            },
+                            {
+                                "value": "mirsarai",
+                                "label": "Mirsarai",
+                                "sort_order": 9
+                            },
+                            {
+                                "value": "patiya",
+                                "label": "Patiya",
+                                "sort_order": 10
+                            },
+                            {
+                                "value": "rangunia",
+                                "label": "Rangunia",
+                                "sort_order": 11
+                            },
+                            {
+                                "value": "raozan",
+                                "label": "Raozan",
+                                "sort_order": 12
+                            },
+                            {
+                                "value": "sandwip",
+                                "label": "Sandwip",
+                                "sort_order": 13
+                            },
+                            {
+                                "value": "satkania",
+                                "label": "Satkania",
+                                "sort_order": 14
+                            },
+                            {
+                                "value": "sitakunda",
+                                "label": "Sitakunda",
+                                "sort_order": 15
+                            }
+                        ]
+                    },
+                    {
+                        "value": "comilla",
+                        "label": "Cumilla",
+                        "sort_order": 5,
+                        "children": [
+                            {
+                                "value": "adarsha_sadar",
+                                "label": "Adarsha Sadar",
+                                "sort_order": 1
+                            },
+                            {
+                                "value": "barura",
+                                "label": "Barura",
+                                "sort_order": 2
+                            },
+                            {
+                                "value": "brahmanpara",
+                                "label": "Brahmanpara",
+                                "sort_order": 3
+                            },
+                            {
+                                "value": "burichang",
+                                "label": "Burichang",
+                                "sort_order": 4
+                            },
+                            {
+                                "value": "chandina",
+                                "label": "Chandina",
+                                "sort_order": 5
+                            },
+                            {
+                                "value": "chauddagram",
+                                "label": "Chauddagram",
+                                "sort_order": 6
+                            },
+                            {
+                                "value": "daudkandi",
+                                "label": "Daudkandi",
+                                "sort_order": 7
+                            },
+                            {
+                                "value": "debidwar",
+                                "label": "Debidwar",
+                                "sort_order": 8
+                            },
+                            {
+                                "value": "homna",
+                                "label": "Homna",
+                                "sort_order": 9
+                            },
+                            {
+                                "value": "laksam",
+                                "label": "Laksam",
+                                "sort_order": 10
+                            },
+                            {
+                                "value": "lalmai",
+                                "label": "Lalmai",
+                                "sort_order": 11
+                            },
+                            {
+                                "value": "manoharganj",
+                                "label": "Manoharganj",
+                                "sort_order": 12
+                            },
+                            {
+                                "value": "meghna",
+                                "label": "Meghna",
+                                "sort_order": 13
+                            },
+                            {
+                                "value": "muradnagar",
+                                "label": "Muradnagar",
+                                "sort_order": 14
+                            },
+                            {
+                                "value": "nangalkot",
+                                "label": "Nangalkot",
+                                "sort_order": 15
+                            },
+                            {
+                                "value": "sadar_dakkhin",
+                                "label": "Sadar Dakkhin",
+                                "sort_order": 16
+                            },
+                            {
+                                "value": "titas",
+                                "label": "Titas",
+                                "sort_order": 17
+                            }
+                        ]
+                    },
+                    {
+                        "value": "coxs_bazar",
+                        "label": "Cox's Bazar",
+                        "sort_order": 6,
+                        "children": [
+                            {
+                                "value": "chakaria",
+                                "label": "Chakaria",
+                                "sort_order": 1
+                            },
+                            {
+                                "value": "coxs_bazar_sadar",
+                                "label": "Coxs Bazar Sadar",
+                                "sort_order": 2
+                            },
+                            {
+                                "value": "eidgaon",
+                                "label": "Eidgaon",
+                                "sort_order": 3
+                            },
+                            {
+                                "value": "kutubdia",
+                                "label": "Kutubdia",
+                                "sort_order": 4
+                            },
+                            {
+                                "value": "maheshkhali",
+                                "label": "Maheshkhali",
+                                "sort_order": 5
+                            },
+                            {
+                                "value": "pekua",
+                                "label": "Pekua",
+                                "sort_order": 6
+                            },
+                            {
+                                "value": "ramu",
+                                "label": "Ramu",
+                                "sort_order": 7
+                            },
+                            {
+                                "value": "teknaf",
+                                "label": "Teknaf",
+                                "sort_order": 8
+                            },
+                            {
+                                "value": "ukhia",
+                                "label": "Ukhia",
+                                "sort_order": 9
+                            }
+                        ]
+                    },
+                    {
+                        "value": "feni",
+                        "label": "Feni",
+                        "sort_order": 7,
+                        "children": [
+                            {
+                                "value": "chhagalnaiya",
+                                "label": "Chhagalnaiya",
+                                "sort_order": 1
+                            },
+                            {
+                                "value": "daganbhuiyan",
+                                "label": "Daganbhuiyan",
+                                "sort_order": 2
+                            },
+                            {
+                                "value": "feni_sadar",
+                                "label": "Feni Sadar",
+                                "sort_order": 3
+                            },
+                            {
+                                "value": "fulgazi",
+                                "label": "Fulgazi",
+                                "sort_order": 4
+                            },
+                            {
+                                "value": "parashuram",
+                                "label": "Parashuram",
+                                "sort_order": 5
+                            },
+                            {
+                                "value": "sonagazi",
+                                "label": "Sonagazi",
+                                "sort_order": 6
+                            }
+                        ]
+                    },
+                    {
+                        "value": "khagrachhari",
+                        "label": "Khagrachhari",
+                        "sort_order": 8,
+                        "children": [
+                            {
+                                "value": "dighinala",
+                                "label": "Dighinala",
+                                "sort_order": 1
+                            },
+                            {
+                                "value": "guimara",
+                                "label": "Guimara",
+                                "sort_order": 2
+                            },
+                            {
+                                "value": "khagrachhari_sadar",
+                                "label": "Khagrachhari Sadar",
+                                "sort_order": 3
+                            },
+                            {
+                                "value": "lakkhichhari",
+                                "label": "Lakkhichhari",
+                                "sort_order": 4
+                            },
+                            {
+                                "value": "mahalchhari",
+                                "label": "Mahalchhari",
+                                "sort_order": 5
+                            },
+                            {
+                                "value": "manikchhari",
+                                "label": "Manikchhari",
+                                "sort_order": 6
+                            },
+                            {
+                                "value": "matiranga",
+                                "label": "Matiranga",
+                                "sort_order": 7
+                            },
+                            {
+                                "value": "panchhari",
+                                "label": "Panchhari",
+                                "sort_order": 8
+                            },
+                            {
+                                "value": "ramgarh",
+                                "label": "Ramgarh",
+                                "sort_order": 9
+                            }
+                        ]
+                    },
+                    {
+                        "value": "lakshmipur",
+                        "label": "Lakshmipur",
+                        "sort_order": 9,
+                        "children": [
+                            {
+                                "value": "kamalnagar",
+                                "label": "Kamalnagar",
+                                "sort_order": 1
+                            },
+                            {
+                                "value": "lakshmipur_sadar",
+                                "label": "Lakshmipur Sadar",
+                                "sort_order": 2
+                            },
+                            {
+                                "value": "raipur",
+                                "label": "Raipur",
+                                "sort_order": 3
+                            },
+                            {
+                                "value": "ramganj",
+                                "label": "Ramganj",
+                                "sort_order": 4
+                            },
+                            {
+                                "value": "ramgati",
+                                "label": "Ramgati",
+                                "sort_order": 5
+                            }
+                        ]
+                    },
+                    {
+                        "value": "noakhali",
+                        "label": "Noakhali",
+                        "sort_order": 10,
+                        "children": [
+                            {
+                                "value": "begumganj",
+                                "label": "Begumganj",
+                                "sort_order": 1
+                            },
+                            {
+                                "value": "chatkhil",
+                                "label": "Chatkhil",
+                                "sort_order": 2
+                            },
+                            {
+                                "value": "companiganj",
+                                "label": "Companiganj",
+                                "sort_order": 3
+                            },
+                            {
+                                "value": "hatiya",
+                                "label": "Hatiya",
+                                "sort_order": 4
+                            },
+                            {
+                                "value": "kabirhat",
+                                "label": "Kabirhat",
+                                "sort_order": 5
+                            },
+                            {
+                                "value": "noakhali_sadar",
+                                "label": "Noakhali Sadar",
+                                "sort_order": 6
+                            },
+                            {
+                                "value": "senbag",
+                                "label": "Senbag",
+                                "sort_order": 7
+                            },
+                            {
+                                "value": "sonaimuri",
+                                "label": "Sonaimuri",
+                                "sort_order": 8
+                            },
+                            {
+                                "value": "subarnachar",
+                                "label": "Subarnachar",
+                                "sort_order": 9
+                            }
+                        ]
+                    },
+                    {
+                        "value": "rangamati",
+                        "label": "Rangamati",
+                        "sort_order": 11,
+                        "children": [
+                            {
+                                "value": "baghaichhari",
+                                "label": "Baghaichhari",
+                                "sort_order": 1
+                            },
+                            {
+                                "value": "barkal",
+                                "label": "Barkal",
+                                "sort_order": 2
+                            },
+                            {
+                                "value": "belaichhari",
+                                "label": "Belaichhari",
+                                "sort_order": 3
+                            },
+                            {
+                                "value": "jurachhari",
+                                "label": "Jurachhari",
+                                "sort_order": 4
+                            },
+                            {
+                                "value": "kaptai",
+                                "label": "Kaptai",
+                                "sort_order": 5
+                            },
+                            {
+                                "value": "kawkhali",
+                                "label": "Kawkhali",
+                                "sort_order": 6
+                            },
+                            {
+                                "value": "langadu",
+                                "label": "Langadu",
+                                "sort_order": 7
+                            },
+                            {
+                                "value": "naniarchar",
+                                "label": "Naniarchar",
+                                "sort_order": 8
+                            },
+                            {
+                                "value": "rajasthali",
+                                "label": "Rajasthali",
+                                "sort_order": 9
+                            },
+                            {
+                                "value": "rangamati_sadar",
+                                "label": "Rangamati Sadar",
+                                "sort_order": 10
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "value": "dhaka",
+                "label": "Dhaka",
+                "sort_order": 3,
+                "children": [
+                    {
+                        "value": "dhaka",
+                        "label": "Dhaka",
+                        "sort_order": 1,
+                        "children": [
+                            {
+                                "value": "dhamrai",
+                                "label": "Dhamrai",
+                                "sort_order": 1
+                            },
+                            {
+                                "value": "dohar",
+                                "label": "Dohar",
+                                "sort_order": 2
+                            },
+                            {
+                                "value": "keraniganj",
+                                "label": "Keraniganj",
+                                "sort_order": 3
+                            },
+                            {
+                                "value": "nawabganj",
+                                "label": "Nawabganj",
+                                "sort_order": 4
+                            },
+                            {
+                                "value": "savar",
+                                "label": "Savar",
+                                "sort_order": 5
+                            }
+                        ]
+                    },
+                    {
+                        "value": "faridpur",
+                        "label": "Faridpur",
+                        "sort_order": 2,
+                        "children": [
+                            {
+                                "value": "alfadanga",
+                                "label": "Alfadanga",
+                                "sort_order": 1
+                            },
+                            {
+                                "value": "bhanga",
+                                "label": "Bhanga",
+                                "sort_order": 2
+                            },
+                            {
+                                "value": "boalmari",
+                                "label": "Boalmari",
+                                "sort_order": 3
+                            },
+                            {
+                                "value": "char_bhadrasan",
+                                "label": "Char Bhadrasan",
+                                "sort_order": 4
+                            },
+                            {
+                                "value": "faridpur_sadar",
+                                "label": "Faridpur Sadar",
+                                "sort_order": 5
+                            },
+                            {
+                                "value": "madhukhali",
+                                "label": "Madhukhali",
+                                "sort_order": 6
+                            },
+                            {
+                                "value": "nagarkanda",
+                                "label": "Nagarkanda",
+                                "sort_order": 7
+                            },
+                            {
+                                "value": "sadarpur",
+                                "label": "Sadarpur",
+                                "sort_order": 8
+                            },
+                            {
+                                "value": "saltha",
+                                "label": "Saltha",
+                                "sort_order": 9
+                            }
+                        ]
+                    },
+                    {
+                        "value": "gazipur",
+                        "label": "Gazipur",
+                        "sort_order": 3,
+                        "children": [
+                            {
+                                "value": "gazipur_sadar",
+                                "label": "Gazipur Sadar",
+                                "sort_order": 1
+                            },
+                            {
+                                "value": "kaliakair",
+                                "label": "Kaliakair",
+                                "sort_order": 2
+                            },
+                            {
+                                "value": "kaliganj",
+                                "label": "Kaliganj",
+                                "sort_order": 3
+                            },
+                            {
+                                "value": "kapasia",
+                                "label": "Kapasia",
+                                "sort_order": 4
+                            },
+                            {
+                                "value": "sreepur",
+                                "label": "Sreepur",
+                                "sort_order": 5
+                            }
+                        ]
+                    },
+                    {
+                        "value": "gopalganj",
+                        "label": "Gopalganj",
+                        "sort_order": 4,
+                        "children": [
+                            {
+                                "value": "gopalganj_sadar",
+                                "label": "Gopalganj Sadar",
+                                "sort_order": 1
+                            },
+                            {
+                                "value": "kashiani",
+                                "label": "Kashiani",
+                                "sort_order": 2
+                            },
+                            {
+                                "value": "kotalipara",
+                                "label": "Kotalipara",
+                                "sort_order": 3
+                            },
+                            {
+                                "value": "muksudpur",
+                                "label": "Muksudpur",
+                                "sort_order": 4
+                            },
+                            {
+                                "value": "tungipara",
+                                "label": "Tungipara",
+                                "sort_order": 5
+                            }
+                        ]
+                    },
+                    {
+                        "value": "kishoreganj",
+                        "label": "Kishoreganj",
+                        "sort_order": 5,
+                        "children": [
+                            {
+                                "value": "austagram",
+                                "label": "Austagram",
+                                "sort_order": 1
+                            },
+                            {
+                                "value": "bajitpur",
+                                "label": "Bajitpur",
+                                "sort_order": 2
+                            },
+                            {
+                                "value": "bhairab",
+                                "label": "Bhairab",
+                                "sort_order": 3
+                            },
+                            {
+                                "value": "hossainpur",
+                                "label": "Hossainpur",
+                                "sort_order": 4
+                            },
+                            {
+                                "value": "itna",
+                                "label": "Itna",
+                                "sort_order": 5
+                            },
+                            {
+                                "value": "karimganj",
+                                "label": "Karimganj",
+                                "sort_order": 6
+                            },
+                            {
+                                "value": "katiadi",
+                                "label": "Katiadi",
+                                "sort_order": 7
+                            },
+                            {
+                                "value": "kishoreganj_sadar",
+                                "label": "Kishoreganj Sadar",
+                                "sort_order": 8
+                            },
+                            {
+                                "value": "kuliarchar",
+                                "label": "Kuliarchar",
+                                "sort_order": 9
+                            },
+                            {
+                                "value": "mithamain",
+                                "label": "Mithamain",
+                                "sort_order": 10
+                            },
+                            {
+                                "value": "nikli",
+                                "label": "Nikli",
+                                "sort_order": 11
+                            },
+                            {
+                                "value": "pakundia",
+                                "label": "Pakundia",
+                                "sort_order": 12
+                            },
+                            {
+                                "value": "tarail",
+                                "label": "Tarail",
+                                "sort_order": 13
+                            }
+                        ]
+                    },
+                    {
+                        "value": "madaripur",
+                        "label": "Madaripur",
+                        "sort_order": 6,
+                        "children": [
+                            {
+                                "value": "dasar",
+                                "label": "Dasar",
+                                "sort_order": 1
+                            },
+                            {
+                                "value": "kalkini",
+                                "label": "Kalkini",
+                                "sort_order": 2
+                            },
+                            {
+                                "value": "madaripur_sadar",
+                                "label": "Madaripur Sadar",
+                                "sort_order": 3
+                            },
+                            {
+                                "value": "rajoir",
+                                "label": "Rajoir",
+                                "sort_order": 4
+                            },
+                            {
+                                "value": "shibchar",
+                                "label": "Shibchar",
+                                "sort_order": 5
+                            }
+                        ]
+                    },
+                    {
+                        "value": "manikganj",
+                        "label": "Manikganj",
+                        "sort_order": 7,
+                        "children": [
+                            {
+                                "value": "daulatpur",
+                                "label": "Daulatpur",
+                                "sort_order": 1
+                            },
+                            {
+                                "value": "ghior",
+                                "label": "Ghior",
+                                "sort_order": 2
+                            },
+                            {
+                                "value": "harirampur",
+                                "label": "Harirampur",
+                                "sort_order": 3
+                            },
+                            {
+                                "value": "manikganj_sadar",
+                                "label": "Manikganj Sadar",
+                                "sort_order": 4
+                            },
+                            {
+                                "value": "saturia",
+                                "label": "Saturia",
+                                "sort_order": 5
+                            },
+                            {
+                                "value": "shibalay",
+                                "label": "Shibalay",
+                                "sort_order": 6
+                            },
+                            {
+                                "value": "singair",
+                                "label": "Singair",
+                                "sort_order": 7
+                            }
+                        ]
+                    },
+                    {
+                        "value": "munshiganj",
+                        "label": "Munshiganj",
+                        "sort_order": 8,
+                        "children": [
+                            {
+                                "value": "gazaria",
+                                "label": "Gazaria",
+                                "sort_order": 1
+                            },
+                            {
+                                "value": "louhajang",
+                                "label": "Louhajang",
+                                "sort_order": 2
+                            },
+                            {
+                                "value": "munshiganj_sadar",
+                                "label": "Munshiganj Sadar",
+                                "sort_order": 3
+                            },
+                            {
+                                "value": "sirajdikhan",
+                                "label": "Sirajdikhan",
+                                "sort_order": 4
+                            },
+                            {
+                                "value": "sreenagar",
+                                "label": "Sreenagar",
+                                "sort_order": 5
+                            },
+                            {
+                                "value": "tongibari",
+                                "label": "Tongibari",
+                                "sort_order": 6
+                            }
+                        ]
+                    },
+                    {
+                        "value": "narayanganj",
+                        "label": "Narayanganj",
+                        "sort_order": 9,
+                        "children": [
+                            {
+                                "value": "araihazar",
+                                "label": "Araihazar",
+                                "sort_order": 1
+                            },
+                            {
+                                "value": "bandar",
+                                "label": "Bandar",
+                                "sort_order": 2
+                            },
+                            {
+                                "value": "narayanganj_sadar",
+                                "label": "Narayanganj Sadar",
+                                "sort_order": 3
+                            },
+                            {
+                                "value": "rupganj",
+                                "label": "Rupganj",
+                                "sort_order": 4
+                            },
+                            {
+                                "value": "sonargaon",
+                                "label": "Sonargaon",
+                                "sort_order": 5
+                            }
+                        ]
+                    },
+                    {
+                        "value": "narsingdi",
+                        "label": "Narsingdi",
+                        "sort_order": 10,
+                        "children": [
+                            {
+                                "value": "belabo",
+                                "label": "Belabo",
+                                "sort_order": 1
+                            },
+                            {
+                                "value": "manohardi",
+                                "label": "Manohardi",
+                                "sort_order": 2
+                            },
+                            {
+                                "value": "narsingdi_sadar",
+                                "label": "Narsingdi Sadar",
+                                "sort_order": 3
+                            },
+                            {
+                                "value": "palash",
+                                "label": "Palash",
+                                "sort_order": 4
+                            },
+                            {
+                                "value": "raipura",
+                                "label": "Raipura",
+                                "sort_order": 5
+                            },
+                            {
+                                "value": "shibpur",
+                                "label": "Shibpur",
+                                "sort_order": 6
+                            }
+                        ]
+                    },
+                    {
+                        "value": "rajbari",
+                        "label": "Rajbari",
+                        "sort_order": 11,
+                        "children": [
+                            {
+                                "value": "baliakandi",
+                                "label": "Baliakandi",
+                                "sort_order": 1
+                            },
+                            {
+                                "value": "goalanda",
+                                "label": "Goalanda",
+                                "sort_order": 2
+                            },
+                            {
+                                "value": "kalukhali",
+                                "label": "Kalukhali",
+                                "sort_order": 3
+                            },
+                            {
+                                "value": "pangsha",
+                                "label": "Pangsha",
+                                "sort_order": 4
+                            },
+                            {
+                                "value": "rajbari_sadar",
+                                "label": "Rajbari Sadar",
+                                "sort_order": 5
+                            }
+                        ]
+                    },
+                    {
+                        "value": "shariatpur",
+                        "label": "Shariatpur",
+                        "sort_order": 12,
+                        "children": [
+                            {
+                                "value": "bhedarganj",
+                                "label": "Bhedarganj",
+                                "sort_order": 1
+                            },
+                            {
+                                "value": "damudya",
+                                "label": "Damudya",
+                                "sort_order": 2
+                            },
+                            {
+                                "value": "gosairhat",
+                                "label": "Gosairhat",
+                                "sort_order": 3
+                            },
+                            {
+                                "value": "naria",
+                                "label": "Naria",
+                                "sort_order": 4
+                            },
+                            {
+                                "value": "shariatpur_sadar",
+                                "label": "Shariatpur Sadar",
+                                "sort_order": 5
+                            },
+                            {
+                                "value": "zajira",
+                                "label": "Zajira",
+                                "sort_order": 6
+                            }
+                        ]
+                    },
+                    {
+                        "value": "tangail",
+                        "label": "Tangail",
+                        "sort_order": 13,
+                        "children": [
+                            {
+                                "value": "basail",
+                                "label": "Basail",
+                                "sort_order": 1
+                            },
+                            {
+                                "value": "bhuanpur",
+                                "label": "Bhuanpur",
+                                "sort_order": 2
+                            },
+                            {
+                                "value": "delduar",
+                                "label": "Delduar",
+                                "sort_order": 3
+                            },
+                            {
+                                "value": "dhanbari",
+                                "label": "Dhanbari",
+                                "sort_order": 4
+                            },
+                            {
+                                "value": "ghatail",
+                                "label": "Ghatail",
+                                "sort_order": 5
+                            },
+                            {
+                                "value": "gopalpur",
+                                "label": "Gopalpur",
+                                "sort_order": 6
+                            },
+                            {
+                                "value": "kalihati",
+                                "label": "Kalihati",
+                                "sort_order": 7
+                            },
+                            {
+                                "value": "madhupur",
+                                "label": "Madhupur",
+                                "sort_order": 8
+                            },
+                            {
+                                "value": "mirzapur",
+                                "label": "Mirzapur",
+                                "sort_order": 9
+                            },
+                            {
+                                "value": "nagarpur",
+                                "label": "Nagarpur",
+                                "sort_order": 10
+                            },
+                            {
+                                "value": "sakhipur",
+                                "label": "Sakhipur",
+                                "sort_order": 11
+                            },
+                            {
+                                "value": "tangail_sadar",
+                                "label": "Tangail Sadar",
+                                "sort_order": 12
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "value": "khulna",
+                "label": "Khulna",
+                "sort_order": 4,
+                "children": [
+                    {
+                        "value": "bagerhat",
+                        "label": "Bagerhat",
+                        "sort_order": 1,
+                        "children": [
+                            {
+                                "value": "bagerhat_sadar",
+                                "label": "Bagerhat Sadar",
+                                "sort_order": 1
+                            },
+                            {
+                                "value": "chitalmari",
+                                "label": "Chitalmari",
+                                "sort_order": 2
+                            },
+                            {
+                                "value": "fakirhat",
+                                "label": "Fakirhat",
+                                "sort_order": 3
+                            },
+                            {
+                                "value": "kachua",
+                                "label": "Kachua",
+                                "sort_order": 4
+                            },
+                            {
+                                "value": "mollahat",
+                                "label": "Mollahat",
+                                "sort_order": 5
+                            },
+                            {
+                                "value": "mongla",
+                                "label": "Mongla",
+                                "sort_order": 6
+                            },
+                            {
+                                "value": "morelganj",
+                                "label": "Morelganj",
+                                "sort_order": 7
+                            },
+                            {
+                                "value": "rampal",
+                                "label": "Rampal",
+                                "sort_order": 8
+                            },
+                            {
+                                "value": "sharankhola",
+                                "label": "Sharankhola",
+                                "sort_order": 9
+                            }
+                        ]
+                    },
+                    {
+                        "value": "chuadanga",
+                        "label": "Chuadanga",
+                        "sort_order": 2,
+                        "children": [
+                            {
+                                "value": "alamdanga",
+                                "label": "Alamdanga",
+                                "sort_order": 1
+                            },
+                            {
+                                "value": "chuadanga_sadar",
+                                "label": "Chuadanga Sadar",
+                                "sort_order": 2
+                            },
+                            {
+                                "value": "damurhuda",
+                                "label": "Damurhuda",
+                                "sort_order": 3
+                            },
+                            {
+                                "value": "jibannagar",
+                                "label": "Jibannagar",
+                                "sort_order": 4
+                            }
+                        ]
+                    },
+                    {
+                        "value": "jessore",
+                        "label": "Jashore",
+                        "sort_order": 3,
+                        "children": [
+                            {
+                                "value": "abhaynagar",
+                                "label": "Abhaynagar",
+                                "sort_order": 1
+                            },
+                            {
+                                "value": "bagharpara",
+                                "label": "Bagharpara",
+                                "sort_order": 2
+                            },
+                            {
+                                "value": "chaugachha",
+                                "label": "Chaugachha",
+                                "sort_order": 3
+                            },
+                            {
+                                "value": "jashore_sadar",
+                                "label": "Jashore Sadar",
+                                "sort_order": 4
+                            },
+                            {
+                                "value": "jhikargachha",
+                                "label": "Jhikargachha",
+                                "sort_order": 5
+                            },
+                            {
+                                "value": "keshabpur",
+                                "label": "Keshabpur",
+                                "sort_order": 6
+                            },
+                            {
+                                "value": "manirampur",
+                                "label": "Manirampur",
+                                "sort_order": 7
+                            },
+                            {
+                                "value": "sharsha",
+                                "label": "Sharsha",
+                                "sort_order": 8
+                            }
+                        ]
+                    },
+                    {
+                        "value": "jhenaidah",
+                        "label": "Jhenaidah",
+                        "sort_order": 4,
+                        "children": [
+                            {
+                                "value": "harinakundu",
+                                "label": "Harinakundu",
+                                "sort_order": 1
+                            },
+                            {
+                                "value": "jhenaidah_sadar",
+                                "label": "Jhenaidah Sadar",
+                                "sort_order": 2
+                            },
+                            {
+                                "value": "kaliganj",
+                                "label": "Kaliganj",
+                                "sort_order": 3
+                            },
+                            {
+                                "value": "kotchandpur",
+                                "label": "Kotchandpur",
+                                "sort_order": 4
+                            },
+                            {
+                                "value": "maheshpur",
+                                "label": "Maheshpur",
+                                "sort_order": 5
+                            },
+                            {
+                                "value": "shailkupa",
+                                "label": "Shailkupa",
+                                "sort_order": 6
+                            }
+                        ]
+                    },
+                    {
+                        "value": "khulna",
+                        "label": "Khulna",
+                        "sort_order": 5,
+                        "children": [
+                            {
+                                "value": "batiaghata",
+                                "label": "Batiaghata",
+                                "sort_order": 1
+                            },
+                            {
+                                "value": "dacope",
+                                "label": "Dacope",
+                                "sort_order": 2
+                            },
+                            {
+                                "value": "dighalia",
+                                "label": "Dighalia",
+                                "sort_order": 3
+                            },
+                            {
+                                "value": "dumuria",
+                                "label": "Dumuria",
+                                "sort_order": 4
+                            },
+                            {
+                                "value": "koyra",
+                                "label": "Koyra",
+                                "sort_order": 5
+                            },
+                            {
+                                "value": "paikgachha",
+                                "label": "Paikgachha",
+                                "sort_order": 6
+                            },
+                            {
+                                "value": "phultala",
+                                "label": "Phultala",
+                                "sort_order": 7
+                            },
+                            {
+                                "value": "rupsa",
+                                "label": "Rupsa",
+                                "sort_order": 8
+                            },
+                            {
+                                "value": "terokhada",
+                                "label": "Terokhada",
+                                "sort_order": 9
+                            }
+                        ]
+                    },
+                    {
+                        "value": "kushtia",
+                        "label": "Kushtia",
+                        "sort_order": 6,
+                        "children": [
+                            {
+                                "value": "bheramara",
+                                "label": "Bheramara",
+                                "sort_order": 1
+                            },
+                            {
+                                "value": "daulatpur",
+                                "label": "Daulatpur",
+                                "sort_order": 2
+                            },
+                            {
+                                "value": "khoksa",
+                                "label": "Khoksa",
+                                "sort_order": 3
+                            },
+                            {
+                                "value": "kumarkhali",
+                                "label": "Kumarkhali",
+                                "sort_order": 4
+                            },
+                            {
+                                "value": "kushtia_sadar",
+                                "label": "Kushtia Sadar",
+                                "sort_order": 5
+                            },
+                            {
+                                "value": "mirpur",
+                                "label": "Mirpur",
+                                "sort_order": 6
+                            }
+                        ]
+                    },
+                    {
+                        "value": "magura",
+                        "label": "Magura",
+                        "sort_order": 7,
+                        "children": [
+                            {
+                                "value": "magura_sadar",
+                                "label": "Magura Sadar",
+                                "sort_order": 1
+                            },
+                            {
+                                "value": "mohammadpur",
+                                "label": "Mohammadpur",
+                                "sort_order": 2
+                            },
+                            {
+                                "value": "shalikha",
+                                "label": "Shalikha",
+                                "sort_order": 3
+                            },
+                            {
+                                "value": "sreepur",
+                                "label": "Sreepur",
+                                "sort_order": 4
+                            }
+                        ]
+                    },
+                    {
+                        "value": "meherpur",
+                        "label": "Meherpur",
+                        "sort_order": 8,
+                        "children": [
+                            {
+                                "value": "gangni",
+                                "label": "Gangni",
+                                "sort_order": 1
+                            },
+                            {
+                                "value": "meherpur_sadar",
+                                "label": "Meherpur Sadar",
+                                "sort_order": 2
+                            },
+                            {
+                                "value": "mujibnagar",
+                                "label": "Mujibnagar",
+                                "sort_order": 3
+                            }
+                        ]
+                    },
+                    {
+                        "value": "narail",
+                        "label": "Narail",
+                        "sort_order": 9,
+                        "children": [
+                            {
+                                "value": "kalia",
+                                "label": "Kalia",
+                                "sort_order": 1
+                            },
+                            {
+                                "value": "lohagara",
+                                "label": "Lohagara",
+                                "sort_order": 2
+                            },
+                            {
+                                "value": "narail_sadar",
+                                "label": "Narail Sadar",
+                                "sort_order": 3
+                            }
+                        ]
+                    },
+                    {
+                        "value": "satkhira",
+                        "label": "Satkhira",
+                        "sort_order": 10,
+                        "children": [
+                            {
+                                "value": "ashashuni",
+                                "label": "Ashashuni",
+                                "sort_order": 1
+                            },
+                            {
+                                "value": "debhata",
+                                "label": "Debhata",
+                                "sort_order": 2
+                            },
+                            {
+                                "value": "kalaroa",
+                                "label": "Kalaroa",
+                                "sort_order": 3
+                            },
+                            {
+                                "value": "kaliganj",
+                                "label": "Kaliganj",
+                                "sort_order": 4
+                            },
+                            {
+                                "value": "satkhira_sadar",
+                                "label": "Satkhira Sadar",
+                                "sort_order": 5
+                            },
+                            {
+                                "value": "shyamnagar",
+                                "label": "Shyamnagar",
+                                "sort_order": 6
+                            },
+                            {
+                                "value": "tala",
+                                "label": "Tala",
+                                "sort_order": 7
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "value": "mymensingh",
+                "label": "Mymensingh",
+                "sort_order": 5,
+                "children": [
+                    {
+                        "value": "jamalpur",
+                        "label": "Jamalpur",
+                        "sort_order": 1,
+                        "children": [
+                            {
+                                "value": "bakshiganj",
+                                "label": "Bakshiganj",
+                                "sort_order": 1
+                            },
+                            {
+                                "value": "dewanganj",
+                                "label": "Dewanganj",
+                                "sort_order": 2
+                            },
+                            {
+                                "value": "islampur",
+                                "label": "Islampur",
+                                "sort_order": 3
+                            },
+                            {
+                                "value": "jamalpur_sadar",
+                                "label": "Jamalpur Sadar",
+                                "sort_order": 4
+                            },
+                            {
+                                "value": "madarganj",
+                                "label": "Madarganj",
+                                "sort_order": 5
+                            },
+                            {
+                                "value": "melandaha",
+                                "label": "Melandaha",
+                                "sort_order": 6
+                            },
+                            {
+                                "value": "sarishabari",
+                                "label": "Sarishabari",
+                                "sort_order": 7
+                            }
+                        ]
+                    },
+                    {
+                        "value": "mymensingh",
+                        "label": "Mymensingh",
+                        "sort_order": 2,
+                        "children": [
+                            {
+                                "value": "bhaluka",
+                                "label": "Bhaluka",
+                                "sort_order": 1
+                            },
+                            {
+                                "value": "dhobaura",
+                                "label": "Dhobaura",
+                                "sort_order": 2
+                            },
+                            {
+                                "value": "fulbaria",
+                                "label": "Fulbaria",
+                                "sort_order": 3
+                            },
+                            {
+                                "value": "fulpur",
+                                "label": "Fulpur",
+                                "sort_order": 4
+                            },
+                            {
+                                "value": "gafargaon",
+                                "label": "Gafargaon",
+                                "sort_order": 5
+                            },
+                            {
+                                "value": "gouripur",
+                                "label": "Gouripur",
+                                "sort_order": 6
+                            },
+                            {
+                                "value": "haluaghat",
+                                "label": "Haluaghat",
+                                "sort_order": 7
+                            },
+                            {
+                                "value": "ishwarganj",
+                                "label": "Ishwarganj",
+                                "sort_order": 8
+                            },
+                            {
+                                "value": "muktagachha",
+                                "label": "Muktagachha",
+                                "sort_order": 9
+                            },
+                            {
+                                "value": "mymensingh_sadar",
+                                "label": "Mymensingh Sadar",
+                                "sort_order": 10
+                            },
+                            {
+                                "value": "nandail",
+                                "label": "Nandail",
+                                "sort_order": 11
+                            },
+                            {
+                                "value": "tarakanda",
+                                "label": "Tarakanda",
+                                "sort_order": 12
+                            },
+                            {
+                                "value": "trishal",
+                                "label": "Trishal",
+                                "sort_order": 13
+                            }
+                        ]
+                    },
+                    {
+                        "value": "netrakona",
+                        "label": "Netrakona",
+                        "sort_order": 3,
+                        "children": [
+                            {
+                                "value": "atpara",
+                                "label": "Atpara",
+                                "sort_order": 1
+                            },
+                            {
+                                "value": "barhatta",
+                                "label": "Barhatta",
+                                "sort_order": 2
+                            },
+                            {
+                                "value": "durgapur",
+                                "label": "Durgapur",
+                                "sort_order": 3
+                            },
+                            {
+                                "value": "kalmakanda",
+                                "label": "Kalmakanda",
+                                "sort_order": 4
+                            },
+                            {
+                                "value": "kendua",
+                                "label": "Kendua",
+                                "sort_order": 5
+                            },
+                            {
+                                "value": "khaliajuri",
+                                "label": "Khaliajuri",
+                                "sort_order": 6
+                            },
+                            {
+                                "value": "madan",
+                                "label": "Madan",
+                                "sort_order": 7
+                            },
+                            {
+                                "value": "mohanganj",
+                                "label": "Mohanganj",
+                                "sort_order": 8
+                            },
+                            {
+                                "value": "netrakona_sadar",
+                                "label": "Netrakona Sadar",
+                                "sort_order": 9
+                            },
+                            {
+                                "value": "purbadhala",
+                                "label": "Purbadhala",
+                                "sort_order": 10
+                            }
+                        ]
+                    },
+                    {
+                        "value": "sherpur",
+                        "label": "Sherpur",
+                        "sort_order": 4,
+                        "children": [
+                            {
+                                "value": "jhenaigati",
+                                "label": "Jhenaigati",
+                                "sort_order": 1
+                            },
+                            {
+                                "value": "nakla",
+                                "label": "Nakla",
+                                "sort_order": 2
+                            },
+                            {
+                                "value": "nalitabari",
+                                "label": "Nalitabari",
+                                "sort_order": 3
+                            },
+                            {
+                                "value": "sherpur_sadar",
+                                "label": "Sherpur Sadar",
+                                "sort_order": 4
+                            },
+                            {
+                                "value": "sreebardi",
+                                "label": "Sreebardi",
+                                "sort_order": 5
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "value": "rajshahi",
+                "label": "Rajshahi",
+                "sort_order": 6,
+                "children": [
+                    {
+                        "value": "bogra",
+                        "label": "Bogura",
+                        "sort_order": 1,
+                        "children": [
+                            {
+                                "value": "adamdighi",
+                                "label": "Adamdighi",
+                                "sort_order": 1
+                            },
+                            {
+                                "value": "bogura_sadar",
+                                "label": "Bogura Sadar",
+                                "sort_order": 2
+                            },
+                            {
+                                "value": "dhunat",
+                                "label": "Dhunat",
+                                "sort_order": 3
+                            },
+                            {
+                                "value": "dupchachia",
+                                "label": "Dupchachia",
+                                "sort_order": 4
+                            },
+                            {
+                                "value": "gabtali",
+                                "label": "Gabtali",
+                                "sort_order": 5
+                            },
+                            {
+                                "value": "kahaloo",
+                                "label": "Kahaloo",
+                                "sort_order": 6
+                            },
+                            {
+                                "value": "nandigram",
+                                "label": "Nandigram",
+                                "sort_order": 7
+                            },
+                            {
+                                "value": "sariakandi",
+                                "label": "Sariakandi",
+                                "sort_order": 8
+                            },
+                            {
+                                "value": "shajahanpur",
+                                "label": "Shajahanpur",
+                                "sort_order": 9
+                            },
+                            {
+                                "value": "sherpur",
+                                "label": "Sherpur",
+                                "sort_order": 10
+                            },
+                            {
+                                "value": "shibganj",
+                                "label": "Shibganj",
+                                "sort_order": 11
+                            },
+                            {
+                                "value": "sonatala",
+                                "label": "Sonatala",
+                                "sort_order": 12
+                            }
+                        ]
+                    },
+                    {
+                        "value": "joypurhat",
+                        "label": "Joypurhat",
+                        "sort_order": 2,
+                        "children": [
+                            {
+                                "value": "akkelpur",
+                                "label": "Akkelpur",
+                                "sort_order": 1
+                            },
+                            {
+                                "value": "joypurhat_sadar",
+                                "label": "Joypurhat Sadar",
+                                "sort_order": 2
+                            },
+                            {
+                                "value": "kalai",
+                                "label": "Kalai",
+                                "sort_order": 3
+                            },
+                            {
+                                "value": "khetlal",
+                                "label": "Khetlal",
+                                "sort_order": 4
+                            },
+                            {
+                                "value": "panchbibi",
+                                "label": "Panchbibi",
+                                "sort_order": 5
+                            }
+                        ]
+                    },
+                    {
+                        "value": "naogaon",
+                        "label": "Naogaon",
+                        "sort_order": 3,
+                        "children": [
+                            {
+                                "value": "atrai",
+                                "label": "Atrai",
+                                "sort_order": 1
+                            },
+                            {
+                                "value": "badalgachhi",
+                                "label": "Badalgachhi",
+                                "sort_order": 2
+                            },
+                            {
+                                "value": "dhamoirhat",
+                                "label": "Dhamoirhat",
+                                "sort_order": 3
+                            },
+                            {
+                                "value": "mahadebpur",
+                                "label": "Mahadebpur",
+                                "sort_order": 4
+                            },
+                            {
+                                "value": "manda",
+                                "label": "Manda",
+                                "sort_order": 5
+                            },
+                            {
+                                "value": "naogaon_sadar",
+                                "label": "Naogaon Sadar",
+                                "sort_order": 6
+                            },
+                            {
+                                "value": "niamatpur",
+                                "label": "Niamatpur",
+                                "sort_order": 7
+                            },
+                            {
+                                "value": "patnitala",
+                                "label": "Patnitala",
+                                "sort_order": 8
+                            },
+                            {
+                                "value": "porsha",
+                                "label": "Porsha",
+                                "sort_order": 9
+                            },
+                            {
+                                "value": "raninagar",
+                                "label": "Raninagar",
+                                "sort_order": 10
+                            },
+                            {
+                                "value": "sapahar",
+                                "label": "Sapahar",
+                                "sort_order": 11
+                            }
+                        ]
+                    },
+                    {
+                        "value": "natore",
+                        "label": "Natore",
+                        "sort_order": 4,
+                        "children": [
+                            {
+                                "value": "bagatipara",
+                                "label": "Bagatipara",
+                                "sort_order": 1
+                            },
+                            {
+                                "value": "baraigram",
+                                "label": "Baraigram",
+                                "sort_order": 2
+                            },
+                            {
+                                "value": "gurudaspur",
+                                "label": "Gurudaspur",
+                                "sort_order": 3
+                            },
+                            {
+                                "value": "lalpur",
+                                "label": "Lalpur",
+                                "sort_order": 4
+                            },
+                            {
+                                "value": "naldanga",
+                                "label": "Naldanga",
+                                "sort_order": 5
+                            },
+                            {
+                                "value": "natore_sadar",
+                                "label": "Natore Sadar",
+                                "sort_order": 6
+                            },
+                            {
+                                "value": "singra",
+                                "label": "Singra",
+                                "sort_order": 7
+                            }
+                        ]
+                    },
+                    {
+                        "value": "chapainababganj",
+                        "label": "Chapainababganj",
+                        "sort_order": 5,
+                        "children": [
+                            {
+                                "value": "bholahat",
+                                "label": "Bholahat",
+                                "sort_order": 1
+                            },
+                            {
+                                "value": "chapainawabganj_sadar",
+                                "label": "Chapainawabganj Sadar",
+                                "sort_order": 2
+                            },
+                            {
+                                "value": "gomastapur",
+                                "label": "Gomastapur",
+                                "sort_order": 3
+                            },
+                            {
+                                "value": "nachole",
+                                "label": "Nachole",
+                                "sort_order": 4
+                            },
+                            {
+                                "value": "shibganj",
+                                "label": "Shibganj",
+                                "sort_order": 5
+                            }
+                        ]
+                    },
+                    {
+                        "value": "pabna",
+                        "label": "Pabna",
+                        "sort_order": 6,
+                        "children": [
+                            {
+                                "value": "atgharia",
+                                "label": "Atgharia",
+                                "sort_order": 1
+                            },
+                            {
+                                "value": "bera",
+                                "label": "Bera",
+                                "sort_order": 2
+                            },
+                            {
+                                "value": "bhangura",
+                                "label": "Bhangura",
+                                "sort_order": 3
+                            },
+                            {
+                                "value": "chatmohar",
+                                "label": "Chatmohar",
+                                "sort_order": 4
+                            },
+                            {
+                                "value": "faridpur",
+                                "label": "Faridpur",
+                                "sort_order": 5
+                            },
+                            {
+                                "value": "ishwardi",
+                                "label": "Ishwardi",
+                                "sort_order": 6
+                            },
+                            {
+                                "value": "pabna_sadar",
+                                "label": "Pabna Sadar",
+                                "sort_order": 7
+                            },
+                            {
+                                "value": "santhia",
+                                "label": "Santhia",
+                                "sort_order": 8
+                            },
+                            {
+                                "value": "sujanagar",
+                                "label": "Sujanagar",
+                                "sort_order": 9
+                            }
+                        ]
+                    },
+                    {
+                        "value": "rajshahi",
+                        "label": "Rajshahi",
+                        "sort_order": 7,
+                        "children": [
+                            {
+                                "value": "bagha",
+                                "label": "Bagha",
+                                "sort_order": 1
+                            },
+                            {
+                                "value": "bagmara",
+                                "label": "Bagmara",
+                                "sort_order": 2
+                            },
+                            {
+                                "value": "charghat",
+                                "label": "Charghat",
+                                "sort_order": 3
+                            },
+                            {
+                                "value": "durgapur",
+                                "label": "Durgapur",
+                                "sort_order": 4
+                            },
+                            {
+                                "value": "godagari",
+                                "label": "Godagari",
+                                "sort_order": 5
+                            },
+                            {
+                                "value": "mohanpur",
+                                "label": "Mohanpur",
+                                "sort_order": 6
+                            },
+                            {
+                                "value": "paba",
+                                "label": "Paba",
+                                "sort_order": 7
+                            },
+                            {
+                                "value": "puthia",
+                                "label": "Puthia",
+                                "sort_order": 8
+                            },
+                            {
+                                "value": "tanore",
+                                "label": "Tanore",
+                                "sort_order": 9
+                            }
+                        ]
+                    },
+                    {
+                        "value": "sirajganj",
+                        "label": "Sirajganj",
+                        "sort_order": 8,
+                        "children": [
+                            {
+                                "value": "belkuchi",
+                                "label": "Belkuchi",
+                                "sort_order": 1
+                            },
+                            {
+                                "value": "chouhali",
+                                "label": "Chouhali",
+                                "sort_order": 2
+                            },
+                            {
+                                "value": "kamarkhanda",
+                                "label": "Kamarkhanda",
+                                "sort_order": 3
+                            },
+                            {
+                                "value": "kazipur",
+                                "label": "Kazipur",
+                                "sort_order": 4
+                            },
+                            {
+                                "value": "rayganj",
+                                "label": "Rayganj",
+                                "sort_order": 5
+                            },
+                            {
+                                "value": "shahjadpur",
+                                "label": "Shahjadpur",
+                                "sort_order": 6
+                            },
+                            {
+                                "value": "sirajganj_sadar",
+                                "label": "Sirajganj Sadar",
+                                "sort_order": 7
+                            },
+                            {
+                                "value": "tarash",
+                                "label": "Tarash",
+                                "sort_order": 8
+                            },
+                            {
+                                "value": "ullapara",
+                                "label": "Ullapara",
+                                "sort_order": 9
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "value": "rangpur",
+                "label": "Rangpur",
+                "sort_order": 7,
+                "children": [
+                    {
+                        "value": "dinajpur",
+                        "label": "Dinajpur",
+                        "sort_order": 1,
+                        "children": [
+                            {
+                                "value": "birampur",
+                                "label": "Birampur",
+                                "sort_order": 1
+                            },
+                            {
+                                "value": "birganj",
+                                "label": "Birganj",
+                                "sort_order": 2
+                            },
+                            {
+                                "value": "birol",
+                                "label": "Birol",
+                                "sort_order": 3
+                            },
+                            {
+                                "value": "bochaganj",
+                                "label": "Bochaganj",
+                                "sort_order": 4
+                            },
+                            {
+                                "value": "chirirbandar",
+                                "label": "Chirirbandar",
+                                "sort_order": 5
+                            },
+                            {
+                                "value": "dinajpur_sadar",
+                                "label": "Dinajpur Sadar",
+                                "sort_order": 6
+                            },
+                            {
+                                "value": "fulbari",
+                                "label": "Fulbari",
+                                "sort_order": 7
+                            },
+                            {
+                                "value": "ghoraghat",
+                                "label": "Ghoraghat",
+                                "sort_order": 8
+                            },
+                            {
+                                "value": "hakimpur",
+                                "label": "Hakimpur",
+                                "sort_order": 9
+                            },
+                            {
+                                "value": "kaharole",
+                                "label": "Kaharole",
+                                "sort_order": 10
+                            },
+                            {
+                                "value": "khansama",
+                                "label": "Khansama",
+                                "sort_order": 11
+                            },
+                            {
+                                "value": "nababganj",
+                                "label": "Nababganj",
+                                "sort_order": 12
+                            },
+                            {
+                                "value": "parbatipur",
+                                "label": "Parbatipur",
+                                "sort_order": 13
+                            }
+                        ]
+                    },
+                    {
+                        "value": "gaibandha",
+                        "label": "Gaibandha",
+                        "sort_order": 2,
+                        "children": [
+                            {
+                                "value": "fulchhari",
+                                "label": "Fulchhari",
+                                "sort_order": 1
+                            },
+                            {
+                                "value": "gaibandha_sadar",
+                                "label": "Gaibandha Sadar",
+                                "sort_order": 2
+                            },
+                            {
+                                "value": "gobindaganj",
+                                "label": "Gobindaganj",
+                                "sort_order": 3
+                            },
+                            {
+                                "value": "palashbari",
+                                "label": "Palashbari",
+                                "sort_order": 4
+                            },
+                            {
+                                "value": "sadullapur",
+                                "label": "Sadullapur",
+                                "sort_order": 5
+                            },
+                            {
+                                "value": "saghata",
+                                "label": "Saghata",
+                                "sort_order": 6
+                            },
+                            {
+                                "value": "sundarganj",
+                                "label": "Sundarganj",
+                                "sort_order": 7
+                            }
+                        ]
+                    },
+                    {
+                        "value": "kurigram",
+                        "label": "Kurigram",
+                        "sort_order": 3,
+                        "children": [
+                            {
+                                "value": "bhurungamari",
+                                "label": "Bhurungamari",
+                                "sort_order": 1
+                            },
+                            {
+                                "value": "chilmari",
+                                "label": "Chilmari",
+                                "sort_order": 2
+                            },
+                            {
+                                "value": "kurigram_sadar",
+                                "label": "Kurigram Sadar",
+                                "sort_order": 3
+                            },
+                            {
+                                "value": "nageshwari",
+                                "label": "Nageshwari",
+                                "sort_order": 4
+                            },
+                            {
+                                "value": "phulbari",
+                                "label": "Phulbari",
+                                "sort_order": 5
+                            },
+                            {
+                                "value": "rajarhat",
+                                "label": "Rajarhat",
+                                "sort_order": 6
+                            },
+                            {
+                                "value": "rajibpur",
+                                "label": "Rajibpur",
+                                "sort_order": 7
+                            },
+                            {
+                                "value": "roumari",
+                                "label": "Roumari",
+                                "sort_order": 8
+                            },
+                            {
+                                "value": "ulipur",
+                                "label": "Ulipur",
+                                "sort_order": 9
+                            }
+                        ]
+                    },
+                    {
+                        "value": "lalmonirhat",
+                        "label": "Lalmonirhat",
+                        "sort_order": 4,
+                        "children": [
+                            {
+                                "value": "aditmari",
+                                "label": "Aditmari",
+                                "sort_order": 1
+                            },
+                            {
+                                "value": "hatibandha",
+                                "label": "Hatibandha",
+                                "sort_order": 2
+                            },
+                            {
+                                "value": "kaliganj",
+                                "label": "Kaliganj",
+                                "sort_order": 3
+                            },
+                            {
+                                "value": "lalmonirhat_sadar",
+                                "label": "Lalmonirhat Sadar",
+                                "sort_order": 4
+                            },
+                            {
+                                "value": "patgram",
+                                "label": "Patgram",
+                                "sort_order": 5
+                            }
+                        ]
+                    },
+                    {
+                        "value": "nilphamari",
+                        "label": "Nilphamari",
+                        "sort_order": 5,
+                        "children": [
+                            {
+                                "value": "dimla",
+                                "label": "Dimla",
+                                "sort_order": 1
+                            },
+                            {
+                                "value": "domar",
+                                "label": "Domar",
+                                "sort_order": 2
+                            },
+                            {
+                                "value": "jaldhaka",
+                                "label": "Jaldhaka",
+                                "sort_order": 3
+                            },
+                            {
+                                "value": "kishoreganj",
+                                "label": "Kishoreganj",
+                                "sort_order": 4
+                            },
+                            {
+                                "value": "nilphamari_sadar",
+                                "label": "Nilphamari Sadar",
+                                "sort_order": 5
+                            },
+                            {
+                                "value": "saidpur",
+                                "label": "Saidpur",
+                                "sort_order": 6
+                            }
+                        ]
+                    },
+                    {
+                        "value": "panchagarh",
+                        "label": "Panchagarh",
+                        "sort_order": 6,
+                        "children": [
+                            {
+                                "value": "atowari",
+                                "label": "Atowari",
+                                "sort_order": 1
+                            },
+                            {
+                                "value": "boda",
+                                "label": "Boda",
+                                "sort_order": 2
+                            },
+                            {
+                                "value": "debiganj",
+                                "label": "Debiganj",
+                                "sort_order": 3
+                            },
+                            {
+                                "value": "panchagarh_sadar",
+                                "label": "Panchagarh Sadar",
+                                "sort_order": 4
+                            },
+                            {
+                                "value": "tetulia",
+                                "label": "Tetulia",
+                                "sort_order": 5
+                            }
+                        ]
+                    },
+                    {
+                        "value": "rangpur",
+                        "label": "Rangpur",
+                        "sort_order": 7,
+                        "children": [
+                            {
+                                "value": "badarganj",
+                                "label": "Badarganj",
+                                "sort_order": 1
+                            },
+                            {
+                                "value": "gangachara",
+                                "label": "Gangachara",
+                                "sort_order": 2
+                            },
+                            {
+                                "value": "kaunia",
+                                "label": "Kaunia",
+                                "sort_order": 3
+                            },
+                            {
+                                "value": "mithapukur",
+                                "label": "Mithapukur",
+                                "sort_order": 4
+                            },
+                            {
+                                "value": "pirgachha",
+                                "label": "Pirgachha",
+                                "sort_order": 5
+                            },
+                            {
+                                "value": "pirganj",
+                                "label": "Pirganj",
+                                "sort_order": 6
+                            },
+                            {
+                                "value": "rangpur_sadar",
+                                "label": "Rangpur Sadar",
+                                "sort_order": 7
+                            },
+                            {
+                                "value": "taraganj",
+                                "label": "Taraganj",
+                                "sort_order": 8
+                            }
+                        ]
+                    },
+                    {
+                        "value": "thakurgaon",
+                        "label": "Thakurgaon",
+                        "sort_order": 8,
+                        "children": [
+                            {
+                                "value": "baliadangi",
+                                "label": "Baliadangi",
+                                "sort_order": 1
+                            },
+                            {
+                                "value": "haripur",
+                                "label": "Haripur",
+                                "sort_order": 2
+                            },
+                            {
+                                "value": "pirganj",
+                                "label": "Pirganj",
+                                "sort_order": 3
+                            },
+                            {
+                                "value": "ranishankail",
+                                "label": "Ranishankail",
+                                "sort_order": 4
+                            },
+                            {
+                                "value": "thakurgaon_sadar",
+                                "label": "Thakurgaon Sadar",
+                                "sort_order": 5
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "value": "sylhet",
+                "label": "Sylhet",
+                "sort_order": 8,
+                "children": [
+                    {
+                        "value": "habiganj",
+                        "label": "Habiganj",
+                        "sort_order": 1,
+                        "children": [
+                            {
+                                "value": "ajmiriganj",
+                                "label": "Ajmiriganj",
+                                "sort_order": 1
+                            },
+                            {
+                                "value": "bahubal",
+                                "label": "Bahubal",
+                                "sort_order": 2
+                            },
+                            {
+                                "value": "baniachong",
+                                "label": "Baniachong",
+                                "sort_order": 3
+                            },
+                            {
+                                "value": "chunarughat",
+                                "label": "Chunarughat",
+                                "sort_order": 4
+                            },
+                            {
+                                "value": "habiganj_sadar",
+                                "label": "Habiganj Sadar",
+                                "sort_order": 5
+                            },
+                            {
+                                "value": "lakhai",
+                                "label": "Lakhai",
+                                "sort_order": 6
+                            },
+                            {
+                                "value": "madhabpur",
+                                "label": "Madhabpur",
+                                "sort_order": 7
+                            },
+                            {
+                                "value": "nabiganj",
+                                "label": "Nabiganj",
+                                "sort_order": 8
+                            },
+                            {
+                                "value": "shayestaganj",
+                                "label": "Shayestaganj",
+                                "sort_order": 9
+                            }
+                        ]
+                    },
+                    {
+                        "value": "moulvibazar",
+                        "label": "Moulvibazar",
+                        "sort_order": 2,
+                        "children": [
+                            {
+                                "value": "baralekha",
+                                "label": "Baralekha",
+                                "sort_order": 1
+                            },
+                            {
+                                "value": "juri",
+                                "label": "Juri",
+                                "sort_order": 2
+                            },
+                            {
+                                "value": "kamalganj",
+                                "label": "Kamalganj",
+                                "sort_order": 3
+                            },
+                            {
+                                "value": "kulaura",
+                                "label": "Kulaura",
+                                "sort_order": 4
+                            },
+                            {
+                                "value": "moulvibazar_sadar",
+                                "label": "Moulvibazar Sadar",
+                                "sort_order": 5
+                            },
+                            {
+                                "value": "rajnagar",
+                                "label": "Rajnagar",
+                                "sort_order": 6
+                            },
+                            {
+                                "value": "sreemangal",
+                                "label": "Sreemangal",
+                                "sort_order": 7
+                            }
+                        ]
+                    },
+                    {
+                        "value": "sunamganj",
+                        "label": "Sunamganj",
+                        "sort_order": 3,
+                        "children": [
+                            {
+                                "value": "bishwambharpur",
+                                "label": "Bishwambharpur",
+                                "sort_order": 1
+                            },
+                            {
+                                "value": "chhatak",
+                                "label": "Chhatak",
+                                "sort_order": 2
+                            },
+                            {
+                                "value": "derai",
+                                "label": "Derai",
+                                "sort_order": 3
+                            },
+                            {
+                                "value": "dharmapasha",
+                                "label": "Dharmapasha",
+                                "sort_order": 4
+                            },
+                            {
+                                "value": "dowarabazar",
+                                "label": "Dowarabazar",
+                                "sort_order": 5
+                            },
+                            {
+                                "value": "jagannathpur",
+                                "label": "Jagannathpur",
+                                "sort_order": 6
+                            },
+                            {
+                                "value": "jamalganj",
+                                "label": "Jamalganj",
+                                "sort_order": 7
+                            },
+                            {
+                                "value": "madhyanagar",
+                                "label": "Madhyanagar",
+                                "sort_order": 8
+                            },
+                            {
+                                "value": "shalla",
+                                "label": "Shalla",
+                                "sort_order": 9
+                            },
+                            {
+                                "value": "shantiganj",
+                                "label": "Shantiganj",
+                                "sort_order": 10
+                            },
+                            {
+                                "value": "sunamganj_sadar",
+                                "label": "Sunamganj Sadar",
+                                "sort_order": 11
+                            },
+                            {
+                                "value": "tahirpur",
+                                "label": "Tahirpur",
+                                "sort_order": 12
+                            }
+                        ]
+                    },
+                    {
+                        "value": "sylhet",
+                        "label": "Sylhet",
+                        "sort_order": 4,
+                        "children": [
+                            {
+                                "value": "balaganj",
+                                "label": "Balaganj",
+                                "sort_order": 1
+                            },
+                            {
+                                "value": "beanibazar",
+                                "label": "Beanibazar",
+                                "sort_order": 2
+                            },
+                            {
+                                "value": "bishwanath",
+                                "label": "Bishwanath",
+                                "sort_order": 3
+                            },
+                            {
+                                "value": "companiganj",
+                                "label": "Companiganj",
+                                "sort_order": 4
+                            },
+                            {
+                                "value": "dakkhin_surma",
+                                "label": "Dakkhin Surma",
+                                "sort_order": 5
+                            },
+                            {
+                                "value": "fenchuganj",
+                                "label": "Fenchuganj",
+                                "sort_order": 6
+                            },
+                            {
+                                "value": "golapganj",
+                                "label": "Golapganj",
+                                "sort_order": 7
+                            },
+                            {
+                                "value": "gowainghat",
+                                "label": "Gowainghat",
+                                "sort_order": 8
+                            },
+                            {
+                                "value": "jaintapur",
+                                "label": "Jaintapur",
+                                "sort_order": 9
+                            },
+                            {
+                                "value": "kanaighat",
+                                "label": "Kanaighat",
+                                "sort_order": 10
+                            },
+                            {
+                                "value": "osmaninagar",
+                                "label": "Osmaninagar",
+                                "sort_order": 11
+                            },
+                            {
+                                "value": "sylhet_sadar",
+                                "label": "Sylhet Sadar",
+                                "sort_order": 12
+                            },
+                            {
+                                "value": "zakiganj",
+                                "label": "Zakiganj",
+                                "sort_order": 13
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+}

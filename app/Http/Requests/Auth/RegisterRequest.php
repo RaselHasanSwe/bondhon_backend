@@ -18,7 +18,7 @@ class RegisterRequest extends FormRequest
             'email'              => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
             'password'           => ['required', 'string', 'min:8', 'confirmed'],
             'gender'             => ['required', 'in:male,female'],
-            'profile_created_by' => ['required', 'in:self,parents,siblings'],
+            'profile_created_by' => ['required', 'in:self,parents,siblings,guardian,relative_and_friends'],
         ];
     }
 
@@ -27,7 +27,7 @@ class RegisterRequest extends FormRequest
         return [
             'email.unique'  => 'This email address is already registered.',
             'gender.in'     => 'Gender must be male or female.',
-            'profile_created_by.in' => 'Profile created by must be self, parents, or siblings.',
+            'profile_created_by.in' => 'Please select who created this profile.',
         ];
     }
 }

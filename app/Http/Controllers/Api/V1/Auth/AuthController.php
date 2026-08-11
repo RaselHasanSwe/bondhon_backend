@@ -48,7 +48,7 @@ class AuthController extends ApiController
                     new OA\Property(property: 'password', type: 'string', format: 'password', example: 'password123'),
                     new OA\Property(property: 'password_confirmation', type: 'string', example: 'password123'),
                     new OA\Property(property: 'gender', type: 'string', enum: ['male', 'female'], example: 'male'),
-                    new OA\Property(property: 'profile_created_by', type: 'string', enum: ['self', 'parents', 'siblings'], example: 'self'),
+                    new OA\Property(property: 'profile_created_by', type: 'string', enum: ['self', 'parents', 'siblings', 'guardian', 'relative_and_friends'], example: 'self'),
                 ]
             )
         ),

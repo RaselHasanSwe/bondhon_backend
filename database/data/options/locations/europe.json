@@ -1,0 +1,630 @@
+{
+    "group_key": "country",
+    "entry": {
+        "value": "europe",
+        "label": "Europe",
+        "sort_order": 6,
+        "metadata": {
+            "hierarchy_type": "region_city",
+            "level_2_label": "Region",
+            "level_3_label": "City",
+            "field_map": {
+                "level_2": "state",
+                "level_3": "city"
+            }
+        },
+        "children": [
+            {
+                "value": "austria",
+                "label": "Austria",
+                "children": [
+                    {
+                        "value": "vienna",
+                        "label": "Vienna",
+                        "sort_order": 1
+                    },
+                    {
+                        "value": "other",
+                        "label": "Other",
+                        "sort_order": 2
+                    }
+                ]
+            },
+            {
+                "value": "belgium",
+                "label": "Belgium",
+                "children": [
+                    {
+                        "value": "brussels",
+                        "label": "Brussels",
+                        "sort_order": 1
+                    },
+                    {
+                        "value": "other",
+                        "label": "Other",
+                        "sort_order": 2
+                    }
+                ]
+            },
+            {
+                "value": "belarus",
+                "label": "Belarus",
+                "children": [
+                    {
+                        "value": "minsk",
+                        "label": "Minsk",
+                        "sort_order": 1
+                    },
+                    {
+                        "value": "other",
+                        "label": "Other",
+                        "sort_order": 2
+                    }
+                ]
+            },
+            {
+                "value": "denmark",
+                "label": "Denmark",
+                "children": [
+                    {
+                        "value": "copenhagen",
+                        "label": "Copenhagen",
+                        "sort_order": 1
+                    },
+                    {
+                        "value": "aarhus",
+                        "label": "Aarhus",
+                        "sort_order": 2
+                    },
+                    {
+                        "value": "aalborg",
+                        "label": "Aalborg",
+                        "sort_order": 3
+                    },
+                    {
+                        "value": "other",
+                        "label": "Other",
+                        "sort_order": 4
+                    }
+                ]
+            },
+            {
+                "value": "finland",
+                "label": "Finland",
+                "children": [
+                    {
+                        "value": "helsinki",
+                        "label": "Helsinki",
+                        "sort_order": 1
+                    },
+                    {
+                        "value": "tampere",
+                        "label": "Tampere",
+                        "sort_order": 2
+                    },
+                    {
+                        "value": "oulu",
+                        "label": "Oulu",
+                        "sort_order": 3
+                    },
+                    {
+                        "value": "other",
+                        "label": "Other",
+                        "sort_order": 4
+                    }
+                ]
+            },
+            {
+                "value": "france",
+                "label": "France",
+                "children": [
+                    {
+                        "value": "paris",
+                        "label": "Paris",
+                        "sort_order": 1
+                    },
+                    {
+                        "value": "other",
+                        "label": "Other",
+                        "sort_order": 2
+                    }
+                ]
+            },
+            {
+                "value": "germany",
+                "label": "Germany",
+                "children": [
+                    {
+                        "value": "berlin",
+                        "label": "Berlin",
+                        "sort_order": 1
+                    },
+                    {
+                        "value": "munich",
+                        "label": "Munich",
+                        "sort_order": 2
+                    },
+                    {
+                        "value": "hamburg",
+                        "label": "Hamburg",
+                        "sort_order": 3
+                    },
+                    {
+                        "value": "frankfurt",
+                        "label": "Frankfurt",
+                        "sort_order": 4
+                    },
+                    {
+                        "value": "cologne_d_sseldorf",
+                        "label": "Cologne & Düsseldorf",
+                        "sort_order": 5
+                    },
+                    {
+                        "value": "other",
+                        "label": "Other",
+                        "sort_order": 6
+                    }
+                ]
+            },
+            {
+                "value": "greece",
+                "label": "Greece",
+                "children": [
+                    {
+                        "value": "athens",
+                        "label": "Athens",
+                        "sort_order": 1
+                    },
+                    {
+                        "value": "manolada_ilia",
+                        "label": "Manolada (Ilia)",
+                        "sort_order": 2
+                    },
+                    {
+                        "value": "other",
+                        "label": "Other",
+                        "sort_order": 3
+                    }
+                ]
+            },
+            {
+                "value": "italy",
+                "label": "Italy",
+                "children": [
+                    {
+                        "value": "rome",
+                        "label": "Rome",
+                        "sort_order": 1
+                    },
+                    {
+                        "value": "milan",
+                        "label": "Milan",
+                        "sort_order": 2
+                    },
+                    {
+                        "value": "venice",
+                        "label": "Venice",
+                        "sort_order": 3
+                    },
+                    {
+                        "value": "naples",
+                        "label": "Naples",
+                        "sort_order": 4
+                    },
+                    {
+                        "value": "padova",
+                        "label": "Padova",
+                        "sort_order": 5
+                    },
+                    {
+                        "value": "vicenza",
+                        "label": "Vicenza",
+                        "sort_order": 6
+                    },
+                    {
+                        "value": "palermo_sicily",
+                        "label": "Palermo (Sicily)",
+                        "sort_order": 7
+                    },
+                    {
+                        "value": "lazio",
+                        "label": "Lazio",
+                        "sort_order": 8
+                    },
+                    {
+                        "value": "lombardy",
+                        "label": "Lombardy",
+                        "sort_order": 9
+                    },
+                    {
+                        "value": "veneto",
+                        "label": "Veneto",
+                        "sort_order": 10
+                    },
+                    {
+                        "value": "other",
+                        "label": "Other",
+                        "sort_order": 11
+                    }
+                ]
+            },
+            {
+                "value": "ireland",
+                "label": "Ireland",
+                "children": [
+                    {
+                        "value": "dublin",
+                        "label": "Dublin",
+                        "sort_order": 1
+                    },
+                    {
+                        "value": "cork",
+                        "label": "Cork",
+                        "sort_order": 2
+                    },
+                    {
+                        "value": "limerick",
+                        "label": "Limerick",
+                        "sort_order": 3
+                    },
+                    {
+                        "value": "other",
+                        "label": "Other",
+                        "sort_order": 4
+                    }
+                ]
+            },
+            {
+                "value": "malta",
+                "label": "Malta",
+                "children": [
+                    {
+                        "value": "amrun",
+                        "label": "Ħamrun",
+                        "sort_order": 1
+                    },
+                    {
+                        "value": "marsa",
+                        "label": "Marsa",
+                        "sort_order": 2
+                    },
+                    {
+                        "value": "msida_g_ira",
+                        "label": "Msida\/Gżira",
+                        "sort_order": 3
+                    },
+                    {
+                        "value": "st_paul_s_bay_bugibba",
+                        "label": "St. Paul's Bay (Bugibba)",
+                        "sort_order": 4
+                    },
+                    {
+                        "value": "birkirkara",
+                        "label": "Birkirkara",
+                        "sort_order": 5
+                    },
+                    {
+                        "value": "other",
+                        "label": "Other",
+                        "sort_order": 6
+                    }
+                ]
+            },
+            {
+                "value": "new_zealand",
+                "label": "New Zealand",
+                "children": [
+                    {
+                        "value": "auckland",
+                        "label": "Auckland",
+                        "sort_order": 1
+                    },
+                    {
+                        "value": "christchurch",
+                        "label": "Christchurch",
+                        "sort_order": 2
+                    },
+                    {
+                        "value": "hamilton",
+                        "label": "Hamilton",
+                        "sort_order": 3
+                    },
+                    {
+                        "value": "wellington",
+                        "label": "Wellington",
+                        "sort_order": 4
+                    },
+                    {
+                        "value": "tauranga",
+                        "label": "Tauranga",
+                        "sort_order": 5
+                    },
+                    {
+                        "value": "other",
+                        "label": "Other",
+                        "sort_order": 6
+                    }
+                ]
+            },
+            {
+                "value": "netherlands",
+                "label": "Netherlands",
+                "children": [
+                    {
+                        "value": "amsterdam",
+                        "label": "Amsterdam",
+                        "sort_order": 1
+                    },
+                    {
+                        "value": "rotterdam",
+                        "label": "Rotterdam",
+                        "sort_order": 2
+                    },
+                    {
+                        "value": "the_hague",
+                        "label": "The Hague",
+                        "sort_order": 3
+                    },
+                    {
+                        "value": "eindhoven",
+                        "label": "Eindhoven",
+                        "sort_order": 4
+                    },
+                    {
+                        "value": "groningen",
+                        "label": "Groningen",
+                        "sort_order": 5
+                    },
+                    {
+                        "value": "other",
+                        "label": "Other",
+                        "sort_order": 6
+                    }
+                ]
+            },
+            {
+                "value": "norway",
+                "label": "Norway",
+                "children": [
+                    {
+                        "value": "oslo",
+                        "label": "Oslo",
+                        "sort_order": 1
+                    },
+                    {
+                        "value": "bergen",
+                        "label": "Bergen",
+                        "sort_order": 2
+                    },
+                    {
+                        "value": "trondheim",
+                        "label": "Trondheim",
+                        "sort_order": 3
+                    },
+                    {
+                        "value": "other",
+                        "label": "Other",
+                        "sort_order": 4
+                    }
+                ]
+            },
+            {
+                "value": "portugal",
+                "label": "Portugal",
+                "children": [
+                    {
+                        "value": "lisbon",
+                        "label": "Lisbon",
+                        "sort_order": 1
+                    },
+                    {
+                        "value": "porto",
+                        "label": "Porto",
+                        "sort_order": 2
+                    },
+                    {
+                        "value": "other",
+                        "label": "Other",
+                        "sort_order": 3
+                    }
+                ]
+            },
+            {
+                "value": "russia",
+                "label": "Russia",
+                "children": [
+                    {
+                        "value": "moscow",
+                        "label": "Moscow",
+                        "sort_order": 1
+                    },
+                    {
+                        "value": "saint_petersburg",
+                        "label": "Saint Petersburg",
+                        "sort_order": 2
+                    },
+                    {
+                        "value": "other",
+                        "label": "Other",
+                        "sort_order": 3
+                    }
+                ]
+            },
+            {
+                "value": "romania",
+                "label": "Romania",
+                "children": [
+                    {
+                        "value": "bucharest",
+                        "label": "Bucharest",
+                        "sort_order": 1
+                    },
+                    {
+                        "value": "ilfov",
+                        "label": "Ilfov",
+                        "sort_order": 2
+                    },
+                    {
+                        "value": "constan_a",
+                        "label": "Constanța",
+                        "sort_order": 3
+                    },
+                    {
+                        "value": "timi",
+                        "label": "Timiș",
+                        "sort_order": 4
+                    },
+                    {
+                        "value": "cluj",
+                        "label": "Cluj",
+                        "sort_order": 5
+                    },
+                    {
+                        "value": "sibiu",
+                        "label": "Sibiu",
+                        "sort_order": 6
+                    },
+                    {
+                        "value": "bac_u",
+                        "label": "Bacău",
+                        "sort_order": 7
+                    },
+                    {
+                        "value": "other",
+                        "label": "Other",
+                        "sort_order": 8
+                    }
+                ]
+            },
+            {
+                "value": "spain",
+                "label": "Spain",
+                "children": [
+                    {
+                        "value": "barcelona",
+                        "label": "Barcelona",
+                        "sort_order": 1
+                    },
+                    {
+                        "value": "madrid",
+                        "label": "Madrid",
+                        "sort_order": 2
+                    },
+                    {
+                        "value": "valencia",
+                        "label": "Valencia",
+                        "sort_order": 3
+                    },
+                    {
+                        "value": "other",
+                        "label": "Other",
+                        "sort_order": 4
+                    }
+                ]
+            },
+            {
+                "value": "sweden",
+                "label": "Sweden",
+                "children": [
+                    {
+                        "value": "stockholm",
+                        "label": "Stockholm",
+                        "sort_order": 1
+                    },
+                    {
+                        "value": "gothenburg",
+                        "label": "Gothenburg",
+                        "sort_order": 2
+                    },
+                    {
+                        "value": "malm",
+                        "label": "Malmö",
+                        "sort_order": 3
+                    },
+                    {
+                        "value": "trollh_ttan",
+                        "label": "Trollhättan",
+                        "sort_order": 4
+                    },
+                    {
+                        "value": "other",
+                        "label": "Other",
+                        "sort_order": 5
+                    }
+                ]
+            },
+            {
+                "value": "switzerland",
+                "label": "Switzerland",
+                "children": [
+                    {
+                        "value": "z_rich",
+                        "label": "Zürich",
+                        "sort_order": 1
+                    },
+                    {
+                        "value": "geneva",
+                        "label": "Geneva",
+                        "sort_order": 2
+                    },
+                    {
+                        "value": "basel",
+                        "label": "Basel",
+                        "sort_order": 3
+                    },
+                    {
+                        "value": "other",
+                        "label": "Other",
+                        "sort_order": 4
+                    }
+                ]
+            },
+            {
+                "value": "ukraine",
+                "label": "Ukraine",
+                "children": [
+                    {
+                        "value": "kyiv",
+                        "label": "Kyiv",
+                        "sort_order": 1
+                    },
+                    {
+                        "value": "kharkiv",
+                        "label": "Kharkiv",
+                        "sort_order": 2
+                    },
+                    {
+                        "value": "sumy",
+                        "label": "Sumy",
+                        "sort_order": 3
+                    },
+                    {
+                        "value": "odesa",
+                        "label": "Odesa",
+                        "sort_order": 4
+                    },
+                    {
+                        "value": "dnipro",
+                        "label": "Dnipro",
+                        "sort_order": 5
+                    },
+                    {
+                        "value": "cherkasy",
+                        "label": "Cherkasy",
+                        "sort_order": 6
+                    },
+                    {
+                        "value": "zakarpattia",
+                        "label": "Zakarpattia",
+                        "sort_order": 7
+                    },
+                    {
+                        "value": "other",
+                        "label": "Other",
+                        "sort_order": 8
+                    }
+                ]
+            }
+        ]
+    }
+}

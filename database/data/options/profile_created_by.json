@@ -1,0 +1,10 @@
+{
+  "group_key": "profile_created_by",
+  "options": [
+    { "value": "self", "label": "Self", "sort_order": 1 },
+    { "value": "parents", "label": "Parents", "sort_order": 2 },
+    { "value": "siblings", "label": "Siblings", "sort_order": 3 },
+    { "value": "guardian", "label": "Guardian", "sort_order": 4 },
+    { "value": "relative_and_friends", "label": "Relative & Friends", "sort_order": 5 }
+  ]
+}

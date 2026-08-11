@@ -1,0 +1,410 @@
+{
+    "group_key": "country",
+    "entry": {
+        "value": "asia",
+        "label": "Asia",
+        "sort_order": 8,
+        "metadata": {
+            "hierarchy_type": "region_city",
+            "level_2_label": "Region",
+            "level_3_label": "City",
+            "field_map": {
+                "level_2": "state",
+                "level_3": "city"
+            }
+        },
+        "children": [
+            {
+                "value": "afghanistan",
+                "label": "Afghanistan",
+                "children": [
+                    {
+                        "value": "kabul",
+                        "label": "Kabul",
+                        "sort_order": 1
+                    },
+                    {
+                        "value": "jalalabad",
+                        "label": "Jalalabad",
+                        "sort_order": 2
+                    },
+                    {
+                        "value": "mazar_i_sharif",
+                        "label": "Mazar-i-Sharif",
+                        "sort_order": 3
+                    },
+                    {
+                        "value": "other",
+                        "label": "Other",
+                        "sort_order": 4
+                    }
+                ]
+            },
+            {
+                "value": "brunei",
+                "label": "Brunei",
+                "children": [
+                    {
+                        "value": "brunei_muara_district",
+                        "label": "Brunei-Muara District",
+                        "sort_order": 1
+                    },
+                    {
+                        "value": "belait_district",
+                        "label": "Belait District",
+                        "sort_order": 2
+                    },
+                    {
+                        "value": "bandar_seri_begawan",
+                        "label": "Bandar Seri Begawan",
+                        "sort_order": 3
+                    },
+                    {
+                        "value": "kuala_belait",
+                        "label": "Kuala Belait",
+                        "sort_order": 4
+                    },
+                    {
+                        "value": "seria",
+                        "label": "Seria",
+                        "sort_order": 5
+                    },
+                    {
+                        "value": "tutong",
+                        "label": "Tutong",
+                        "sort_order": 6
+                    },
+                    {
+                        "value": "other",
+                        "label": "Other",
+                        "sort_order": 7
+                    }
+                ]
+            },
+            {
+                "value": "china",
+                "label": "China",
+                "children": [
+                    {
+                        "value": "guangzhou",
+                        "label": "Guangzhou",
+                        "sort_order": 1
+                    },
+                    {
+                        "value": "yiwu",
+                        "label": "Yiwu",
+                        "sort_order": 2
+                    },
+                    {
+                        "value": "kunming",
+                        "label": "Kunming",
+                        "sort_order": 3
+                    },
+                    {
+                        "value": "beijing",
+                        "label": "Beijing",
+                        "sort_order": 4
+                    },
+                    {
+                        "value": "shanghai",
+                        "label": "Shanghai",
+                        "sort_order": 5
+                    },
+                    {
+                        "value": "other",
+                        "label": "Other",
+                        "sort_order": 6
+                    }
+                ]
+            },
+            {
+                "value": "india",
+                "label": "India",
+                "children": [
+                    {
+                        "value": "west_bengal",
+                        "label": "West Bengal",
+                        "sort_order": 1
+                    },
+                    {
+                        "value": "kolkata",
+                        "label": "Kolkata",
+                        "sort_order": 2
+                    },
+                    {
+                        "value": "new_delhi",
+                        "label": "New Delhi",
+                        "sort_order": 3
+                    },
+                    {
+                        "value": "maharashtra",
+                        "label": "Maharashtra",
+                        "sort_order": 4
+                    },
+                    {
+                        "value": "mumbai",
+                        "label": "Mumbai",
+                        "sort_order": 5
+                    },
+                    {
+                        "value": "karnataka",
+                        "label": "Karnataka",
+                        "sort_order": 6
+                    },
+                    {
+                        "value": "bengaluru",
+                        "label": "Bengaluru",
+                        "sort_order": 7
+                    },
+                    {
+                        "value": "chennai",
+                        "label": "Chennai",
+                        "sort_order": 8
+                    },
+                    {
+                        "value": "tamil_nadu",
+                        "label": "Tamil Nadu",
+                        "sort_order": 9
+                    },
+                    {
+                        "value": "assam",
+                        "label": "Assam",
+                        "sort_order": 10
+                    },
+                    {
+                        "value": "tripura",
+                        "label": "Tripura",
+                        "sort_order": 11
+                    },
+                    {
+                        "value": "other",
+                        "label": "Other",
+                        "sort_order": 12
+                    }
+                ]
+            },
+            {
+                "value": "japan",
+                "label": "Japan",
+                "children": [
+                    {
+                        "value": "tokyo",
+                        "label": "Tokyo",
+                        "sort_order": 1
+                    },
+                    {
+                        "value": "kita_ku",
+                        "label": "Kita-ku",
+                        "sort_order": 2
+                    },
+                    {
+                        "value": "kanto",
+                        "label": "Kanto",
+                        "sort_order": 3
+                    },
+                    {
+                        "value": "sapporo",
+                        "label": "Sapporo",
+                        "sort_order": 4
+                    },
+                    {
+                        "value": "higashijujo",
+                        "label": "Higashijujo",
+                        "sort_order": 5
+                    },
+                    {
+                        "value": "kanagawa",
+                        "label": "Kanagawa",
+                        "sort_order": 6
+                    },
+                    {
+                        "value": "chiba",
+                        "label": "Chiba",
+                        "sort_order": 7
+                    },
+                    {
+                        "value": "saitama",
+                        "label": "Saitama",
+                        "sort_order": 8
+                    },
+                    {
+                        "value": "hokkaido",
+                        "label": "Hokkaido",
+                        "sort_order": 9
+                    },
+                    {
+                        "value": "other",
+                        "label": "Other",
+                        "sort_order": 10
+                    }
+                ]
+            },
+            {
+                "value": "malaysia",
+                "label": "Malaysia",
+                "children": [
+                    {
+                        "value": "kuala_lumpur",
+                        "label": "Kuala Lumpur",
+                        "sort_order": 1
+                    },
+                    {
+                        "value": "selangor_klang_valley",
+                        "label": "Selangor (Klang Valley)",
+                        "sort_order": 2
+                    },
+                    {
+                        "value": "penang",
+                        "label": "Penang",
+                        "sort_order": 3
+                    },
+                    {
+                        "value": "johor",
+                        "label": "Johor",
+                        "sort_order": 4
+                    },
+                    {
+                        "value": "other",
+                        "label": "Other",
+                        "sort_order": 5
+                    }
+                ]
+            },
+            {
+                "value": "maldives",
+                "label": "Maldives",
+                "children": [
+                    {
+                        "value": "mal",
+                        "label": "Malé",
+                        "sort_order": 1
+                    },
+                    {
+                        "value": "hulhumal",
+                        "label": "Hulhumalé",
+                        "sort_order": 2
+                    },
+                    {
+                        "value": "other",
+                        "label": "Other",
+                        "sort_order": 3
+                    }
+                ]
+            },
+            {
+                "value": "pakistan",
+                "label": "Pakistan",
+                "children": [
+                    {
+                        "value": "karachi",
+                        "label": "Karachi",
+                        "sort_order": 1
+                    },
+                    {
+                        "value": "lahore",
+                        "label": "Lahore",
+                        "sort_order": 2
+                    },
+                    {
+                        "value": "faisalabad",
+                        "label": "Faisalabad",
+                        "sort_order": 3
+                    },
+                    {
+                        "value": "other",
+                        "label": "Other",
+                        "sort_order": 4
+                    }
+                ]
+            },
+            {
+                "value": "singapore",
+                "label": "Singapore",
+                "children": [
+                    {
+                        "value": "punggol",
+                        "label": "Punggol",
+                        "sort_order": 1
+                    },
+                    {
+                        "value": "tuas",
+                        "label": "Tuas",
+                        "sort_order": 2
+                    },
+                    {
+                        "value": "woodlands",
+                        "label": "Woodlands",
+                        "sort_order": 3
+                    },
+                    {
+                        "value": "sungei_kadut",
+                        "label": "Sungei Kadut",
+                        "sort_order": 4
+                    },
+                    {
+                        "value": "other",
+                        "label": "Other",
+                        "sort_order": 5
+                    }
+                ]
+            },
+            {
+                "value": "south_korea",
+                "label": "South Korea",
+                "children": [
+                    {
+                        "value": "seoul",
+                        "label": "Seoul",
+                        "sort_order": 1
+                    },
+                    {
+                        "value": "ansan_wongok_dong",
+                        "label": "Ansan (Wongok-dong)",
+                        "sort_order": 2
+                    },
+                    {
+                        "value": "hwaseong",
+                        "label": "Hwaseong",
+                        "sort_order": 3
+                    },
+                    {
+                        "value": "incheon",
+                        "label": "Incheon",
+                        "sort_order": 4
+                    },
+                    {
+                        "value": "other",
+                        "label": "Other",
+                        "sort_order": 5
+                    }
+                ]
+            },
+            {
+                "value": "thailand",
+                "label": "Thailand",
+                "children": [
+                    {
+                        "value": "bangkok",
+                        "label": "Bangkok",
+                        "sort_order": 1
+                    },
+                    {
+                        "value": "chiang_mai",
+                        "label": "Chiang Mai",
+                        "sort_order": 2
+                    },
+                    {
+                        "value": "pattaya",
+                        "label": "Pattaya",
+                        "sort_order": 3
+                    },
+                    {
+                        "value": "other",
+                        "label": "Other",
+                        "sort_order": 4
+                    }
+                ]
+            }
+        ]
+    }
+}

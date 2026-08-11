@@ -1,0 +1,281 @@
+{
+    "group_key": "country",
+    "entry": {
+        "value": "middle_east",
+        "label": "Middle East",
+        "sort_order": 5,
+        "metadata": {
+            "hierarchy_type": "region_city",
+            "level_2_label": "Region",
+            "level_3_label": "City",
+            "field_map": {
+                "level_2": "state",
+                "level_3": "city"
+            }
+        },
+        "children": [
+            {
+                "value": "bahrain",
+                "label": "Bahrain",
+                "children": [
+                    {
+                        "value": "manama",
+                        "label": "Manama",
+                        "sort_order": 1
+                    },
+                    {
+                        "value": "other",
+                        "label": "Other",
+                        "sort_order": 2
+                    }
+                ]
+            },
+            {
+                "value": "cyprus",
+                "label": "Cyprus",
+                "children": [
+                    {
+                        "value": "nicosia",
+                        "label": "Nicosia",
+                        "sort_order": 1
+                    },
+                    {
+                        "value": "limassol",
+                        "label": "Limassol",
+                        "sort_order": 2
+                    },
+                    {
+                        "value": "larnaca",
+                        "label": "Larnaca",
+                        "sort_order": 3
+                    },
+                    {
+                        "value": "other",
+                        "label": "Other",
+                        "sort_order": 4
+                    }
+                ]
+            },
+            {
+                "value": "egypt",
+                "label": "Egypt",
+                "children": [
+                    {
+                        "value": "cairo",
+                        "label": "Cairo",
+                        "sort_order": 1
+                    },
+                    {
+                        "value": "other",
+                        "label": "Other",
+                        "sort_order": 2
+                    }
+                ]
+            },
+            {
+                "value": "iraq",
+                "label": "Iraq",
+                "children": [
+                    {
+                        "value": "baghdad",
+                        "label": "Baghdad",
+                        "sort_order": 1
+                    },
+                    {
+                        "value": "other",
+                        "label": "Other",
+                        "sort_order": 2
+                    }
+                ]
+            },
+            {
+                "value": "jordan",
+                "label": "Jordan",
+                "children": [
+                    {
+                        "value": "amman",
+                        "label": "Amman",
+                        "sort_order": 1
+                    },
+                    {
+                        "value": "other",
+                        "label": "Other",
+                        "sort_order": 2
+                    }
+                ]
+            },
+            {
+                "value": "kuwait",
+                "label": "Kuwait",
+                "children": [
+                    {
+                        "value": "kuwait_city",
+                        "label": "Kuwait City",
+                        "sort_order": 1
+                    },
+                    {
+                        "value": "al_farwaniya",
+                        "label": "Al Farwaniya",
+                        "sort_order": 2
+                    },
+                    {
+                        "value": "jleeb_al_shuyoukh",
+                        "label": "Jleeb Al-Shuyoukh",
+                        "sort_order": 3
+                    },
+                    {
+                        "value": "khaitan",
+                        "label": "Khaitan",
+                        "sort_order": 4
+                    },
+                    {
+                        "value": "salmiya",
+                        "label": "Salmiya",
+                        "sort_order": 5
+                    },
+                    {
+                        "value": "other",
+                        "label": "Other",
+                        "sort_order": 6
+                    }
+                ]
+            },
+            {
+                "value": "lebanon",
+                "label": "Lebanon",
+                "children": [
+                    {
+                        "value": "beirut",
+                        "label": "Beirut",
+                        "sort_order": 1
+                    },
+                    {
+                        "value": "other",
+                        "label": "Other",
+                        "sort_order": 2
+                    }
+                ]
+            },
+            {
+                "value": "oman",
+                "label": "Oman",
+                "children": [
+                    {
+                        "value": "muscat",
+                        "label": "Muscat",
+                        "sort_order": 1
+                    },
+                    {
+                        "value": "sohar",
+                        "label": "Sohar",
+                        "sort_order": 2
+                    },
+                    {
+                        "value": "salalah",
+                        "label": "Salalah",
+                        "sort_order": 3
+                    },
+                    {
+                        "value": "other",
+                        "label": "Other",
+                        "sort_order": 4
+                    }
+                ]
+            },
+            {
+                "value": "qatar",
+                "label": "Qatar",
+                "children": [
+                    {
+                        "value": "doha",
+                        "label": "Doha",
+                        "sort_order": 1
+                    },
+                    {
+                        "value": "other",
+                        "label": "Other",
+                        "sort_order": 2
+                    }
+                ]
+            },
+            {
+                "value": "saudi_arabia",
+                "label": "Saudi Arabia",
+                "children": [
+                    {
+                        "value": "riyadh",
+                        "label": "Riyadh",
+                        "sort_order": 1
+                    },
+                    {
+                        "value": "jeddah",
+                        "label": "Jeddah",
+                        "sort_order": 2
+                    },
+                    {
+                        "value": "mecca_makkah",
+                        "label": "Mecca (Makkah)",
+                        "sort_order": 3
+                    },
+                    {
+                        "value": "jubail_and_dammam",
+                        "label": "Jubail and Dammam",
+                        "sort_order": 4
+                    },
+                    {
+                        "value": "other",
+                        "label": "Other",
+                        "sort_order": 5
+                    }
+                ]
+            },
+            {
+                "value": "turkey",
+                "label": "Turkey",
+                "children": [
+                    {
+                        "value": "ankara",
+                        "label": "Ankara",
+                        "sort_order": 1
+                    },
+                    {
+                        "value": "istanbul",
+                        "label": "Istanbul",
+                        "sort_order": 2
+                    },
+                    {
+                        "value": "other",
+                        "label": "Other",
+                        "sort_order": 3
+                    }
+                ]
+            },
+            {
+                "value": "united_arab_emirates_uae",
+                "label": "United Arab Emirates (UAE)",
+                "children": [
+                    {
+                        "value": "abu_dhabi",
+                        "label": "Abu Dhabi",
+                        "sort_order": 1
+                    },
+                    {
+                        "value": "dubai",
+                        "label": "Dubai",
+                        "sort_order": 2
+                    },
+                    {
+                        "value": "sharjah",
+                        "label": "Sharjah",
+                        "sort_order": 3
+                    },
+                    {
+                        "value": "other",
+                        "label": "Other",
+                        "sort_order": 4
+                    }
+                ]
+            }
+        ]
+    }
+}

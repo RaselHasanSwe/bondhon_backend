@@ -16,7 +16,7 @@ class UpdateProfileRequest extends FormRequest
         return [
             // User-level fields
             'name'               => ['nullable', 'string', 'max:100'],
-            'profile_created_by' => ['nullable', 'in:self,parents,siblings,relative,friend,other'],
+            'profile_created_by' => ['nullable', 'in:self,parents,siblings,guardian,relative_and_friends'],
 
             // Basic profile
             'nick_name'          => ['nullable', 'string', 'max:100'],
@@ -30,13 +30,14 @@ class UpdateProfileRequest extends FormRequest
             'hair_color'         => ['nullable', 'string', 'max:50'],
             'complexion'         => ['nullable', 'in:very_fair,fair,wheatish,dark'],
             'blood_group'        => ['nullable', 'in:A+,A-,B+,B-,O+,O-,AB+,AB-'],
-            'marital_status'     => ['nullable', 'in:never_married,divorced,widowed,awaiting_divorce'],
+            'marital_status'     => ['nullable', 'in:never_married,widowed,divorced,separated'],
             'disability'         => ['nullable', 'string', 'max:50'],
             'mother_tongue'      => ['nullable', 'string', 'max:100'],
             'nationality'        => ['nullable', 'string', 'max:100'],
             'country'            => ['nullable', 'string', 'max:100'],
             'state'              => ['nullable', 'string', 'max:100'],
             'city'               => ['nullable', 'string', 'max:100'],
+            'upazila'            => ['nullable', 'string', 'max:100'],
             'postal_code'        => ['nullable', 'string', 'max:20'],
             'residing_status'    => ['nullable', 'in:citizen,permanent_resident,work_permit,student_visa,visitor_visa,refugee,other'],
             'about_me'           => ['nullable', 'string', 'max:2000'],

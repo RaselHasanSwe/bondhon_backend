@@ -1,0 +1,212 @@
+{
+    "group_key": "country",
+    "entry": {
+        "value": "united_kingdom",
+        "label": "United Kingdom",
+        "sort_order": 3,
+        "metadata": {
+            "hierarchy_type": "flat_region_city",
+            "level_2_label": "Region \/ City",
+            "field_map": {
+                "level_2": "state"
+            }
+        },
+        "children": [
+            {
+                "value": "england",
+                "label": "England",
+                "sort_order": 1
+            },
+            {
+                "value": "scotland",
+                "label": "Scotland",
+                "sort_order": 2
+            },
+            {
+                "value": "wales",
+                "label": "Wales",
+                "sort_order": 3
+            },
+            {
+                "value": "northern_ireland",
+                "label": "Northern Ireland",
+                "sort_order": 4
+            },
+            {
+                "value": "london",
+                "label": "London",
+                "sort_order": 5
+            },
+            {
+                "value": "birmingham",
+                "label": "Birmingham",
+                "sort_order": 6
+            },
+            {
+                "value": "luton",
+                "label": "Luton",
+                "sort_order": 7
+            },
+            {
+                "value": "oldham",
+                "label": "Oldham",
+                "sort_order": 8
+            },
+            {
+                "value": "bradford",
+                "label": "Bradford",
+                "sort_order": 9
+            },
+            {
+                "value": "manchester",
+                "label": "Manchester",
+                "sort_order": 10
+            },
+            {
+                "value": "liverpool",
+                "label": "Liverpool",
+                "sort_order": 11
+            },
+            {
+                "value": "leeds",
+                "label": "Leeds",
+                "sort_order": 12
+            },
+            {
+                "value": "bristol",
+                "label": "Bristol",
+                "sort_order": 13
+            },
+            {
+                "value": "newcastle",
+                "label": "Newcastle",
+                "sort_order": 14
+            },
+            {
+                "value": "cambridge",
+                "label": "Cambridge",
+                "sort_order": 15
+            },
+            {
+                "value": "oxford",
+                "label": "Oxford",
+                "sort_order": 16
+            },
+            {
+                "value": "nottingham",
+                "label": "Nottingham",
+                "sort_order": 17
+            },
+            {
+                "value": "sheffield",
+                "label": "Sheffield",
+                "sort_order": 18
+            },
+            {
+                "value": "leicester",
+                "label": "Leicester",
+                "sort_order": 19
+            },
+            {
+                "value": "coventry",
+                "label": "Coventry",
+                "sort_order": 20
+            },
+            {
+                "value": "brighton_and_hove",
+                "label": "Brighton and Hove",
+                "sort_order": 21
+            },
+            {
+                "value": "derby",
+                "label": "Derby",
+                "sort_order": 22
+            },
+            {
+                "value": "kingston_upon_hull",
+                "label": "Kingston-upon-Hull",
+                "sort_order": 23
+            },
+            {
+                "value": "plymouth",
+                "label": "Plymouth",
+                "sort_order": 24
+            },
+            {
+                "value": "edinburgh",
+                "label": "Edinburgh",
+                "sort_order": 25
+            },
+            {
+                "value": "glasgow",
+                "label": "Glasgow",
+                "sort_order": 26
+            },
+            {
+                "value": "aberdeen",
+                "label": "Aberdeen",
+                "sort_order": 27
+            },
+            {
+                "value": "dundee",
+                "label": "Dundee",
+                "sort_order": 28
+            },
+            {
+                "value": "cardiff",
+                "label": "Cardiff",
+                "sort_order": 29
+            },
+            {
+                "value": "swansea",
+                "label": "Swansea",
+                "sort_order": 30
+            },
+            {
+                "value": "newport",
+                "label": "Newport",
+                "sort_order": 31
+            },
+            {
+                "value": "westminster",
+                "label": "Westminster",
+                "sort_order": 32
+            },
+            {
+                "value": "york",
+                "label": "York",
+                "sort_order": 33
+            },
+            {
+                "value": "belfast",
+                "label": "Belfast",
+                "sort_order": 34
+            },
+            {
+                "value": "derry_londonderry",
+                "label": "Derry\/Londonderry",
+                "sort_order": 35
+            },
+            {
+                "value": "armagh",
+                "label": "Armagh",
+                "sort_order": 36
+            },
+            {
+                "value": "bangor",
+                "label": "Bangor",
+                "sort_order": 37
+            },
+            {
+                "value": "lisburn",
+                "label": "Lisburn",
+                "sort_order": 38
+            },
+            {
+                "value": "others",
+                "label": "Others",
+                "sort_order": 39
+            }
+        ]
+    }
+}
