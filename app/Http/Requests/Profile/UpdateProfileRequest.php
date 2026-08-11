@@ -33,7 +33,7 @@ class UpdateProfileRequest extends FormRequest
             'marital_status'     => ['nullable', 'in:never_married,widowed,divorced,separated'],
             'disability'         => ['nullable', 'string', 'max:50'],
             'mother_tongue'      => ['nullable', 'string', 'max:100'],
-            'nationality'        => ['nullable', 'string', 'max:100'],
+            // 'nationality'        => ['nullable', 'string', 'max:100'],
             'country'            => ['nullable', 'string', 'max:100'],
             'state'              => ['nullable', 'string', 'max:100'],
             'city'               => ['nullable', 'string', 'max:100'],

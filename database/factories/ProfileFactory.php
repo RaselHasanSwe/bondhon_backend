@@ -117,7 +117,7 @@ class ProfileFactory extends Factory
             'marital_status' => $this->getRandomOption('marital_status'),
             'disability' => $this->getRandomOption('disability') ?? 'none',
             'mother_tongue' => $this->getRandomOption('mother_tongue') ?? 'bengali',
-            'nationality' => $this->getRandomOption('nationality') ?? 'bangladeshi',
+            // 'nationality' => $this->getRandomOption('nationality') ?? 'bangladeshi',
             'country' => $location['country'],
             'city' => $location['city'],
             'state' => $location['state'],

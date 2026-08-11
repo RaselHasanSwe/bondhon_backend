@@ -30,6 +30,10 @@ class SelectOptionController extends ApiController
             return response()->json(['groups' => (object) [], 'children' => (object) []]);
         }
 
+        $groups = array_values(array_filter(
+            $groups,
+            fn (string $group) => ! SelectOption::isRetiredGroup($group)
+        ));
         sort($groups);
         $childrenKey = collect($children)
             ->map(fn (array $child) => "{$child['group']}:{$child['parent_id']}")
@@ -56,6 +60,10 @@ class SelectOptionController extends ApiController
      */
     public function index(Request $request, string $group): JsonResponse
     {
+        if (SelectOption::isRetiredGroup($group)) {
+            return response()->json([]);
+        }
+
         $parentId = $this->normalizeParentId($request->query('parent_id'));
 
         $cacheKey = "options:{$group}:parent:{$parentId}";
@@ -129,6 +137,10 @@ class SelectOptionController extends ApiController
      */
     private function fetchOptions(string $group, int|string|null $parentId): array
     {
+        if (SelectOption::isRetiredGroup($group)) {
+            return [];
+        }
+
         $parentId = $this->normalizeParentId($parentId);
         $isLocationTreeRequest = $this->isLocationGroup($group);
 

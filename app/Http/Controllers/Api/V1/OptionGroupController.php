@@ -26,7 +26,10 @@ class OptionGroupController extends ApiController
             return $query->get([
                 'group_key', 'label', 'profile_tab', 'field_name',
                 'input_type', 'parent_group_key', 'max_nesting_depth', 'sort_order',
-            ])->toArray();
+            ])
+                ->reject(fn (array $group) => \App\Models\SelectOption::isRetiredGroup($group['group_key']))
+                ->values()
+                ->toArray();
         });
 
         return response()->json($groups);

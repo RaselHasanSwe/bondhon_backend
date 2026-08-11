@@ -272,13 +272,13 @@ class SelectOptionSeeder extends Seeder
             $i(['group_key' => 'hobbies', 'value' => $v, 'label' => $l, 'sort_order' => $n + 1]);
         }
 
-        // ── Nationality ───────────────────────────────────────────────
-        foreach ([
-                     ['bangladeshi', 'Bangladeshi'],
-                     ['american', 'American'], ['canadian', 'Canadian'], ['other', 'Other'],
-                 ] as $n => [$v, $l]) {
-            $i(['group_key' => 'nationality', 'value' => $v, 'label' => $l, 'sort_order' => $n + 1]);
-        }
+        // ── Nationality (retired — restore block below + remove from SelectOption::retiredGroups()) ──
+        // foreach ([
+        //              ['bangladeshi', 'Bangladeshi'],
+        //              ['american', 'American'], ['canadian', 'Canadian'], ['other', 'Other'],
+        //          ] as $n => [$v, $l]) {
+        //     $i(['group_key' => 'nationality', 'value' => $v, 'label' => $l, 'sort_order' => $n + 1]);
+        // }
 
 
         // ── Residing Status ───────────────────────────────────────────
