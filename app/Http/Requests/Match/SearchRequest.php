@@ -31,7 +31,7 @@ class SearchRequest extends FormRequest
             'state'           => ['nullable', 'string', 'max:100'],
             'city'            => ['nullable', 'string', 'max:100'],
             'upazila'         => ['nullable', 'string', 'max:100'],
-            'nationality'     => ['nullable', 'string', 'max:100'],
+            // 'nationality'     => ['nullable', 'string', 'max:100'],
             'residing_status' => ['nullable', 'string', 'in:citizen,permanent_resident,work_permit,student_visa,visitor_visa,refugee,other'],
             'diet'            => ['nullable', 'string', 'in:vegetarian,non_vegetarian,vegan,jain'],
             'smoking'         => ['nullable', 'string', 'in:non_smoker,smoker,occasionally'],

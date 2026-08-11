@@ -20,7 +20,12 @@ class AdminSelectOptionController extends ApiController
         $query = SelectOption::with('children')->topLevel()->orderBy('group_key')->orderBy('sort_order');
 
         if ($request->filled('group_key')) {
+            if (SelectOption::isRetiredGroup($request->group_key)) {
+                return response()->json(['data' => [], 'current_page' => 1, 'last_page' => 1, 'per_page' => 100, 'total' => 0]);
+            }
             $query->group($request->group_key);
+        } else {
+            $query->whereNotIn('group_key', SelectOption::retiredGroups());
         }
 
         $options = $query->paginate(100);
@@ -37,7 +42,9 @@ class AdminSelectOptionController extends ApiController
         $groups = SelectOption::select('group_key')
             ->distinct()
             ->orderBy('group_key')
-            ->pluck('group_key');
+            ->pluck('group_key')
+            ->reject(fn (string $group) => SelectOption::isRetiredGroup($group))
+            ->values();
 
         return response()->json($groups);
     }

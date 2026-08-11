@@ -30,7 +30,7 @@ class OptionGroupConfigSeeder extends Seeder
         $g(['group_key'=>'mother_tongue',       'label'=>'Mother Tongue',        'profile_tab'=>'basic',    'field_name'=>'mother_tongue',       'input_type'=>'select']);
 
         // ── Location Tab ───────────────────────────────────────────────
-        $g(['group_key'=>'nationality',     'label'=>'Nationality',         'profile_tab'=>'location', 'field_name'=>'nationality',     'input_type'=>'select']);
+        // $g(['group_key'=>'nationality',     'label'=>'Nationality',         'profile_tab'=>'location', 'field_name'=>'nationality',     'input_type'=>'select']);
         $g(['group_key'=>'country',         'label'=>'Country',             'profile_tab'=>'location', 'field_name'=>'country',         'input_type'=>'select',       'parent_group_key'=>'country',     'max_nesting_depth'=>4]);
         $g(['group_key'=>'residing_status', 'label'=>'Residing Status',     'profile_tab'=>'location', 'field_name'=>'residing_status', 'input_type'=>'select']);
 

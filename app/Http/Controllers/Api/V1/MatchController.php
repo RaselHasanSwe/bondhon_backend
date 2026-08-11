@@ -176,9 +176,9 @@ class MatchController extends ApiController
         if ($request->filled('upazila')) {
             $query->where('profiles.upazila', $request->upazila);
         }
-        if ($request->filled('nationality')) {
-            $query->where('profiles.nationality', $request->nationality);
-        }
+        // if ($request->filled('nationality')) {
+        //     $query->where('profiles.nationality', $request->nationality);
+        // }
         if ($request->filled('residing_status')) {
             $query->where('profiles.residing_status', $request->residing_status);
         }
@@ -254,7 +254,7 @@ class MatchController extends ApiController
                   ->orWhere('profiles.city', 'like', '%' . $kw . '%')
                   ->orWhere('profiles.state', 'like', '%' . $kw . '%')
                   ->orWhere('profiles.country', 'like', '%' . $kw . '%')
-                  ->orWhere('profiles.nationality', 'like', '%' . $kw . '%')
+                  // ->orWhere('profiles.nationality', 'like', '%' . $kw . '%')
                   ->orWhere('religious_details.religion', 'like', '%' . $kw . '%')
                   ->orWhere('education_careers.profession', 'like', '%' . $kw . '%')
                   ->orWhere('education_careers.highest_education', 'like', '%' . $kw . '%')

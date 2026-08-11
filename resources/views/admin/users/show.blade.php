@@ -343,7 +343,9 @@
                     <div class="section-divider">Location & Background</div>
                     <div class="ud-meta-row mb-3">
                         <div class="ud-meta-item"><span class="label">Mother Tongue</span><span class="value">{{ humanize($profile->mother_tongue) ?? $profile->mother_tongue ?? '—' }}</span></div>
+                        {{-- Nationality retired — restore OptionGroupConfigSeeder + SelectOptionSeeder blocks to bring back
                         <div class="ud-meta-item"><span class="label">Nationality</span><span class="value">{{ humanize($profile->nationality) ?? $profile->nationality ?? '—' }}</span></div>
+                        --}}
                         @foreach(profile_location_fields($profile) as $locationField)
                             <div class="ud-meta-item">
                                 <span class="label">{{ $locationField['label'] }}</span>

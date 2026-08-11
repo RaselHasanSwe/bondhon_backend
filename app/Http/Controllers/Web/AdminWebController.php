@@ -1020,23 +1020,31 @@ class AdminWebController extends Controller
     public function selectOptions(Request $request): View
     {
         // Load ALL group configs ordered by sort_order
-        $allConfigs = OptionGroupConfig::orderBy('sort_order')->get()->keyBy('group_key');
+        $allConfigs = OptionGroupConfig::orderBy('sort_order')
+            ->get()
+            ->reject(fn ($config) => SelectOption::isRetiredGroup($config->group_key))
+            ->keyBy('group_key');
 
         // Build groups array: group_key => label
         $groups = $allConfigs->mapWithKeys(fn($c) => [$c->group_key => $c->label])->toArray();
 
         $group = $request->get('group', 'all');
+        if ($group !== 'all' && SelectOption::isRetiredGroup($group)) {
+            return redirect()->route('admin.web.select-options.index', ['group' => 'all']);
+        }
         // Search query (search across id, label, value, group_key and parent label)
         $search = trim((string) $request->get('q', ''));
 
         // Groups with counts
         $groupCounts = SelectOption::selectRaw('group_key, COUNT(*) as cnt')
+            ->whereNotIn('group_key', SelectOption::retiredGroups())
             ->groupBy('group_key')
             ->pluck('cnt', 'group_key');
 
         // "All Groups" mode — show every option with group label column
         if ($group === 'all') {
             $allQuery = SelectOption::with('parent')
+                ->whereNotIn('group_key', SelectOption::retiredGroups())
                 ->orderBy('group_key')->orderBy('sort_order');
 
             if ($search !== '') {

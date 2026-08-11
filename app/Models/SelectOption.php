@@ -56,6 +56,24 @@ class SelectOption extends Model
 
     // ── Helpers ───────────────────────────────────────────────────────
 
+    /**
+     * Option groups temporarily hidden from UI/API.
+     * Remove group from this list and restore seeders to bring back.
+     *
+     * @return list<string>
+     */
+    public static function retiredGroups(): array
+    {
+        return [
+            'nationality',
+        ];
+    }
+
+    public static function isRetiredGroup(string $groupKey): bool
+    {
+        return in_array($groupKey, self::retiredGroups(), true);
+    }
+
     public static function optionsFor(string $groupKey, ?int $parentId = null): array
     {
         return static::active()
