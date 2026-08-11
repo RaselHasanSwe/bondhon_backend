@@ -17,12 +17,12 @@ DB::transaction(function () {
     $dist = SelectOption::where('group_key', 'bd_district')->update(['group_key' => 'country']);
     echo "Moved bd_district rows: $dist\n";
 
-    // 3. Update country OptionGroupConfig to self-nested, depth 5
+    // 3. Update country OptionGroupConfig to self-nested, depth 4 (Country → Division → District → Upazila)
     OptionGroupConfig::where('group_key', 'country')->update([
         'parent_group_key'  => 'country',
-        'max_nesting_depth' => 5,
+        'max_nesting_depth' => 4,
     ]);
-    echo "Updated country config to self-nested (depth 5)\n";
+    echo "Updated country config to self-nested (depth 4)\n";
 
     // 4. Remove now-obsolete group configs
     OptionGroupConfig::whereIn('group_key', ['bd_division', 'bd_district'])->delete();

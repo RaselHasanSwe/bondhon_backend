@@ -31,7 +31,7 @@
                 Value: <code>{{ $option->value }}</code>
                 <span class="text-warning ms-2">(value cannot be changed)</span>
                 @if($isSelfNested)
-                    &nbsp;·&nbsp;<span class="badge bg-secondary">Self-nested tree</span>
+                    &nbsp;·&nbsp;<span class="badge bg-secondary">Hierarchical</span>
                 @elseif($parentGroupKey)
                     &nbsp;·&nbsp;<span class="badge bg-info text-dark">Children of: {{ $groups[$parentGroupKey] ?? $parentGroupKey }}</span>
                 @endif

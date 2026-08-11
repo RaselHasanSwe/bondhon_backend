@@ -1076,7 +1076,7 @@ class AdminWebController extends Controller
 
         // Current group config
         $config   = $allConfigs->get($group);
-        $maxDepth = $config ? min((int)$config->max_nesting_depth, 5) : 1;
+        $maxDepth = $config ? (int) $config->max_nesting_depth : 1;
 
         // Parent group for this group (from config)
         $parentGroupKey = $config?->parent_group_key;
@@ -1133,7 +1133,7 @@ class AdminWebController extends Controller
      * Build a flat list with depth info from a keyed collection of SelectOption.
      * Handles both self-nesting and cross-group nesting.
      */
-    private function buildFlatTree($allInGroup, int $maxDepth = 5): array
+    private function buildFlatTree($allInGroup, int $maxDepth = 4): array
     {
         $rows = [];
         $this->recurseTree($allInGroup, null, 0, $maxDepth, $rows, []);
@@ -1183,7 +1183,7 @@ class AdminWebController extends Controller
 
         // Enforce depth limit from group config
         if (!empty($validated['parent_id'])) {
-            $maxDepth = $config ? min((int)$config->max_nesting_depth, 5) : 5;
+            $maxDepth = $config ? (int) $config->max_nesting_depth : 4;
             $depth    = $this->getOptionDepth((int)$validated['parent_id']);
             if ($depth + 1 >= $maxDepth) {
                 return back()->with('error', "Max nesting depth ({$maxDepth}) reached for this group.");
@@ -1216,7 +1216,7 @@ class AdminWebController extends Controller
     {
         $depth = 0;
         $current = SelectOption::find($optionId);
-        while ($current && $current->parent_id && $depth < 5) {
+        while ($current && $current->parent_id && $depth < 10) {
             $depth++;
             $current = SelectOption::find($current->parent_id);
         }

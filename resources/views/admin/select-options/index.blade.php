@@ -66,8 +66,8 @@
     @if($isSelfNested)
     <div class="alert alert-secondary alert-dismissible fade show py-2 small mb-0 mt-2" role="alert">
         <i class="bi bi-diagram-3 me-1"></i>
-        <strong>Self-nested group</strong> — options can have parent options within the same group (tree structure, max depth: {{ $maxDepth }}).
-        <button type="button" class="btn-close btn-sm" data-bs-dismiss="alert"></button>
+        Country → Division → District → Upazila <span class="text-muted">({{ $maxDepth }} levels)</span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
     @endif
 </div>
@@ -75,13 +75,13 @@
 @if(session('success'))
     <div class="alert alert-success alert-dismissible fade show py-2 small" role="alert">
         <i class="bi bi-check-circle me-1"></i>{{ session('success') }}
-        <button type="button" class="btn-close btn-sm" data-bs-dismiss="alert"></button>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
 @endif
 @if(session('error'))
     <div class="alert alert-danger alert-dismissible fade show py-2 small" role="alert">
         <i class="bi bi-exclamation-circle me-1"></i>{{ session('error') }}
-        <button type="button" class="btn-close btn-sm" data-bs-dismiss="alert"></button>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
 @endif
 
@@ -252,7 +252,7 @@
                             <input type="hidden" name="parent_id" id="parentIdFixed">
                             <div class="border rounded px-3 py-2 bg-light small d-flex justify-content-between align-items-center">
                                 <span>Child of: <strong id="parentLabelFixed"></strong></span>
-                                <button type="button" class="btn-close btn-sm" onclick="clearParent()" title="Remove parent"></button>
+                                <button type="button" class="btn-close" onclick="clearParent()" aria-label="Remove parent"></button>
                             </div>
                         </div>
                         <div id="parentSelect">
@@ -266,7 +266,7 @@
                                     @endif
                                 @endforeach
                             </select>
-                            <small class="text-muted">Leave blank to add at the root. Max depth: {{ $maxDepth }}.</small>
+                            <small class="text-muted">Max {{ $maxDepth }} levels.</small>
                         </div>
                     </div>
                     @endif

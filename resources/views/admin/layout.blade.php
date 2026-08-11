@@ -89,6 +89,13 @@
             font-size: 1.25rem;
         }
         .table-card { background: #fff; border-radius: 12px; border: 1px solid #e5e7eb; }
+        .alert-dismissible .btn-close {
+            top: 50%;
+            right: 0.75rem;
+            transform: translateY(-50%);
+            padding: 0.375rem;
+            margin: 0;
+        }
         .badge-silver { background-color: #9ca3af; color: #fff; }
         .badge-gold { background-color: #C9A227; color: #fff; }
         .badge-platinum { background-color: #7c3aed; color: #fff; }
