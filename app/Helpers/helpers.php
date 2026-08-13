@@ -125,6 +125,57 @@ if (! function_exists('country_option_labels')) {
     }
 }
 
+if (! function_exists('format_height_imperial')) {
+    function format_height_imperial(int|string|null $cm): string
+    {
+        if ($cm === null || $cm === '') {
+            return '—';
+        }
+
+        $cm = (int) $cm;
+        $totalInches = (int) round($cm / 2.54);
+        $feet = intdiv($totalInches, 12);
+        $inches = $totalInches % 12;
+
+        if ($inches === 0) {
+            return "{$feet} ft";
+        }
+
+        return "{$feet} ft {$inches} in";
+    }
+}
+
+if (! function_exists('format_height_cm')) {
+    function format_height_cm(int|string|null $cm): string
+    {
+        if ($cm === null || $cm === '') {
+            return '—';
+        }
+
+        $cm = (int) $cm;
+
+        return format_height_imperial($cm) . " ({$cm} cm)";
+    }
+}
+
+if (! function_exists('format_height_range_cm')) {
+    function format_height_range_cm(int|string|null $minCm, int|string|null $maxCm): string
+    {
+        if ($minCm === null || $minCm === '' || $maxCm === null || $maxCm === '') {
+            return '—';
+        }
+
+        $minCm = (int) $minCm;
+        $maxCm = (int) $maxCm;
+        $imperial = $minCm === $maxCm
+            ? format_height_imperial($minCm)
+            : format_height_imperial($minCm) . ' – ' . format_height_imperial($maxCm);
+        $cm = $minCm === $maxCm ? "{$minCm} cm" : "{$minCm}–{$maxCm} cm";
+
+        return "{$imperial} ({$cm})";
+    }
+}
+
 if (! function_exists('profile_location_fields')) {
     /**
      * @return array<int, array{label: string, value: string}>
