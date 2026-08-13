@@ -8,6 +8,7 @@
             "iso": "BD",
             "dial": "+880",
             "hierarchy_type": "division_district_upazila",
+            "max_levels": 4,
             "level_2_label": "Division",
             "level_3_label": "District \/ City",
             "level_4_label": "Upazila \/ Thana",

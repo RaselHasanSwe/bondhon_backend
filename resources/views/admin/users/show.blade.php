@@ -330,7 +330,7 @@
 
                     <div class="section-divider">Physical Attributes</div>
                     <div class="ud-meta-row mb-3">
-                        <div class="ud-meta-item"><span class="label">Height</span><span class="value">{{ $profile->height_cm ? $profile->height_cm . ' cm' : '—' }}</span></div>
+                        <div class="ud-meta-item"><span class="label">Height</span><span class="value">{{ $profile->height_cm ? format_height_cm($profile->height_cm) : '—' }}</span></div>
                         <div class="ud-meta-item"><span class="label">Weight</span><span class="value">{{ $profile->weight_kg ? $profile->weight_kg . ' kg' : '—' }}</span></div>
                         <div class="ud-meta-item"><span class="label">Body Type</span><span class="value">{{ humanize($profile->body_type) ?? $profile->body_type ?? '—' }}</span></div>
                         <div class="ud-meta-item"><span class="label">Complexion</span><span class="value">{{ humanize($profile->complexion) ?? $profile->complexion ?? '—' }}</span></div>
@@ -521,7 +521,13 @@
                     <div class="section-divider">Age & Physical</div>
                     <div class="ud-meta-row mb-3">
                         <div class="ud-meta-item"><span class="label">Age Range</span><span class="value">{{ $partner->age_min ?? '—' }} – {{ $partner->age_max ?? '—' }} yrs</span></div>
-                        <div class="ud-meta-item"><span class="label">Height Range</span><span class="value">{{ $partner->height_min_cm ?? '—' }} – {{ $partner->height_max_cm ?? '—' }} cm</span></div>
+                        <div class="ud-meta-item"><span class="label">Height Range</span><span class="value">
+                            @if($partner?->height_min_cm && $partner?->height_max_cm)
+                                {{ format_height_range_cm($partner->height_min_cm, $partner->height_max_cm) }}
+                            @else
+                                —
+                            @endif
+                        </span></div>
                         <div class="ud-meta-item"><span class="label">Body Type</span><span class="value">{{ json_list($partner->body_type) }}</span></div>
                         <div class="ud-meta-item"><span class="label">Complexion</span><span class="value">{{ json_list($partner->complexion) }}</span></div>
                         <div class="ud-meta-item"><span class="label">Blood Group</span><span class="value">{{ json_list($partner->blood_group) }}</span></div>

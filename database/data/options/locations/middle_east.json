@@ -6,6 +6,7 @@
         "sort_order": 5,
         "metadata": {
             "hierarchy_type": "region_city",
+            "max_levels": 3,
             "level_2_label": "Region",
             "level_3_label": "City",
             "field_map": {
