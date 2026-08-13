@@ -155,13 +155,18 @@ if (! function_exists('profile_location_fields')) {
         $fieldMap = $metadata['field_map'] ?? [];
         $parentId = $countryOption->id;
 
+        $maxLevels = (int) ($metadata['max_levels'] ?? (
+            ($metadata['hierarchy_type'] ?? '') === 'division_district_upazila' ? 4 : 3
+        ));
+        $levelKeys = array_slice(['level_2', 'level_3', 'level_4'], 0, max(0, $maxLevels - 1));
+
         $levelConfig = [
             'level_2' => ['label_key' => 'level_2_label', 'default' => 'Region'],
             'level_3' => ['label_key' => 'level_3_label', 'default' => 'City'],
             'level_4' => ['label_key' => 'level_4_label', 'default' => 'Area'],
         ];
 
-        foreach (['level_2', 'level_3', 'level_4'] as $level) {
+        foreach ($levelKeys as $level) {
             $profileField = $fieldMap[$level] ?? null;
 
             if (! $profileField || ! $parentId) {
@@ -186,6 +191,9 @@ if (! function_exists('profile_location_fields')) {
                 ->first(['id']);
 
             $parentId = $childOption?->id;
+            if (! $parentId) {
+                break;
+            }
         }
 
         return $fields;

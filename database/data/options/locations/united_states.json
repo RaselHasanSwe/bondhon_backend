@@ -8,9 +8,12 @@
             "iso": "US",
             "dial": "+1",
             "hierarchy_type": "state_city",
+            "max_levels": 3,
             "level_2_label": "State\/City",
+            "level_3_label": "City",
             "field_map": {
-                "level_2": "state"
+                "level_2": "state",
+                "level_3": "city"
             }
         },
         "children": [
